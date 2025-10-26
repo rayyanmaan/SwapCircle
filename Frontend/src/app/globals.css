@@ -1,15 +1,94 @@
 @import "tailwindcss";
 
+/* Theme variables - Gen Z Aesthetic */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fdf2f8;
+  --foreground: #1e1b4b;
+  
+  /* Primary colors - Gen Z Purple-Pink */
+  --swapcircle-primary: #9333ea;
+  --swapcircle-primary-hover: #a855f7;
+  
+  /* Secondary colors - Vibrant Neons */
+  --swapcircle-purple: #8b5cf6;
+  --swapcircle-pink: #ec4899;
+  --swapcircle-hotpink: #ff006e;
+  --swapcircle-cyan: #06b6d4;
+  --swapcircle-mint: #10b981;
+  --swapcircle-yellow: #fbbf24;
+  --swapcircle-orange: #f97316;
+  
+  /* Neutral colors - Pink-Tinted Gen Z Palette */
+  --swapcircle-neutral-50: #fdf2f8;
+  --swapcircle-neutral-100: #fce7f3;
+  --swapcircle-neutral-200: #fbcfe8;
+  --swapcircle-neutral-300: #f9a8d4;
+  --swapcircle-neutral-400: #f472b6;
+  --swapcircle-neutral-500: #a78bfa;
+  --swapcircle-neutral-600: #7c3aed;
+  --swapcircle-neutral-700: #6b21a8;
+  --swapcircle-neutral-800: #4c1d95;
+  --swapcircle-neutral-900: #1e1b4b;
+  
+  /* Semantic colors */
+  --swapcircle-success: #10b981;
+  --swapcircle-error: #ef4444;
+  --swapcircle-warning: #f59e0b;
+  --swapcircle-info: #3b82f6;
+  
+  /* Special colors */
+  --swapcircle-credit: #fbbf24;
+  
+  /* Background colors */
+  --swapcircle-background-alt: #faf5ff;
+  
+  /* Text colors */
+  --swapcircle-text-primary: #1e1b4b;
+  --swapcircle-text-secondary: #7c3aed;
+  --swapcircle-text-tertiary: #a78bfa;
+  
+  /* Border colors */
+  --swapcircle-border: #fbcfe8;
+  --swapcircle-border-hover: #f472b6;
 }
 
 @theme inline {
+  /* System colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Primary colors - Gen Z */
+  --color-primary: 147 51 234; /* #9333ea */
+  --color-primary-hover: 168 85 247; /* #a855f7 */
+  
+  /* Secondary colors */
+  --color-secondary-purple: 139 92 246; /* #8b5cf6 */
+  --color-secondary-pink: 236 72 153; /* #ec4899 */
+  --color-secondary-hotpink: 255 0 110; /* #ff006e */
+  --color-secondary-blue: 6 182 212; /* #06b6d4 */
+  --color-secondary-mint: 16 185 129; /* #10b981 */
+  --color-secondary-yellow: 251 191 36; /* #fbbf24 */
+  --color-secondary-orange: 249 115 22; /* #f97316 */
+  
+  /* Neutral colors */
+  --color-neutral-50: 253 242 248; /* #fdf2f8 */
+  --color-neutral-100: 252 231 243; /* #fce7f3 */
+  --color-neutral-200: 251 207 232; /* #fbcfe8 */
+  --color-neutral-300: 249 168 212; /* #f9a8d4 */
+  --color-neutral-400: 244 114 182; /* #f472b6 */
+  --color-neutral-500: 167 139 250; /* #a78bfa */
+  --color-neutral-600: 124 58 237; /* #7c3aed */
+  --color-neutral-700: 107 33 168; /* #6b21a8 */
+  --color-neutral-800: 76 29 149; /* #4c1d95 */
+  --color-neutral-900: 30 27 75; /* #1e1b4b */
+  
+  /* Semantic colors */
+  --color-success: 16 185 129; /* #10b981 */
+  --color-error: 255 0 110; /* #ff006e */
+  --color-warning: 251 191 36; /* #fbbf24 */
+  --color-info: 6 182 212; /* #06b6d4 */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +101,28 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
