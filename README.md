@@ -14,49 +14,95 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
 
 ## 🛠️ Tech Stack
 ### Frontend
-- Framework: [TBD]
-- UI Library: [TBD]
-- State Management: [TBD]
+- **Framework**: Next.js 15.5.6 (with Turbopack)
+- **UI Library**: React 19.1.0
+- **Styling**: Tailwind CSS v4
+- **Linting**: ESLint with Next.js config
 
 ### Backend
-- Framework: [TBD]
-- Database: [TBD]
-- Authentication: [TBD]
+- **Framework**: FastAPI (Python)
+- **Database**: MongoDB
+- **Configuration**: Pydantic Settings
+- **Architecture**: RESTful API with async/await support
 
 ### Infrastructure
-- Hosting: [TBD]
-- Storage: [TBD]
+- **Hosting**: [TBD]
+- **Storage**: [TBD]
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- [List required software and versions]
-- [e.g., Node.js v18+, Python 3.9+, etc.]
+- **Node.js** v18+ (for Frontend)
+- **Python** 3.9+ (for Backend)
+- **MongoDB** (local installation or MongoDB Atlas account)
+- **npm** or **yarn** or **pnpm** (package manager)
 
 ### Installation
+
 1. Clone the repository
    ```bash
    git clone https://github.com/rayyanmaan/SwapCircle.git
    cd SwapCircle
    ```
 
-2. Install dependencies
+2. **Frontend Setup**
    ```bash
-   # Add installation commands here
+   cd Frontend
+   npm install
+   # or
+   yarn install
+   # or
+   pnpm install
    ```
 
-3. Set up environment variables
+3. **Backend Setup**
    ```bash
-   # Copy .env.example to .env and fill in required values
-   cp .env.example .env
+   cd Backend
+   # Create a virtual environment (recommended)
+   python -m venv venv
+   
+   # Activate virtual environment
+   # On Windows:
+   venv\Scripts\activate
+   # On macOS/Linux:
+   source venv/bin/activate
+   
+   # Install dependencies (create requirements.txt if needed)
+   pip install fastapi uvicorn pydantic motor pymongo
    ```
 
-4. Run the development server
+4. **Set up environment variables**
+   
+   Create a `.env` file in the `Backend` directory:
    ```bash
-   # Add command to start the server
+   cd Backend
+   # Create .env file with the following variables:
+   MONGODB_URI=mongodb://localhost:27017/swapcircle
+   DATABASE_NAME=swapcircle
+   SECRET_KEY=your-secret-key-here
    ```
 
-5. Open your browser and navigate to `http://localhost:[PORT]`
+5. **Run the development servers**
+
+   **Backend** (in one terminal):
+   ```bash
+   cd Backend
+   uvicorn main:app --reload
+   ```
+   Backend will run on `http://localhost:8000`
+
+   **Frontend** (in another terminal):
+   ```bash
+   cd Frontend
+   npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
+   ```
+   Frontend will run on `http://localhost:3000`
+
+6. Open your browser and navigate to `http://localhost:3000`
 
 ## 📝 Usage
 [Add instructions on how to use the platform, including screenshots or GIFs]
@@ -64,9 +110,57 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
 ## 🗂️ Project Structure
 ```
 SwapCircle/
-├── [Add your project structure here]
-├── 
-└── 
+├── Frontend/                 # Next.js frontend application
+│   ├── src/
+│   │   ├── app/             # Next.js App Router pages
+│   │   │   ├── page.js      # Home page
+│   │   │   └── product/     # Product detail pages
+│   │   ├── components/      # React components
+│   │   │   ├── AuthModal.js
+│   │   │   ├── Header.js
+│   │   │   ├── Footer.js
+│   │   │   ├── HeroSection.js
+│   │   │   ├── ListingCard.js
+│   │   │   ├── ListingsGrid.js
+│   │   │   ├── ProductDetail.js
+│   │   │   └── ValueProposition.js
+│   │   └── styles/          # Global styles and theme
+│   ├── public/              # Static assets
+│   ├── package.json
+│   ├── next.config.mjs      # Next.js configuration
+│   ├── tailwind.config.js   # Tailwind CSS configuration
+│   └── eslint.config.mjs    # ESLint configuration
+│
+├── Backend/                 # FastAPI backend application
+│   ├── main.py              # FastAPI application entry point
+│   ├── config.py            # Configuration and settings
+│   ├── database/
+│   │   └── connection.py    # MongoDB connection helpers
+│   ├── models/              # Data models
+│   │   ├── user_model.py
+│   │   ├── item_model.py
+│   │   ├── message_model.py
+│   │   └── transaction_model.py
+│   ├── routes/              # API route handlers
+│   │   ├── auth_routes.py
+│   │   ├── user_routes.py
+│   │   ├── item_routes.py
+│   │   ├── message_routes.py
+│   │   └── credit_routes.py
+│   ├── services/            # Business logic services
+│   │   ├── auth_service.py
+│   │   ├── email_service.py
+│   │   ├── image_service.py
+│   │   └── credit_service.py
+│   └── utils/               # Utility functions
+│       ├── constants.py
+│       ├── token_utils.py
+│       └── validators.py
+│
+├── Documentation/           # Project documentation
+│   └── documentation.md
+│
+└── README.md               # This file
 ```
 
 ## 🧪 Testing
