@@ -60,3 +60,25 @@ For each check-in, include:
 - Regular team meetings for alignment
 - Code reviews before merging
 
+## TODO & Next Steps
+
+### Check-in Preparation
+- [ ] Prepare individual contribution summaries
+- [ ] Document team accomplishments
+- [ ] List code reviews completed
+- [ ] Gather links to pull requests
+- [ ] Prepare demo materials (if required)
+
+### Final Submission Preparation
+- [ ] Compile all pull request links
+- [ ] Document all PRs reviewed
+- [ ] Create demo video
+- [ ] Finalize codebase documentation
+- [ ] Prepare team contributions summary
+
+### Documentation Tasks
+- [ ] Complete API documentation
+- [ ] Write setup instructions
+- [ ] Create deployment guide
+- [ ] Document known issues and limitations
+- [ ] Add troubleshooting section

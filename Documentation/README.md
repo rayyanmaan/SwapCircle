@@ -42,3 +42,22 @@ Welcome to the SwapCircle documentation! This folder contains all project docume
 - [Frontend Code](../Frontend/)
 - [Main Project README](../README.md)
 
+## TODO & Documentation Improvements
+
+### Content Updates
+- [ ] Keep documentation synchronized with code changes
+- [ ] Add API endpoint examples and request/response formats
+- [ ] Include database schema diagrams
+- [ ] Document deployment procedures
+
+### Structure Improvements
+- [ ] Add table of contents to longer documents
+- [ ] Create cross-references between related sections
+- [ ] Add glossary of terms
+- [ ] Include troubleshooting guides
+
+### Maintenance
+- [ ] Review and update outdated information
+- [ ] Add changelog for documentation updates
+- [ ] Ensure all links are working
+- [ ] Standardize formatting across all documents

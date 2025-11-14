@@ -86,3 +86,33 @@ Building a campus-exclusive web app allowing students to exchange clothes withou
 - Messaging system
 - Advanced search and filters
 
+## TODO & Next Steps
+
+### Core Features (In Progress)
+- [ ] Complete user authentication flow
+- [ ] Implement credit system backend logic
+- [ ] Finish item CRUD operations
+- [ ] Connect frontend to backend APIs
+- [ ] Test end-to-end user flows
+
+### Additional Features (Future)
+- [ ] Integrate campus map for pickup locations
+- [ ] Build messaging/chat system
+- [ ] Add advanced filtering and search
+- [ ] Implement email notifications
+- [ ] Add location-based filtering
+
+### Testing & Deployment
+- [ ] Write comprehensive unit tests
+- [ ] Set up integration testing
+- [ ] Prepare deployment documentation
+- [ ] Deploy to staging environment
+- [ ] Perform user acceptance testing
+
+### Documentation
+- [ ] Complete API documentation
+- [ ] Write setup/installation guide
+- [ ] Create user manual
+- [ ] Document deployment process
+- [ ] Add architecture diagrams
+
