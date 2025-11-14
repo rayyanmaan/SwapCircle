@@ -180,3 +180,29 @@ Each team member works completely independently on their timeline without needin
   - [Architecture Discussion](https://chatgpt.com/s/t_68f63ee2a2dc8191872e534b5cb52ae1)
   - [Task Split Discussion](https://chatgpt.com/c/68f6364f-8334-8332-8585-59db782fe10f)
 
+## TODO & Next Steps
+
+### Integration Tasks
+- [ ] Replace dummy IDs with real references once all team members complete their independent work
+- [ ] Connect services through shared database models
+- [ ] Unify API endpoints and test end-to-end flows
+- [ ] Integrate credit system with item locking/unlocking
+- [ ] Connect user authentication with item ownership
+
+### Testing & Quality
+- [ ] Add integration tests for cross-service functionality
+- [ ] Review and consolidate unit tests from all team members
+- [ ] Set up continuous integration pipeline
+- [ ] Add API documentation (OpenAPI/Swagger)
+
+### Deployment
+- [ ] Finalize deployment configuration
+- [ ] Set up production database
+- [ ] Configure environment variables
+- [ ] Test deployment pipeline
+
+### Documentation
+- [ ] Update file structure to match actual implementation
+- [ ] Document API endpoints with request/response examples
+- [ ] Add database schema diagrams
+- [ ] Document deployment process

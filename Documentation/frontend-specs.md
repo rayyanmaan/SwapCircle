@@ -120,27 +120,42 @@
 - Condition filter
 - Brand filter (if feasible)
 
-### Random Things to Consider
+### Additional Considerations
 - Two more pages (to be defined)
 - Responsive design for mobile and desktop
-- Accessibility considerations
+- Accessibility considerations (WCAG guidelines)
+- Performance optimization
+- Error handling and user feedback
 
 ## Next Steps
 
-### Before Oct 25th at 19:00
-Each team member should diagram out their assigned page:
+### Completed Tasks
+- ✅ Page diagrams completed (Oct 25th deadline)
+- ✅ Design specifications finalized (Oct 26th)
+- ✅ Logo finalized (Nov 1st)
 
-1. **Product Page** – Aiman
-   - The expansion of one item
-   - Sample design
+### TODO & Future Improvements
 
-2. **Listing Page** – Mulyn
-   - No expand outs, just items listed in specific category
-   - Sample design
+#### Design & UI
+- [ ] Finalize responsive design for mobile and desktop
+- [ ] Implement accessibility features (WCAG compliance)
+- [ ] Create design system/style guide
+- [ ] Add loading states and error handling UI
+- [ ] Implement smooth transitions and animations
 
-3. **Main Page** – Hasnain
-   - Landing page, shows general categories
-   - Sample design
+#### Features
+- [ ] Implement advanced search functionality
+- [ ] Add brand search/filter capability
+- [ ] Complete two additional pages (to be defined)
+- [ ] Add campus map integration
+- [ ] Implement messaging system UI
+
+#### Technical
+- [ ] Set up frontend testing framework
+- [ ] Optimize image loading and performance
+- [ ] Implement error boundaries
+- [ ] Add analytics tracking
+- [ ] Set up CI/CD for frontend deployment
 
 ## Hasnain's Notes
 
