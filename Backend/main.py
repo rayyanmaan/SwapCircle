@@ -2,10 +2,18 @@
 """
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
-from app.database.connection import connect_db, close_db
+from Backend.database.connection import connect_db, close_db
+from Backend.routes.item_routes import router as items_router
 
-app = FastAPI(title="SwapCircle Backend (stub)")
+app = FastAPI(title="SwapCircle Backend")
+
+# mount static so uploaded images under Backend/static/images are reachable
+app.mount("/static", StaticFiles(directory="Backend/static"), name="static")
+
+# include items router (implemented in item_routes_impl.py)
+app.include_router(items_router)
 
 
 @app.on_event("startup")

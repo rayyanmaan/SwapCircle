@@ -1,15 +1,8 @@
-"""Item routes (stubs)
+"""Compatibility shim for item routes.
+
+This file keeps the original import path (Backend.routes.item_routes) but
+re-exports the router implemented in item_routes_impl.py. This allows the
+application to pick up the new router without changing other imports.
 """
-from fastapi import APIRouter
+from .item_routes_impl import router as router
 
-router = APIRouter(prefix="/items", tags=["items"])
-
-
-@router.post("/")
-async def create_item():
-    return {"message": "create item stub"}
-
-
-@router.get("/")
-async def list_items():
-    return {"items": []}

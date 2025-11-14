@@ -2,7 +2,7 @@
 """
 import asyncio
 
-from app.config import settings
+from Backend.config import settings
 
 
 _db_client = None
