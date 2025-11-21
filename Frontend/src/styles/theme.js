@@ -1,76 +1,73 @@
 /**
- * SwapCircle Theme Configuration - Gen Z Aesthetic
+ * SwapCircle Theme Configuration - Clean & Modern
  * 
- * Trending Gen Z vibes: Bubblegum pinks, electric blues, neon greens
- * Inspired by TikTok, Instagram Stories, and Y2K nostalgia
+ * Clean, minimalist design with blue accents
+ * Inspired by modern, professional campus platforms
  * 
  * Color Usage Guide:
- * - Primary: Main brand color (trendy purple-pink gradient)
- * - Secondary: Vibrant accent colors for gradients and highlights
- * - Neutral: Soft pastels mixed with bold darks
- * - Semantic: Bright, attention-grabbing status colors
- * - Credit: Eye-catching gold/amber for credits display
+ * - Primary: Main brand color (vibrant blue)
+ * - Secondary: Light blue accents for interactive elements
+ * - Neutral: Clean whites and blacks
+ * - Semantic: Standard status colors
+ * - Credit: Light blue for credits display
  */
 
 export const theme = {
   colors: {
-    // Primary brand color - Gen Z purple-pink
-    primary: '#9333ea', // Vibrant purple
-    primaryHover: '#a855f7', // Lighter purple
-    primaryGradient: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)', // Pink to purple
+    // Primary brand color - Vibrant blue
+    primary: '#2563EB', // Blue
+    primaryHover: '#1D4ED8', // Darker blue
+    primaryGradient: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', // Blue gradient
     
-    // Secondary/accent colors - Neon & Vibrant palette
+    // Secondary/accent colors - Blue palette
     secondary: {
-      purple: '#8b5cf6',     // Electric purple
-      pink: '#ec4899',       // Bubblegum pink
-      hotpink: '#ff006e',    // Hot pink
-      blue: '#06b6d4',       // Cyan blue
-      mint: '#10b981',       // Mint green
-      yellow: '#fbbf24',     // Sunshine yellow
-      orange: '#f97316',      // Tangerine
-      neon: '#00ff88',       // Neon green
+      blue: '#2563EB',       // Primary blue
+      lightBlue: '#3B82F6',  // Light blue
+      lighterBlue: '#60A5FA', // Lighter blue
+      darkBlue: '#1D4ED8',   // Dark blue
+      veryLightBlue: '#DBEAFE', // Very light blue for backgrounds
     },
     
-    // Neutral colors - Gen Z palette with subtle pastels
+    // Neutral colors - Clean whites and grays
     neutral: {
-      50: '#fdf2f8',   // Soft pink-tinted white
-      100: '#fce7f3',
-      200: '#fbcfe8',
-      300: '#f9a8d4',
-      400: '#f472b6',   // Pink accent
-      500: '#a78bfa',   // Purple-accented gray
-      600: '#7c3aed',   // Deep purple
-      700: '#6b21a8',
-      800: '#4c1d95',
-      900: '#1e1b4b',   // Dark navy-purple
+      50: '#FFFFFF',   // Pure white
+      100: '#F9FAFB',  // Off-white
+      200: '#F3F4F6',  // Light gray
+      300: '#E5E7EB',  // Medium light gray
+      400: '#D1D5DB',  // Medium gray
+      500: '#9CA3AF',  // Gray
+      600: '#6B7280',  // Dark gray
+      700: '#4B5563',  // Darker gray
+      800: '#374151',  // Very dark gray
+      900: '#000000',  // Black
     },
     
-    // Semantic colors - Bright & attention-grabbing
-    success: '#10b981',  // Emerald green
-    error: '#ff006e',    // Hot pink error (trendy)
-    warning: '#fbbf24',  // Sunshine yellow
-    info: '#06b6d4',     // Cyan blue
+    // Semantic colors - Standard status colors
+    success: '#10B981',  // Green
+    error: '#EF4444',    // Red
+    warning: '#F59E0B',  // Amber
+    info: '#3B82F6',     // Blue
     
     // Special colors
-    credit: '#fbbf24',   // Gold for credits
-    creditNeon: '#00ff88', // Neon green alternative
+    credit: '#DBEAFE',   // Light blue for credits display
+    creditText: '#1E40AF', // Dark blue for credit text
     
     // Backgrounds
-    background: '#fdf2f8',  // Soft pink-tinted white
-    backgroundAlt: '#faf5ff', // Lavender-tinted gray
+    background: '#FFFFFF',  // Pure white
+    backgroundAlt: '#F9FAFB', // Off-white
     
-    // Text - Gen Z friendly contrasts
+    // Text - Clean black and grays
     text: {
-      primary: '#1e1b4b',      // Deep purple
-      secondary: '#7c3aed',    // Medium purple
-      tertiary: '#a78bfa',     // Light purple
-      inverse: '#ffffff',       // White text
-      pink: '#ec4899',         // Pink text for accents
+      primary: '#000000',      // Black
+      secondary: '#374151',    // Dark gray
+      tertiary: '#6B7280',     // Medium gray
+      inverse: '#FFFFFF',       // White text
+      blue: '#2563EB',         // Blue text for accents
     },
     
-    // Borders - Soft with color accents
-    border: '#fbcfe8',         // Soft pink
-    borderHover: '#f472b6',    // Vibrant pink
+    // Borders - Clean grays
+    border: '#E5E7EB',         // Light gray
+    borderHover: '#D1D5DB',    // Medium gray
   },
   
   // Spacing scale (used throughout components)
@@ -105,6 +102,7 @@ export const theme = {
   typography: {
     fontFamily: {
       sans: 'var(--font-geist-sans), system-ui, sans-serif',
+      script: 'var(--font-dancing-script), cursive',
       mono: 'var(--font-geist-mono), monospace',
     },
     fontSize: {

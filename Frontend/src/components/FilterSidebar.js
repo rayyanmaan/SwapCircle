@@ -80,15 +80,15 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
   };
 
   return (
-    <div className="bg-white rounded-lg border p-6" style={{ borderColor: '#fbcfe8' }}>
+    <div className="card-swapcircle bg-white rounded-lg border p-6 border-swapcircle">
       {/* Mobile Close Button */}
       <div className="lg:hidden flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold" style={{ color: '#1e1b4b' }}>
+        <h2 className="heading-primary text-xl font-bold">
           Filters
         </h2>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="p-2 hover:bg-gray-100 rounded-full transition-colors icon-secondary"
           aria-label="Close filters"
         >
           <svg
@@ -99,7 +99,6 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
             strokeWidth="2"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            style={{ color: '#7c3aed' }}
           >
             <path d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -107,15 +106,14 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
       </div>
 
       {/* Desktop Title */}
-      <h2 className="hidden lg:block text-xl font-bold mb-6" style={{ color: '#1e1b4b' }}>
+      <h2 className="heading-primary hidden lg:block text-xl font-bold mb-6">
         Filters
       </h2>
 
       {/* Clear All Button */}
       <button
         onClick={clearAllFilters}
-        className="mb-6 text-sm font-medium transition-colors hover:opacity-70"
-        style={{ color: '#9333ea' }}
+        className="text-swapcircle-blue text-sm font-medium link-swapcircle mb-6"
       >
         Clear all filters
       </button>
@@ -123,7 +121,7 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
       <div className="space-y-6">
         {/* Categories */}
         <div>
-          <h3 className="font-semibold mb-3" style={{ color: '#1e1b4b' }}>
+          <h3 className="heading-primary font-semibold mb-3">
             Category
           </h3>
           <div className="space-y-2">
@@ -136,16 +134,12 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
                   type="checkbox"
                   checked={localFilters.categories.includes(category)}
                   onChange={(e) => handleCategoryChange(category, e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 focus:ring-2 focus:ring-purple-500"
+                  className="w-4 h-4 rounded border-swapcircle focus:ring-2 focus:ring-primary"
                   style={{
-                    accentColor: '#9333ea',
-                    borderColor: '#fbcfe8',
+                    accentColor: 'var(--swapcircle-primary)',
                   }}
                 />
-                <span
-                  className="ml-2 text-sm transition-colors group-hover:opacity-70"
-                  style={{ color: '#7c3aed' }}
-                >
+                <span className="ml-2 text-sm transition-colors group-hover:opacity-70 text-swapcircle-secondary">
                   {category}
                 </span>
               </label>
@@ -155,18 +149,18 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
 
         {/* Sizes */}
         <div>
-          <h3 className="font-semibold mb-3" style={{ color: '#1e1b4b' }}>
+          <h3 className="heading-primary font-semibold mb-3">
             Size
           </h3>
           <div className="grid grid-cols-3 gap-2">
             {SIZES.map((size) => (
               <label
                 key={size}
-                className="flex items-center justify-center p-2 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50"
-                style={{
-                  borderColor: localFilters.sizes.includes(size) ? '#9333ea' : '#fbcfe8',
-                  backgroundColor: localFilters.sizes.includes(size) ? '#faf5ff' : 'transparent',
-                }}
+                className={`flex items-center justify-center p-2 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                  localFilters.sizes.includes(size) 
+                    ? 'border-swapcircle-primary bg-swapcircle-credit' 
+                    : 'border-swapcircle'
+                }`}
               >
                 <input
                   type="checkbox"
@@ -174,12 +168,11 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
                   onChange={(e) => handleSizeChange(size, e.target.checked)}
                   className="sr-only"
                 />
-                <span
-                  className="text-sm font-medium"
-                  style={{
-                    color: localFilters.sizes.includes(size) ? '#9333ea' : '#7c3aed',
-                  }}
-                >
+                <span className={`text-sm font-medium ${
+                  localFilters.sizes.includes(size) 
+                    ? 'text-swapcircle-blue' 
+                    : 'text-swapcircle-secondary'
+                }`}>
                   {size}
                 </span>
               </label>
@@ -189,7 +182,7 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
 
         {/* Condition */}
         <div>
-          <h3 className="font-semibold mb-3" style={{ color: '#1e1b4b' }}>
+          <h3 className="heading-primary font-semibold mb-3">
             Condition
           </h3>
           <div className="space-y-2">
@@ -202,16 +195,12 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
                   type="checkbox"
                   checked={localFilters.conditions.includes(condition)}
                   onChange={(e) => handleConditionChange(condition, e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 focus:ring-2 focus:ring-purple-500"
+                  className="w-4 h-4 rounded border-swapcircle focus:ring-2 focus:ring-primary"
                   style={{
-                    accentColor: '#9333ea',
-                    borderColor: '#fbcfe8',
+                    accentColor: 'var(--swapcircle-primary)',
                   }}
                 />
-                <span
-                  className="ml-2 text-sm transition-colors group-hover:opacity-70"
-                  style={{ color: '#7c3aed' }}
-                >
+                <span className="ml-2 text-sm transition-colors group-hover:opacity-70 text-swapcircle-secondary">
                   {condition}
                 </span>
               </label>
@@ -221,12 +210,12 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
 
         {/* Credits Range */}
         <div>
-          <h3 className="font-semibold mb-3" style={{ color: '#1e1b4b' }}>
+          <h3 className="heading-primary font-semibold mb-3">
             Credits Range
           </h3>
           <div className="space-y-3">
             <div>
-              <label className="block text-xs mb-1" style={{ color: '#7c3aed' }}>
+              <label className="block text-xs mb-1 text-swapcircle-secondary">
                 Min Credits
               </label>
               <input
@@ -235,15 +224,11 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
                 value={localFilters.minCredits ?? ''}
                 onChange={(e) => handleCreditsChange('minCredits', e.target.value)}
                 placeholder="0"
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                style={{
-                  borderColor: '#fbcfe8',
-                  color: '#1e1b4b',
-                }}
+                className="input-swapcircle"
               />
             </div>
             <div>
-              <label className="block text-xs mb-1" style={{ color: '#7c3aed' }}>
+              <label className="block text-xs mb-1 text-swapcircle-secondary">
                 Max Credits
               </label>
               <input
@@ -252,11 +237,7 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
                 value={localFilters.maxCredits ?? ''}
                 onChange={(e) => handleCreditsChange('maxCredits', e.target.value)}
                 placeholder="No limit"
-                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                style={{
-                  borderColor: '#fbcfe8',
-                  color: '#1e1b4b',
-                }}
+                className="input-swapcircle"
               />
             </div>
           </div>
