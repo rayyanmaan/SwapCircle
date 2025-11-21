@@ -238,16 +238,16 @@ export default function BrowsePage() {
     (filters.maxCredits !== null ? 1 : 0);
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: '#fdf2f8' }}>
+    <main className="min-h-screen bg-swapcircle-white">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-4xl font-bold mb-2" style={{ color: '#1e1b4b' }}>
+          <h1 className="heading-primary text-4xl font-bold mb-2">
             Browse All Items
           </h1>
-          <p className="text-lg" style={{ color: '#7c3aed' }}>
+          <p className="text-swapcircle-secondary text-lg">
             Discover amazing clothing swaps from your campus community
           </p>
         </div>
@@ -267,15 +267,10 @@ export default function BrowsePage() {
             {/* Filter Toggle Button (Mobile) */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="lg:hidden px-4 py-2 border-2 rounded-lg font-medium transition-colors flex items-center gap-2"
-              style={{
-                borderColor: '#9333ea',
-                color: '#9333ea',
-                backgroundColor: 'transparent',
-              }}
+              className="btn-secondary lg:hidden flex items-center gap-2"
             >
               <svg
-                className="w-5 h-5"
+                className="w-5 h-5 icon-primary"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -287,10 +282,7 @@ export default function BrowsePage() {
               </svg>
               Filters
               {activeFilterCount > 0 && (
-                <span
-                  className="px-2 py-0.5 rounded-full text-xs font-bold text-white"
-                  style={{ backgroundColor: '#9333ea' }}
-                >
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold text-white bg-swapcircle-primary">
                   {activeFilterCount}
                 </span>
               )}
@@ -305,14 +297,13 @@ export default function BrowsePage() {
           {/* Active Filters Display */}
           {activeFilterCount > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium" style={{ color: '#7c3aed' }}>
+              <span className="text-swapcircle-secondary text-sm font-medium">
                 Active filters:
               </span>
               {filters.categories.map((cat) => (
                 <span
                   key={cat}
-                  className="px-3 py-1 rounded-full text-sm bg-white border"
-                  style={{ borderColor: '#fbcfe8', color: '#7c3aed' }}
+                  className="px-3 py-1 rounded-full text-sm bg-white border border-swapcircle text-swapcircle-secondary"
                 >
                   {cat}
                 </span>
@@ -320,8 +311,7 @@ export default function BrowsePage() {
               {filters.sizes.map((size) => (
                 <span
                   key={size}
-                  className="px-3 py-1 rounded-full text-sm bg-white border"
-                  style={{ borderColor: '#fbcfe8', color: '#7c3aed' }}
+                  className="px-3 py-1 rounded-full text-sm bg-white border border-swapcircle text-swapcircle-secondary"
                 >
                   {size}
                 </span>
@@ -329,25 +319,20 @@ export default function BrowsePage() {
               {filters.conditions.map((cond) => (
                 <span
                   key={cond}
-                  className="px-3 py-1 rounded-full text-sm bg-white border"
-                  style={{ borderColor: '#fbcfe8', color: '#7c3aed' }}
+                  className="px-3 py-1 rounded-full text-sm bg-white border border-swapcircle text-swapcircle-secondary"
                 >
                   {cond}
                 </span>
               ))}
               {(filters.minCredits !== null || filters.maxCredits !== null) && (
-                <span
-                  className="px-3 py-1 rounded-full text-sm bg-white border"
-                  style={{ borderColor: '#fbcfe8', color: '#7c3aed' }}
-                >
+                <span className="px-3 py-1 rounded-full text-sm bg-white border border-swapcircle text-swapcircle-secondary">
                   Credits: {filters.minCredits !== null ? filters.minCredits : '0'} -{' '}
                   {filters.maxCredits !== null ? filters.maxCredits : '∞'}
                 </span>
               )}
               <button
                 onClick={clearFilters}
-                className="px-3 py-1 rounded-full text-sm font-medium transition-colors hover:opacity-70"
-                style={{ color: '#9333ea' }}
+                className="text-swapcircle-blue text-sm font-medium link-swapcircle px-3 py-1"
               >
                 Clear all
               </button>
@@ -373,7 +358,7 @@ export default function BrowsePage() {
           {/* Listings Grid */}
           <div className="flex-1">
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm" style={{ color: '#7c3aed' }}>
+              <p className="text-swapcircle-secondary text-sm">
                 Showing {filteredListings.length} of {sampleListings.length} items
               </p>
             </div>
@@ -385,27 +370,25 @@ export default function BrowsePage() {
             ) : (
               <div className="text-center py-16">
                 <svg
-                  className="w-16 h-16 mx-auto mb-4"
+                  className="w-16 h-16 mx-auto mb-4 icon-tertiary"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="1.5"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
-                  style={{ color: '#a78bfa' }}
                 >
                   <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <h3 className="text-xl font-semibold mb-2" style={{ color: '#1e1b4b' }}>
+                <h3 className="heading-primary text-xl font-semibold mb-2">
                   No items found
                 </h3>
-                <p className="text-sm mb-4" style={{ color: '#7c3aed' }}>
+                <p className="text-swapcircle-secondary text-sm mb-4">
                   Try adjusting your filters or search query
                 </p>
                 <button
                   onClick={clearFilters}
-                  className="px-4 py-2 rounded-lg font-medium transition-colors hover:opacity-90 text-white"
-                  style={{ backgroundColor: '#9333ea' }}
+                  className="btn-primary"
                 >
                   Clear Filters
                 </button>

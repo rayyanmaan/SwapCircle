@@ -1,12 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from './AuthModal';
+import Logo from './Logo';
 
 export default function Header() {
+  const { user, isAuthenticated, logout } = useAuth();
+  const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   const openAuthModal = (mode) => {
     setAuthMode(mode);
@@ -17,48 +25,49 @@ export default function Header() {
     setShowAuthModal(false);
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    if (showUserDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserDropdown]);
+
+  const handleLogout = () => {
+    logout();
+    setShowUserDropdown(false);
+    router.push('/');
+  };
+
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white border-b border-neutral-200">
+      <header className="sticky top-0 z-40 bg-swapcircle-white border-b border-swapcircle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <a href="/" className="text-2xl font-bold" style={{ color: '#9333ea' }}>
-                SwapCircle
-              </a>
+              <Link href="/">
+                <Logo />
+              </Link>
             </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
-              <a
-                href="#"
-                className="font-medium transition-colors hover:opacity-70"
-                style={{ color: '#7c3aed' }}
-              >
-                Swap
-              </a>
-              <a
+              <Link
                 href="/browse"
-                className="font-medium transition-colors hover:opacity-70"
-                style={{ color: '#7c3aed' }}
+                className="font-medium link-swapcircle"
               >
                 Browse
-              </a>
-              <a
-                href="#"
-                className="font-medium transition-colors hover:opacity-70"
-                style={{ color: '#7c3aed' }}
-              >
-                How It Works
-              </a>
-              <a
-                href="#"
-                className="font-medium transition-colors hover:opacity-70"
-                style={{ color: '#7c3aed' }}
-              >
-                About
-              </a>
+              </Link>
             </nav>
 
             {/* Search Bar - Desktop */}
@@ -67,21 +76,16 @@ export default function Header() {
                 <input
                   type="text"
                   placeholder="Search for clothes..."
-                  className="w-full px-4 py-2 pl-10 border rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  style={{ 
-                    borderColor: '#fbcfe8',
-                    color: '#7c3aed'
-                  }}
+                  className="input-swapcircle search-tube"
                 />
                 <svg
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5"
+                  className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 icon-tertiary pointer-events-none"
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
-                  style={{ color: '#a78bfa' }}
                 >
                   <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -89,70 +93,83 @@ export default function Header() {
             </div>
 
             {/* Action Buttons */}
-            <div className="hidden md:flex items-center space-x-4">
-              <button
-                className="p-2 transition-colors"
-                aria-label="Favorites"
-                style={{ color: '#7c3aed' }}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </button>
-              <button
-                className="p-2 transition-colors"
-                aria-label="Shopping bag"
-                style={{ color: '#7c3aed' }}
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => openAuthModal('signup')}
-                className="px-4 py-2 text-white rounded-md font-medium transition-colors hover:opacity-90"
-                style={{ backgroundColor: '#9333ea' }}
-              >
-                Swap Now
-              </button>
-              <button
-                onClick={() => openAuthModal('login')}
-                className="px-4 py-2 border-2 rounded-md font-medium transition-colors hover:opacity-70"
-                style={{ borderColor: '#9333ea', color: '#9333ea', backgroundColor: 'transparent' }}
-              >
-                Log In
-              </button>
-              <button
-                onClick={() => openAuthModal('signup')}
-                className="px-4 py-2 text-white rounded-md font-medium transition-colors hover:opacity-90"
-                style={{ borderColor: '#9333ea', backgroundColor: '#9333ea' }}
-              >
-                Sign Up
-              </button>
+            <div className="hidden md:flex items-center space-x-3">
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/profile"
+                    className="btn-credit hover:bg-swapcircle-credit/80 transition-colors"
+                  >
+                    {user?.credits || 0} credits
+                  </Link>
+                  <Link href="/upload" className="btn-primary">
+                    List Item
+                  </Link>
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-swapcircle-neutral-100 transition-colors"
+                      onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    >
+                      <div className="w-8 h-8 rounded-full bg-swapcircle-primary flex items-center justify-center text-white text-sm font-semibold">
+                        {user?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                      <span className="text-sm text-swapcircle-secondary hidden lg:block">
+                        {user?.username || user?.email?.split('@')[0] || 'User'}
+                      </span>
+                      <svg
+                        className={`w-4 h-4 text-swapcircle-secondary transition-transform ${showUserDropdown ? 'rotate-180' : ''}`}
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {showUserDropdown && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-swapcircle py-1 z-50">
+                        <Link
+                          href="/profile"
+                          className="block px-4 py-2 text-sm text-swapcircle-secondary hover:bg-swapcircle-neutral-100 transition-colors"
+                          onClick={() => setShowUserDropdown(false)}
+                        >
+                          Profile
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-sm text-swapcircle-secondary hover:bg-swapcircle-neutral-100 transition-colors"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => openAuthModal('login')}
+                    className="btn-secondary"
+                  >
+                    Log In
+                  </button>
+                  <button
+                    onClick={() => openAuthModal('signup')}
+                    className="btn-primary"
+                  >
+                    Sign Up
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2"
+              className="md:hidden p-2 icon-primary"
               aria-label="Toggle menu"
-              style={{ color: '#7c3aed' }}
             >
               <svg
                 className="w-6 h-6"
@@ -178,10 +195,10 @@ export default function Header() {
               <input
                 type="text"
                 placeholder="Search for clothes..."
-                className="w-full px-4 py-2 pl-10 border border-neutral-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="input-swapcircle search-tube"
               />
               <svg
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400"
+                className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 icon-tertiary pointer-events-none"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -196,58 +213,71 @@ export default function Header() {
 
           {/* Mobile Menu */}
           {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-neutral-200 py-4 space-y-4">
+            <div className="md:hidden border-t border-swapcircle py-4 space-y-4">
               <nav className="flex flex-col space-y-3">
-                <a
-                  href="#"
-                  className="font-medium py-2 transition-colors hover:opacity-70"
-                  style={{ color: '#7c3aed' }}
-                >
-                  Swap
-                </a>
-                <a
+                <Link
                   href="/browse"
-                  className="font-medium py-2 transition-colors hover:opacity-70"
-                  style={{ color: '#7c3aed' }}
+                  className="font-medium py-2 link-swapcircle"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Browse
-                </a>
-                <a
-                  href="#"
-                  className="font-medium py-2 transition-colors hover:opacity-70"
-                  style={{ color: '#7c3aed' }}
-                >
-                  How It Works
-                </a>
-                <a
-                  href="#"
-                  className="font-medium py-2 transition-colors hover:opacity-70"
-                  style={{ color: '#7c3aed' }}
-                >
-                  About
-                </a>
+                </Link>
               </nav>
-              <div className="flex flex-col space-y-2 pt-4 border-t border-neutral-200">
-                <button
-                  onClick={() => {
-                    openAuthModal('login');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="px-4 py-2 border rounded-md text-left font-medium hover:bg-gray-50"
-                  style={{ borderColor: '#fbcfe8', color: '#7c3aed' }}
-                >
-                  Log In
-                </button>
-                <button
-                  onClick={() => {
-                    openAuthModal('signup');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="px-4 py-2 text-white rounded-md text-left font-medium hover:opacity-90"
-                  style={{ backgroundColor: '#9333ea' }}
-                >
-                  Sign Up
-                </button>
+              <div className="flex flex-col space-y-2 pt-4 border-t border-swapcircle">
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center space-x-3 py-2">
+                      <div className="w-10 h-10 rounded-full bg-swapcircle-primary flex items-center justify-center text-white font-semibold">
+                        {user?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-swapcircle-primary">
+                          {user?.username || user?.email?.split('@')[0] || 'User'}
+                        </p>
+                        <p className="text-xs text-swapcircle-tertiary">
+                          {user?.credits || 0} credits
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      href="/upload"
+                      className="btn-primary text-left"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      List Item
+                    </Link>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="btn-secondary text-left"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        openAuthModal('login');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="btn-secondary text-left"
+                    >
+                      Log In
+                    </button>
+                    <button
+                      onClick={() => {
+                        openAuthModal('signup');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="btn-primary text-left"
+                    >
+                      Sign Up
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}

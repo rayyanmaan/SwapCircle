@@ -1,3 +1,5 @@
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 import ListingPage from '@/components/ListingPage';
 
 /**
@@ -13,12 +15,11 @@ import ListingPage from '@/components/ListingPage';
  */
 export default function ListingRoute() {
   return (
-    <div>
-      {/* TODO: Add page wrapper/layout if needed */}
-      {/* TODO: Add header/navigation if needed */}
+    <main className="min-h-screen bg-swapcircle-white">
+      <Header />
       <ListingPage />
-      {/* TODO: Add footer if needed */}
-    </div>
+      <Footer />
+    </main>
   );
 }
 

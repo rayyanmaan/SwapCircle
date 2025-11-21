@@ -69,17 +69,20 @@ const sampleListings = [
 ];
 
 export default function ListingsGrid({ title = 'Latest Swaps', listings = sampleListings }) {
+  // Use sample listings if empty array is passed
+  const displayListings = listings.length > 0 ? listings : sampleListings;
+  
   return (
-    <section className="py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#fdf2f8' }}>
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8" style={{ color: '#1e1b4b' }}>{title}</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {listings.map((listing) => (
-            <ListingCard key={listing.id} {...listing} />
-          ))}
-        </div>
+    <div className="max-w-7xl mx-auto">
+      {title && (
+        <h2 className="heading-primary text-3xl font-bold mb-8">{title}</h2>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {displayListings.map((listing) => (
+          <ListingCard key={listing.id} {...listing} />
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
 

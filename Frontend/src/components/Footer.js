@@ -1,15 +1,15 @@
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-gray-200">
+    <footer className="bg-swapcircle-white border-t border-swapcircle">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand Column */}
           <div className="col-span-1 md:col-span-2">
-            <h3 className="text-2xl font-bold mb-4" style={{ color: '#9333ea' }}>
+            <h3 className="text-2xl font-bold mb-4 text-swapcircle-blue">
               SwapCircle
             </h3>
-            <p className="text-sm mb-4" style={{ color: '#7c3aed' }}>
+            <p className="text-sm mb-4 text-swapcircle-secondary">
               The best way for college students to swap clothes and keep fashion circular.
             </p>
             <div className="flex space-x-4">
@@ -33,32 +33,32 @@ export default function Footer() {
 
           {/* Shop Column */}
           <div>
-            <h4 className="text-sm font-semibold mb-4" style={{ color: '#1e1b4b' }}>
+            <h4 className="heading-primary text-sm font-semibold mb-4">
               Shop
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                   Browse All
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                   Women's
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                   Men's
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                   Accessories
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                   Trending Now
                 </a>
               </li>
@@ -67,27 +67,27 @@ export default function Footer() {
 
           {/* Help Column */}
           <div>
-            <h4 className="text-sm font-semibold mb-4" style={{ color: '#1e1b4b' }}>
+            <h4 className="heading-primary text-sm font-semibold mb-4">
               Help
             </h4>
             <ul className="space-y-2">
               <li>
-                <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                   How It Works
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                   Shipping & Returns
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                   FAQ
                 </a>
               </li>
               <li>
-                <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                   Contact Us
                 </a>
               </li>
@@ -98,17 +98,17 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-gray-200 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <p className="text-sm" style={{ color: '#a78bfa' }}>
+            <p className="text-swapcircle-tertiary text-sm">
               © {new Date().getFullYear()} SwapCircle. All rights reserved.
             </p>
             <div className="flex space-x-6">
-              <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+              <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                 Privacy Policy
               </a>
-              <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+              <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                 Terms of Service
               </a>
-              <a href="#" className="text-sm transition-colors hover:opacity-70" style={{ color: '#7c3aed' }}>
+              <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
                 Cookie Policy
               </a>
             </div>
