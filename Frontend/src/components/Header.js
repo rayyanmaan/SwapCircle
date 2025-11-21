@@ -39,7 +39,7 @@ export default function Header() {
                 Swap
               </a>
               <a
-                href="#"
+                href="/browse"
                 className="font-medium transition-colors hover:opacity-70"
                 style={{ color: '#7c3aed' }}
               >
@@ -206,7 +206,7 @@ export default function Header() {
                   Swap
                 </a>
                 <a
-                  href="#"
+                  href="/browse"
                   className="font-medium py-2 transition-colors hover:opacity-70"
                   style={{ color: '#7c3aed' }}
                 >
