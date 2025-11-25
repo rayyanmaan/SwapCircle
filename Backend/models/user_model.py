@@ -16,3 +16,13 @@ class UserOut(BaseModel):
     email: EmailStr
     username: str
     full_name: Optional[str]
+
+
+class Login(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class AuthResponse(BaseModel):
+    token: str
+    user: UserOut
