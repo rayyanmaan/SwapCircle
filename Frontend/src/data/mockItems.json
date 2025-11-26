@@ -1,0 +1,75 @@
+[
+  {
+    "id": 1,
+    "title": "Vintage Denim Jacket",
+    "size": "Size M",
+    "location": "Berkeley, CA",
+    "credits": 2,
+    "imageUrl": "https://via.placeholder.com/300",
+    "condition": "Gently Used"
+  },
+  {
+    "id": 2,
+    "title": "Cozy Knit Sweater",
+    "size": "Size S",
+    "location": "Oakland, CA",
+    "credits": 1,
+    "imageUrl": "https://via.placeholder.com/300",
+    "condition": "Like New"
+  },
+  {
+    "id": 3,
+    "title": "Floral Summer Dress",
+    "size": "Size M",
+    "location": "San Francisco, CA",
+    "credits": 2,
+    "imageUrl": "https://via.placeholder.com/300",
+    "condition": "Like New"
+  },
+  {
+    "id": 4,
+    "title": "Classic White Sneakers",
+    "size": "Size 8",
+    "location": "Berkeley, CA",
+    "credits": 1,
+    "imageUrl": "https://via.placeholder.com/300",
+    "condition": "Good"
+  },
+  {
+    "id": 5,
+    "title": "Navy Blue Blazer",
+    "size": "Size L",
+    "location": "Oakland, CA",
+    "credits": 3,
+    "imageUrl": "https://via.placeholder.com/300",
+    "condition": "Excellent"
+  },
+  {
+    "id": 6,
+    "title": "Red Leather Backpack",
+    "size": "One Size",
+    "location": "San Francisco, CA",
+    "credits": 5,
+    "imageUrl": "https://via.placeholder.com/300",
+    "condition": "Like New"
+  },
+  {
+    "id": 7,
+    "title": "Striped Button Down Shirt",
+    "size": "Size M",
+    "location": "Berkeley, CA",
+    "credits": 1,
+    "imageUrl": "https://via.placeholder.com/300",
+    "condition": "Gently Used"
+  },
+  {
+    "id": 8,
+    "title": "Athletic Leggings",
+    "size": "Size S",
+    "location": "Oakland, CA",
+    "credits": 2,
+    "imageUrl": "https://via.placeholder.com/300",
+    "condition": "Excellent"
+  }
+]
+
