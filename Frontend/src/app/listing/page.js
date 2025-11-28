@@ -1,4 +1,3 @@
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ListingPage from '@/components/ListingPage';
 
@@ -16,7 +15,6 @@ import ListingPage from '@/components/ListingPage';
 export default function ListingRoute() {
   return (
     <main className="min-h-screen bg-swapcircle-white">
-      <Header />
       <ListingPage />
       <Footer />
     </main>

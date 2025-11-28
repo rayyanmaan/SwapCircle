@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ListingsGrid from '@/components/ListingsGrid';
 import FilterSidebar from '@/components/FilterSidebar';
@@ -239,8 +238,6 @@ export default function BrowsePage() {
 
   return (
     <main className="min-h-screen bg-swapcircle-white">
-      <Header />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="mb-6">
