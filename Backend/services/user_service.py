@@ -60,6 +60,8 @@ def create_user(email: str, username: str, full_name: str, salt: str, password_h
         "email": email,
         "username": username,
         "full_name": full_name,
+        "credits": 0,
+        "email_verified": False,
         "salt": salt,
         "password_hash": password_hash,
     }
@@ -68,3 +70,27 @@ def create_user(email: str, username: str, full_name: str, salt: str, password_h
         users.append(user)
         _save_all(users)
     return user
+
+
+def update_user(user_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Update fields on a user and persist to disk. Returns the updated user or None if not found.
+
+    Only a whitelist of fields are updated to avoid accidental modification of
+    authentication fields (`salt`, `password_hash`). This function is thread-safe.
+    """
+    allowed = {"username", "full_name", "credits", "email_verified"}
+    # filter updates to allowed keys
+    filtered = {k: v for k, v in updates.items() if k in allowed}
+    if not filtered:
+        return None
+
+    with _lock:
+        users = _load_all()
+        for i, u in enumerate(users):
+            if u.get("id") == user_id:
+                for k, v in filtered.items():
+                    u[k] = v
+                users[i] = u
+                _save_all(users)
+                return u
+    return None
