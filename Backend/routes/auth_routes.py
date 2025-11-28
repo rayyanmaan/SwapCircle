@@ -60,3 +60,31 @@ async def me(request: Request) -> Dict:
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
     return {"id": user["id"], "email": user["email"], "username": user["username"], "full_name": user.get("full_name")}
+
+
+
+@router.post("/verify/{token}")
+async def verify_email(token: str):
+    # For development: accept the same HMAC access token format for verification links.
+    if not auth_service.verify_access_token(token):
+        raise HTTPException(status_code=400, detail="invalid token")
+    try:
+        user_id, _ = token.split("|", 1)
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid token")
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="user not found")
+    # mark email verified
+    if hasattr(user_service, "update_user"):
+        user_service.update_user(user_id, {"email_verified": True})
+    else:
+        from Backend.services.user_service import _load_all, _save_all
+        users = _load_all()
+        for i, u in enumerate(users):
+            if u.get("id") == user_id:
+                u["email_verified"] = True
+                users[i] = u
+                _save_all(users)
+                break
+    return {"message": "email verified"}

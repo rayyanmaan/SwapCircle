@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from Backend.database.connection import connect_db, close_db
 from Backend.routes.item_routes import router as items_router
 from Backend.routes.auth_routes import router as auth_router
+from Backend.routes.user_routes import router as users_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +32,8 @@ app.mount("/static", StaticFiles(directory="Backend/static"), name="static")
 app.include_router(items_router)
 # include auth router
 app.include_router(auth_router)
+# include users router
+app.include_router(users_router)
 
 # CORS - allow frontend dev origin
 app.add_middleware(
