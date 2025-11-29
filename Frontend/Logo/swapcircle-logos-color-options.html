@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwapCircle Logo Color Options</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 3rem 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2.5rem;
+            color: #1a1a1a;
+        }
+
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .logo-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .logo-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        .logo-preview {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: #fafafa;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            min-height: 160px;
+        }
+
+        .logo-preview.dark {
+            background: #1a1a1a;
+        }
+
+        svg {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .color-info {
+            padding: 1rem;
+            background: #f8f8f8;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .color-info strong {
+            color: #333;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .color-swatch {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SwapCircle Logo Color Options</h1>
+
+        <div class="logo-grid">
+            <!-- Option 1: Black + Dodger Blue -->
+            <div class="logo-card">
+                <h2 class="logo-title">Black + Dodger Blue</h2>
+                
+                <div class="logo-preview">
+                    <svg width="260" height="100" viewBox="0 0 260 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Left Circle - Black -->
+                        <circle cx="35" cy="40" r="18" stroke="#000000" stroke-width="4" fill="none"/>
+                        
+                        <!-- Right Circle - Dodger Blue -->
+                        <circle cx="60" cy="40" r="18" stroke="#1E90FF" stroke-width="4" fill="none"/>
+
+                        <!-- Text -->
+                        <text x="100" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#000">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="logo-preview dark">
+                    <svg width="260" height="100" viewBox="0 0 260 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Left Circle - White -->
+                        <circle cx="35" cy="40" r="18" stroke="#ffffff" stroke-width="4" fill="none"/>
+                        
+                        <!-- Right Circle - Dodger Blue -->
+                        <circle cx="60" cy="40" r="18" stroke="#1E90FF" stroke-width="4" fill="none"/>
+
+                        <!-- Text -->
+                        <text x="100" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#fff">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="color-info">
+                    <strong><span class="color-swatch" style="background: #000000;"></span>Black + <span class="color-swatch" style="background: #1E90FF;"></span>Dodger Blue (#1E90FF)</strong>
+                    Bright, modern, friendly feel
+                </div>
+            </div>
+
+            <!-- Option 2: Black + Bright Blue -->
+            <div class="logo-card">
+                <h2 class="logo-title">Black + Bright Blue</h2>
+                
+                <div class="logo-preview">
+                    <svg width="260" height="100" viewBox="0 0 260 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Left Circle - Black -->
+                        <circle cx="35" cy="40" r="18" stroke="#000000" stroke-width="4" fill="none"/>
+                        
+                        <!-- Right Circle - Bright Blue -->
+                        <circle cx="60" cy="40" r="18" stroke="#0066FF" stroke-width="4" fill="none"/>
+
+                        <!-- Text -->
+                        <text x="100" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#000">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="logo-preview dark">
+                    <svg width="260" height="100" viewBox="0 0 260 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Left Circle - White -->
+                        <circle cx="35" cy="40" r="18" stroke="#ffffff" stroke-width="4" fill="none"/>
+                        
+                        <!-- Right Circle - Bright Blue -->
+                        <circle cx="60" cy="40" r="18" stroke="#0066FF" stroke-width="4" fill="none"/>
+
+                        <!-- Text -->
+                        <text x="100" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#fff">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="color-info">
+                    <strong><span class="color-swatch" style="background: #000000;"></span>Black + <span class="color-swatch" style="background: #0066FF;"></span>Bright Blue (#0066FF)</strong>
+                    Vibrant, energetic, clear contrast
+                </div>
+            </div>
+
+            <!-- Option 3: Black + Phthalo Blue -->
+            <div class="logo-card">
+                <h2 class="logo-title">Black + Phthalo Blue</h2>
+                
+                <div class="logo-preview">
+                    <svg width="260" height="100" viewBox="0 0 260 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Left Circle - Black -->
+                        <circle cx="35" cy="40" r="18" stroke="#000000" stroke-width="4" fill="none"/>
+                        
+                        <!-- Right Circle - Phthalo Blue -->
+                        <circle cx="60" cy="40" r="18" stroke="#0047AB" stroke-width="4" fill="none"/>
+
+                        <!-- Text -->
+                        <text x="100" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#000">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="logo-preview dark">
+                    <svg width="260" height="100" viewBox="0 0 260 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Left Circle - White -->
+                        <circle cx="35" cy="40" r="18" stroke="#ffffff" stroke-width="4" fill="none"/>
+                        
+                        <!-- Right Circle - Phthalo Blue -->
+                        <circle cx="60" cy="40" r="18" stroke="#0047AB" stroke-width="4" fill="none"/>
+
+                        <!-- Text -->
+                        <text x="100" y="50" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#fff">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="color-info">
+                    <strong><span class="color-swatch" style="background: #000000;"></span>Black + <span class="color-swatch" style="background: #0047AB;"></span>Phthalo Blue (#0047AB)</strong>
+                    Deep, vivid, distinctive
+                </div>
+            </div>
+        </div>
+
+        <!-- Color Reference -->
+        <div style="background: white; padding: 2.5rem; border-radius: 12px;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 2rem; color: #1a1a1a;">Color Reference</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 2rem;">
+                <div>
+                    <div style="width: 100%; height: 60px; background: #000000; border-radius: 6px; margin-bottom: 0.8rem; border: 1px solid #ddd;"></div>
+                    <strong style="display: block; font-size: 0.95rem;">Black</strong>
+                    <code style="color: #666; font-size: 0.85rem;">#000000</code>
+                </div>
+                <div>
+                    <div style="width: 100%; height: 60px; background: #1E90FF; border-radius: 6px; margin-bottom: 0.8rem;"></div>
+                    <strong style="display: block; font-size: 0.95rem;">Dodger Blue</strong>
+                    <code style="color: #666; font-size: 0.85rem;">#1E90FF</code>
+                </div>
+                <div>
+                    <div style="width: 100%; height: 60px; background: #0066FF; border-radius: 6px; margin-bottom: 0.8rem;"></div>
+                    <strong style="display: block; font-size: 0.95rem;">Bright Blue</strong>
+                    <code style="color: #666; font-size: 0.85rem;">#0066FF</code>
+                </div>
+                <div>
+                    <div style="width: 100%; height: 60px; background: #0047AB; border-radius: 6px; margin-bottom: 0.8rem;"></div>
+                    <strong style="display: block; font-size: 0.95rem;">Phthalo Blue</strong>
+                    <code style="color: #666; font-size: 0.85rem;">#0047AB</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
