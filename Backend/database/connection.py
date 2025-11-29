@@ -1,8 +1,11 @@
-"""Database connection helpers (stubs)
+"""Database connection helpers (minimal stub).
+
+This module provides a connect/close/get API. For local development we keep
+it small; replace with Motor/PyMongo when moving to a real database.
 """
 import asyncio
 
-from app.config import settings
+from Backend.config import settings
 
 
 _db_client = None
@@ -10,7 +13,7 @@ _db_client = None
 
 async def connect_db():
     global _db_client
-    # stub: in production use Motor or AsyncIOMotorClient
+    # lightweight stub: in production use Motor (AsyncIOMotorClient)
     _db_client = {"connected": True, "uri": settings.mongodb_uri}
     print("db connected")
 

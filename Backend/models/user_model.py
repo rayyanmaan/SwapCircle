@@ -22,3 +22,25 @@ def user_document(
         "items_listed": [],
         "created_at": datetime.utcnow(),
     }
+class UserCreate(BaseModel):
+    email: EmailStr
+    username: str
+    full_name: Optional[str]
+    password: str
+
+
+class UserOut(BaseModel):
+    id: str
+    email: EmailStr
+    username: str
+    full_name: Optional[str]
+
+
+class Login(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class AuthResponse(BaseModel):
+    token: str
+    user: UserOut

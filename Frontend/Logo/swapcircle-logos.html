@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SwapCircle Logo Concepts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 3rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 3rem;
+            font-size: 2.5rem;
+            color: #000;
+        }
+
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .logo-card {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            color: #000;
+            font-weight: 600;
+        }
+
+        .logo-description {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .logo-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            align-items: center;
+            padding: 2rem;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+
+        .logo-light {
+            background: white;
+        }
+
+        .logo-dark {
+            background: #000;
+        }
+
+        svg {
+            display: block;
+        }
+
+        .color-info {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f0f0f0;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SwapCircle Logo Concepts</h1>
+        
+        <div class="logo-grid">
+            <!-- Logo 1: Circular Arrows -->
+            <div class="logo-card">
+                <h2 class="logo-title">Concept 1: Circular Arrows</h2>
+                <p class="logo-description">Two arrows forming a circle, representing the continuous cycle of swapping</p>
+                
+                <div class="logo-preview logo-light">
+                    <svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Circular arrows icon -->
+                        <g transform="translate(10, 15)">
+                            <!-- Top arrow curving right -->
+                            <path d="M 15 25 Q 25 10, 35 25" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 35 25 L 32 20 M 35 25 L 38 20" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+                            
+                            <!-- Bottom arrow curving left -->
+                            <path d="M 35 25 Q 25 40, 15 25" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 15 25 L 18 30 M 15 25 L 12 30" stroke="#2563EB" stroke-width="2.5" stroke-linecap="round"/>
+                            
+                            <!-- Circle around -->
+                            <circle cx="25" cy="25" r="22" stroke="#2563EB" stroke-width="2" fill="none" opacity="0.3"/>
+                        </g>
+                        
+                        <!-- Text -->
+                        <text x="65" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#000">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="logo-preview logo-dark">
+                    <svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Circular arrows icon -->
+                        <g transform="translate(10, 15)">
+                            <!-- Top arrow curving right -->
+                            <path d="M 15 25 Q 25 10, 35 25" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 35 25 L 32 20 M 35 25 L 38 20" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                            
+                            <!-- Bottom arrow curving left -->
+                            <path d="M 35 25 Q 25 40, 15 25" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 15 25 L 18 30 M 15 25 L 12 30" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                            
+                            <!-- Circle around -->
+                            <circle cx="25" cy="25" r="22" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.3"/>
+                        </g>
+                        
+                        <!-- Text -->
+                        <text x="65" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#fff">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="color-info">
+                    <strong>Colors:</strong> Blue (#2563EB) + Black text<br>
+                    <strong>Style:</strong> Modern, minimal, dynamic
+                </div>
+            </div>
+
+            <!-- Logo 2: Interlocking Circles -->
+            <div class="logo-card">
+                <h2 class="logo-title">Concept 2: Interlocking Circles</h2>
+                <p class="logo-description">Two circles overlapping, symbolizing exchange and connection between users</p>
+                
+                <div class="logo-preview logo-light">
+                    <svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Interlocking circles -->
+                        <g transform="translate(10, 15)">
+                            <circle cx="20" cy="25" r="18" stroke="#2563EB" stroke-width="3" fill="none"/>
+                            <circle cx="30" cy="25" r="18" stroke="#000" stroke-width="3" fill="none"/>
+                        </g>
+                        
+                        <!-- Text -->
+                        <text x="65" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#000">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="logo-preview logo-dark">
+                    <svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Interlocking circles -->
+                        <g transform="translate(10, 15)">
+                            <circle cx="20" cy="25" r="18" stroke="#2563EB" stroke-width="3" fill="none"/>
+                            <circle cx="30" cy="25" r="18" stroke="#ffffff" stroke-width="3" fill="none"/>
+                        </g>
+                        
+                        <!-- Text -->
+                        <text x="65" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#fff">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="color-info">
+                    <strong>Colors:</strong> Blue (#2563EB) + Black<br>
+                    <strong>Style:</strong> Simple, clean, connection-focused
+                </div>
+            </div>
+
+            <!-- Logo 3: S + C Monogram with Arrows -->
+            <div class="logo-card">
+                <h2 class="logo-title">Concept 3: SC Monogram</h2>
+                <p class="logo-description">The letters S and C combined with circular swap arrows</p>
+                
+                <div class="logo-preview logo-light">
+                    <svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- SC monogram in circle with arrows -->
+                        <g transform="translate(10, 15)">
+                            <circle cx="25" cy="25" r="22" stroke="#2563EB" stroke-width="2.5" fill="none"/>
+                            
+                            <!-- Arrow pointing right at top -->
+                            <path d="M 43 18 L 48 18 L 46 16 M 48 18 L 46 20" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+                            
+                            <!-- Arrow pointing left at bottom -->
+                            <path d="M 7 32 L 2 32 L 4 30 M 2 32 L 4 34" stroke="#2563EB" stroke-width="2" stroke-linecap="round"/>
+                            
+                            <!-- SC letters -->
+                            <text x="25" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="#000" text-anchor="middle">SC</text>
+                        </g>
+                        
+                        <!-- Text -->
+                        <text x="65" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#000">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="logo-preview logo-dark">
+                    <svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- SC monogram in circle with arrows -->
+                        <g transform="translate(10, 15)">
+                            <circle cx="25" cy="25" r="22" stroke="#fff" stroke-width="2.5" fill="none"/>
+                            
+                            <!-- Arrow pointing right at top -->
+                            <path d="M 43 18 L 48 18 L 46 16 M 48 18 L 46 20" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                            
+                            <!-- Arrow pointing left at bottom -->
+                            <path d="M 7 32 L 2 32 L 4 30 M 2 32 L 4 34" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                            
+                            <!-- SC letters -->
+                            <text x="25" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="700" fill="#fff" text-anchor="middle">SC</text>
+                        </g>
+                        
+                        <!-- Text -->
+                        <text x="65" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#fff">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="color-info">
+                    <strong>Colors:</strong> Blue (#2563EB) + Black<br>
+                    <strong>Style:</strong> Professional, brandable, memorable
+                </div>
+            </div>
+
+            <!-- Logo 4: Refresh/Swap Icon -->
+            <div class="logo-card">
+                <h2 class="logo-title">Concept 4: Refresh Icon</h2>
+                <p class="logo-description">A circular refresh icon representing the swap/refresh cycle</p>
+                
+                <div class="logo-preview logo-light">
+                    <svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Refresh/swap icon -->
+                        <g transform="translate(15, 20)">
+                            <!-- Circular arrow -->
+                            <path d="M 35 15 A 15 15 0 1 1 10 25" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <!-- Arrow head -->
+                            <path d="M 10 25 L 8 20 M 10 25 L 5 23" stroke="#2563EB" stroke-width="3" stroke-linecap="round"/>
+                            
+                            <!-- Second circular arrow (opposite direction) -->
+                            <path d="M 5 15 A 15 15 0 1 0 30 25" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <!-- Arrow head -->
+                            <path d="M 30 25 L 32 30 M 30 25 L 35 27" stroke="#2563EB" stroke-width="3" stroke-linecap="round"/>
+                        </g>
+                        
+                        <!-- Text -->
+                        <text x="65" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#000">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="logo-preview logo-dark">
+                    <svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Refresh/swap icon -->
+                        <g transform="translate(15, 20)">
+                            <!-- Circular arrow -->
+                            <path d="M 35 15 A 15 15 0 1 1 10 25" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <!-- Arrow head -->
+                            <path d="M 10 25 L 8 20 M 10 25 L 5 23" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                            
+                            <!-- Second circular arrow (opposite direction) -->
+                            <path d="M 5 15 A 15 15 0 1 0 30 25" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <!-- Arrow head -->
+                            <path d="M 30 25 L 32 30 M 30 25 L 35 27" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                        </g>
+                        
+                        <!-- Text -->
+                        <text x="65" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="#fff">SwapCircle</text>
+                    </svg>
+                </div>
+
+                <div class="color-info">
+                    <strong>Colors:</strong> Blue (#2563EB) + Black text<br>
+                    <strong>Style:</strong> Dynamic, recognizable, tech-forward
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 2rem; border-radius: 12px; text-align: center;">
+            <h2 style="margin-bottom: 1rem;">Icon-Only Versions</h2>
+            <p style="color: #666; margin-bottom: 2rem;">These can be used as app icons or favicons</p>
+            
+            <div style="display: flex; gap: 3rem; justify-content: center; flex-wrap: wrap;">
+                <!-- Icon 1 -->
+                <div>
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="80" height="80" rx="16" fill="#2563EB"/>
+                        <g transform="translate(20, 20)">
+                            <path d="M 10 20 Q 20 5, 30 20" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 30 20 L 27 15 M 30 20 L 33 15" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                            <path d="M 30 20 Q 20 35, 10 20" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                            <path d="M 10 20 L 13 25 M 10 20 L 7 25" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Concept 1</p>
+                </div>
+
+                <!-- Icon 2 -->
+                <div>
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="80" height="80" rx="16" fill="#2563EB"/>
+                        <g transform="translate(20, 20)">
+                            <circle cx="15" cy="20" r="13" stroke="#ffffff" stroke-width="3" fill="none"/>
+                            <circle cx="25" cy="20" r="13" stroke="#ffffff" stroke-width="3" fill="none"/>
+                        </g>
+                    </svg>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Concept 2</p>
+                </div>
+
+                <!-- Icon 3 -->
+                <div>
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="80" height="80" rx="16" fill="#2563EB"/>
+                        <circle cx="40" cy="40" r="25" stroke="#ffffff" stroke-width="3" fill="none"/>
+                        <path d="M 61 33 L 66 33 L 64 31 M 66 33 L 64 35" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M 19 47 L 14 47 L 16 45 M 14 47 L 16 49" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                        <text x="40" y="48" font-family="system-ui" font-size="24" font-weight="700" fill="#fff" text-anchor="middle">SC</text>
+                    </svg>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Concept 3</p>
+                </div>
+
+                <!-- Icon 4 -->
+                <div>
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="80" height="80" rx="16" fill="#2563EB"/>
+                        <g transform="translate(25, 25)">
+                            <path d="M 25 5 A 12 12 0 1 1 5 17" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 5 17 L 3 12 M 5 17 L 0 15" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+                            <path d="M 5 25 A 12 12 0 1 0 25 13" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 25 13 L 27 18 M 25 13 L 30 15" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Concept 4</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
