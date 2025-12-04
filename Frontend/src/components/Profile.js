@@ -1,44 +1,95 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ListingCard from './ListingCard';
-
-// Mock user data
-const mockUser = {
-  name: 'Syed Hasnain Mumtaz Naqvi',
-  email: 'naqvi@uni.minerva.edu',
-  avatar: 'S',
-  credits: 0,
-  listed: 0,
-  swapped: 0,
-};
-
-// Mock listings data
-const mockListings = [
-  {
-    id: 1,
-    title: 'Vintage Denim Jacket',
-    size: 'Size M',
-    credits: 2,
-    condition: 'Gently Used',
-    timestamp: '2h ago',
-  },
-  {
-    id: 2,
-    title: 'Cozy Knit Sweater',
-    size: 'Size S',
-    credits: 1,
-    condition: 'Like New',
-    timestamp: '4h ago',
-  },
-];
+import SwapRequests from './SwapRequests';
+import SwapHistory from './SwapHistory';
+import { useAuth } from '@/contexts/AuthContext';
+import { itemsAPI, userAPI } from '@/services/api';
+import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
 
 export default function Profile() {
+  const { user: authUser, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('listings');
-  const [user] = useState(mockUser);
-  const [listings] = useState(mockListings);
+  const [user, setUser] = useState(null);
+  const [listings, setListings] = useState([]);
   const [favorites] = useState([]);
-  const [swapHistory] = useState([]);
+  const [swapHistory, setSwapHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch user data and their listings
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!isAuthenticated || !authUser) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch full user profile
+        const userData = await userAPI.getUser(authUser.id);
+        setUser({
+          name: userData.full_name || userData.username || 'User',
+          email: userData.email || '',
+          avatar: (userData.full_name || userData.username || 'U')[0].toUpperCase(),
+          credits: userData.credits || 0,
+          listed: 0, // Will be calculated from listings
+          swapped: 0, // Backend doesn't track this yet
+        });
+
+        // Fetch all items and filter for user's items
+        const allItems = await itemsAPI.getItems();
+        const userItems = allItems.filter(item => item.owner_id === authUser.id);
+        
+        // Transform items to listing format
+        const transformedListings = userItems.map((item) => {
+          // Parse metadata from description
+          const metadata = parseItemMetadata(item.description);
+          
+          // Get first image URL if available
+          const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
+          const imageUrl = firstImage ? getImageUrl(firstImage) : '/api/placeholder/300';
+          
+          return {
+            id: item.id,
+            title: item.title,
+            size: metadata.size || 'Size M',
+            credits: metadata.credits || 2,
+            condition: metadata.condition || 'Good',
+            timestamp: 'Recently',
+            image: imageUrl, // ListingCard expects 'image' prop, not 'imageUrl'
+            status: item.status || 'available', // Include status for badge display
+            showSwappedStatus: true, // Flag to show swapped status instead of condition on profile
+          };
+        });
+
+        setListings(transformedListings);
+        
+        // Fetch swap history
+        try {
+          const historyData = await itemsAPI.getSwapHistory();
+          setSwapHistory(Array.isArray(historyData) ? historyData : []);
+        } catch (err) {
+          console.error('Error fetching swap history:', err);
+          // Don't fail the whole page if history fails
+        }
+        
+        // Update listed count in user state
+        setUser(prev => prev ? { ...prev, listed: transformedListings.length } : null);
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        setError(err.message || 'Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [isAuthenticated, authUser]);
 
   const getCurrentListings = () => {
     switch (activeTab) {
@@ -55,6 +106,37 @@ export default function Profile() {
 
   const currentListings = getCurrentListings();
   const hasListings = currentListings.length > 0;
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <p className="text-swapcircle-secondary">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <p className="text-swapcircle-secondary mb-4">Please log in to view your profile</p>
+          <a href="/" className="btn-primary">Go to Home</a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -183,6 +265,16 @@ export default function Profile() {
           Favorites
         </button>
         <button
+          onClick={() => setActiveTab('swap-requests')}
+          className={`px-6 py-3 font-medium transition-colors ${
+            activeTab === 'swap-requests'
+              ? 'text-swapcircle-primary bg-swapcircle-alt border-t border-l border-r border-swapcircle rounded-t-lg'
+              : 'text-swapcircle-secondary hover:text-swapcircle-primary border-b border-swapcircle'
+          }`}
+        >
+          Swap Requests
+        </button>
+        <button
           onClick={() => setActiveTab('history')}
           className={`px-6 py-3 font-medium transition-colors ${
             activeTab === 'history'
@@ -196,14 +288,17 @@ export default function Profile() {
 
       {/* Content Area */}
       <div className="bg-swapcircle-alt rounded-lg p-6 md:p-8 min-h-[400px]">
-        {hasListings ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {currentListings.map((listing) => (
-              <ListingCard key={listing.id} {...listing} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
+        {activeTab === 'swap-requests' ? (
+          <SwapRequests />
+        ) : activeTab === 'listings' ? (
+          hasListings ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {currentListings.map((listing) => (
+                <ListingCard key={listing.id} {...listing} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
             {/* Box Icon - Isometric style */}
             <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center">
               <svg
@@ -264,7 +359,14 @@ export default function Profile() {
               List Your First Item
             </a>
           </div>
-        )}
+          )
+        ) : activeTab === 'favorites' ? (
+          <div className="text-center py-16">
+            <p className="text-swapcircle-secondary">No favorites yet.</p>
+          </div>
+        ) : activeTab === 'history' ? (
+          <SwapHistory />
+        ) : null}
       </div>
     </div>
   );
