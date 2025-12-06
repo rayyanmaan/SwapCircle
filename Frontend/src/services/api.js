@@ -438,7 +438,7 @@ export const itemsAPI = {
    * Request a swap/purchase for an item (creates a swap request)
    */
   async requestSwap(itemId) {
-    return apiRequest(`/items/${itemId}/swap`, {
+    return apiRequest(`/swaps/items/${itemId}/request`, {
       method: 'POST',
     });
   },
@@ -447,7 +447,7 @@ export const itemsAPI = {
    * Approve a swap request (owner only)
    */
   async approveSwapRequest(itemId, requestId) {
-    return apiRequest(`/items/${itemId}/swap/${requestId}/approve`, {
+    return apiRequest(`/swaps/items/${itemId}/requests/${requestId}/approve`, {
       method: 'POST',
     });
   },
@@ -456,7 +456,7 @@ export const itemsAPI = {
    * Reject a swap request (owner only)
    */
   async rejectSwapRequest(itemId, requestId) {
-    return apiRequest(`/items/${itemId}/swap/${requestId}/reject`, {
+    return apiRequest(`/swaps/items/${itemId}/requests/${requestId}/reject`, {
       method: 'POST',
     });
   },
@@ -465,7 +465,7 @@ export const itemsAPI = {
    * Get swap requests for the authenticated user
    */
   async getSwapRequests() {
-    return apiRequest(`/items/swap-requests`, {
+    return apiRequest(`/swaps/requests`, {
       method: 'GET',
     });
   },
@@ -474,11 +474,10 @@ export const itemsAPI = {
    * Get swap history (approved swaps) for the authenticated user
    */
   async getSwapHistory() {
-    return apiRequest(`/items/swap-history`, {
+    return apiRequest(`/swaps/history`, {
       method: 'GET',
     });
   },
 };
 
 export default apiRequest;
-

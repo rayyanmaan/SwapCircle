@@ -1,137 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Footer from '@/components/Footer';
 import ListingsGrid from '@/components/ListingsGrid';
 import FilterSidebar from '@/components/FilterSidebar';
 import SearchBar from '@/components/SearchBar';
 import SortDropdown from '@/components/SortDropdown';
-
-// Extended sample data for browsing
-const sampleListings = [
-  {
-    id: 1,
-    title: 'Vintage Denim Jacket',
-    size: 'Size M',
-    credits: 2,
-    condition: 'Gently Used',
-    timestamp: '2h ago',
-    category: 'Jackets',
-    brand: 'Levi\'s',
-  },
-  {
-    id: 2,
-    title: 'Cozy Knit Sweater',
-    size: 'Size S',
-    credits: 1,
-    condition: 'Like New',
-    timestamp: '4h ago',
-    category: 'Sweaters',
-    brand: 'H&M',
-  },
-  {
-    id: 3,
-    title: 'Floral Summer Dress',
-    size: 'Size M',
-    credits: 2,
-    condition: 'Like New',
-    timestamp: '6h ago',
-    category: 'Dresses',
-    brand: 'Zara',
-  },
-  {
-    id: 4,
-    title: 'Classic White Sneakers',
-    size: 'Size 8',
-    credits: 1,
-    condition: 'Good',
-    timestamp: '1d ago',
-    category: 'Shoes',
-    brand: 'Converse',
-  },
-  {
-    id: 5,
-    title: 'Navy Blue Blazer',
-    size: 'Size L',
-    credits: 3,
-    condition: 'Excellent',
-    timestamp: '1d ago',
-    category: 'Jackets',
-    brand: 'H&M',
-  },
-  {
-    id: 6,
-    title: 'Red Leather Backpack',
-    size: 'One Size',
-    credits: 5,
-    condition: 'Like New',
-    timestamp: '2d ago',
-    category: 'Accessories',
-    brand: 'Fossil',
-  },
-  {
-    id: 7,
-    title: 'Striped Button Down Shirt',
-    size: 'Size M',
-    credits: 1,
-    condition: 'Gently Used',
-    timestamp: '2d ago',
-    category: 'Tops',
-    brand: 'Uniqlo',
-  },
-  {
-    id: 8,
-    title: 'Athletic Leggings',
-    size: 'Size S',
-    credits: 2,
-    condition: 'Excellent',
-    timestamp: '3d ago',
-    category: 'Bottoms',
-    brand: 'Nike',
-  },
-  {
-    id: 9,
-    title: 'Black Leather Boots',
-    size: 'Size 9',
-    credits: 4,
-    condition: 'Like New',
-    timestamp: '3d ago',
-    category: 'Shoes',
-    brand: 'Dr. Martens',
-  },
-  {
-    id: 10,
-    title: 'Oversized Hoodie',
-    size: 'Size L',
-    credits: 2,
-    condition: 'Gently Used',
-    timestamp: '4d ago',
-    category: 'Sweaters',
-    brand: 'Champion',
-  },
-  {
-    id: 11,
-    title: 'Silk Scarf',
-    size: 'One Size',
-    credits: 1,
-    condition: 'Excellent',
-    timestamp: '5d ago',
-    category: 'Accessories',
-    brand: 'Unknown',
-  },
-  {
-    id: 12,
-    title: 'High-Waisted Jeans',
-    size: 'Size 28',
-    credits: 3,
-    condition: 'Like New',
-    timestamp: '5d ago',
-    category: 'Bottoms',
-    brand: 'Levi\'s',
-  },
-];
+import { itemsAPI } from '@/services/api';
+import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function BrowsePage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [filters, setFilters] = useState({
@@ -142,10 +22,70 @@ export default function BrowsePage() {
     maxCredits: null,
   });
   const [showFilters, setShowFilters] = useState(false);
+  const [listings, setListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch items from backend
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await itemsAPI.getItems();
+        // Filter to only show available items
+        const availableItems = Array.isArray(data) 
+          ? data.filter(item => item.status === "available")
+          : [];
+        setListings(availableItems);
+      } catch (err) {
+        console.error('Error fetching items:', err);
+        setError(err.message || 'Failed to load items');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItems();
+  }, []);
+
+  // Transform backend items to listing format
+  const transformListings = (items) => {
+    return items.map((item) => {
+      // Parse metadata from description
+      const metadata = parseItemMetadata(item.description);
+      
+      // Get first image URL if available
+      const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
+      const imageUrl = firstImage ? getImageUrl(firstImage) : '/api/placeholder/300';
+      
+      // Check if current user is the owner
+      const isOwner = user && item.owner_id && user.id === item.owner_id;
+      
+      // Debug logging (remove in production)
+      if (process.env.NODE_ENV === 'development' && firstImage) {
+        console.log('Image data:', { firstImage, imageUrl, itemId: item.id });
+      }
+      
+      return {
+        id: item.id,
+        title: item.title,
+        size: metadata.size || 'Size M',
+        credits: metadata.credits || 2,
+        condition: metadata.condition || 'Good',
+        timestamp: 'Recently', // Backend doesn't store timestamp yet
+        category: metadata.category || 'General',
+        brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',
+        image: imageUrl, // ListingCard expects 'image' prop, not 'imageUrl'
+        isOwner: isOwner,
+      };
+    });
+  };
 
   // Filter and sort listings
   const filteredListings = useMemo(() => {
-    let filtered = [...sampleListings];
+    const transformedListings = transformListings(listings);
+    let filtered = [...transformedListings];
 
     // Search filter
     if (searchQuery) {
@@ -212,7 +152,7 @@ export default function BrowsePage() {
     }
 
     return filtered;
-  }, [searchQuery, filters, sortBy]);
+  }, [searchQuery, filters, sortBy, listings]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -354,17 +294,31 @@ export default function BrowsePage() {
 
           {/* Listings Grid */}
           <div className="flex-1">
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-swapcircle-secondary text-sm">
-                Showing {filteredListings.length} of {sampleListings.length} items
-              </p>
-            </div>
-            {filteredListings.length > 0 ? (
-              <ListingsGrid
-                title=""
-                listings={filteredListings}
-              />
-            ) : (
+            {loading && (
+              <div className="text-center py-12">
+                <p className="text-swapcircle-secondary">Loading items...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                {error}
+              </div>
+            )}
+
+            {!loading && !error && (
+              <>
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-swapcircle-secondary text-sm">
+                    Showing {filteredListings.length} of {listings.length} items
+                  </p>
+                </div>
+                {filteredListings.length > 0 ? (
+                  <ListingsGrid
+                    title=""
+                    listings={filteredListings}
+                  />
+                ) : (
               <div className="text-center py-16">
                 <svg
                   className="w-16 h-16 mx-auto mb-4 icon-tertiary"
@@ -390,6 +344,8 @@ export default function BrowsePage() {
                   Clear Filters
                 </button>
               </div>
+                )}
+              </>
             )}
           </div>
         </div>

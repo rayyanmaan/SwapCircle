@@ -4,15 +4,14 @@ These endpoints use `user_service` (file-backed users) and `auth_service`
 for password hashing and token creation.
 """
 from fastapi import APIRouter, HTTPException, status, Request
-from pydantic import BaseModel
+from models.user_model import UserCreate, UserOut, Login, AuthResponse
+from services import user_service, auth_service
 from typing import Dict
 
 from models.user_model import UserCreate, UserOut, Login, AuthResponse
 from services import user_service, auth_service
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 async def register(payload: UserCreate):
     """Register a new user"""
@@ -61,7 +60,15 @@ async def me(request: Request) -> Dict:
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
-    return {"id": user["id"], "email": user["email"], "username": user["username"], "full_name": user.get("full_name"), "credits": user.get("credits", 0)}
+    # Return credits from user object (updated after each transaction for performance)
+    credits = user.get("credits", 0.0)
+    return {
+        "id": user["id"],
+        "email": user["email"],
+        "username": user["username"],
+        "full_name": user.get("full_name"),
+        "credits": credits,
+    }
 
 
 @router.post("/verify/{token}")

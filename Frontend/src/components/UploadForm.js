@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { itemsAPI } from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CATEGORIES = [
   'Tops',
@@ -29,6 +31,7 @@ const CREDITS_OPTIONS = [1, 2, 3, 4, 5];
 
 export default function UploadForm() {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const fileInputRef = useRef(null);
   const [images, setImages] = useState([]);
   const [formData, setFormData] = useState({
@@ -42,6 +45,7 @@ export default function UploadForm() {
     credits: 2,
   });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files);
@@ -112,14 +116,76 @@ export default function UploadForm() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      // TODO: Submit to backend API
-      console.log('Form data:', formData);
-      console.log('Images:', images);
+    if (!isAuthenticated) {
+      setErrors({ general: 'Please log in to list an item' });
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      // Prepare item data for backend
+      // Ensure title is not empty (should be validated already, but double-check)
+      if (!formData.title || !formData.title.trim()) {
+        setErrors({ general: 'Title is required' });
+        return;
+      }
+
+      const itemData = {
+        title: formData.title.trim(),
+        description: `${formData.description}\n\nCategory: ${formData.category}\nSize: ${formData.size}\nLocation: ${formData.location}\nCondition: ${formData.condition}\nBranded: ${formData.branded}\nCredits: ${formData.credits}`,
+      };
+
+      // Extract image files
+      const imageFiles = images.map((img) => img.file).filter(Boolean);
+
+      // Log the data being sent for debugging
+      console.log('Submitting item:', {
+        title: itemData.title,
+        descriptionLength: itemData.description.length,
+        imageCount: imageFiles.length
+      });
+
+      // Submit to backend
+      const result = await itemsAPI.createItem(itemData, imageFiles);
+      
       // Redirect to profile page after successful submission
       router.push('/profile');
+    } catch (error) {
+      console.error('Error creating item:', error);
+      console.error('Error details:', error.data);
+      
+      // Extract error message
+      let errorMessage = 'Failed to create item. Please try again.';
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error.data) {
+        // Try to extract message from error data
+        if (error.data.detail) {
+          if (typeof error.data.detail === 'string') {
+            errorMessage = error.data.detail;
+          } else if (error.data.detail.message) {
+            errorMessage = error.data.detail.message;
+            if (error.data.detail.errors && Array.isArray(error.data.detail.errors)) {
+              const validationErrors = error.data.detail.errors.join(', ');
+              if (validationErrors) {
+                errorMessage += `: ${validationErrors}`;
+              }
+            }
+          }
+        }
+      }
+      
+      setErrors({ general: errorMessage });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -132,6 +198,12 @@ export default function UploadForm() {
       <h1 className="heading-primary text-3xl md:text-4xl font-bold mb-8">
         List your item
       </h1>
+
+      {errors.general && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {errors.general}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Image Upload Zone */}
@@ -417,8 +489,9 @@ export default function UploadForm() {
           <button
             type="submit"
             className="btn-primary flex-1"
+            disabled={isSubmitting}
           >
-            List item
+            {isSubmitting ? 'Submitting...' : 'List item'}
           </button>
         </div>
       </form>

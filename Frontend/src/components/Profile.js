@@ -51,7 +51,7 @@ export default function Profile() {
           
           // Get first image URL if available
           const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
-          const imageUrl = firstImage ? getImageUrl(firstImage) : '/placeholder.svg';
+          const imageUrl = firstImage ? getImageUrl(firstImage) : '/api/placeholder/300';
           
           return {
             id: item.id,
@@ -370,4 +370,3 @@ export default function Profile() {
     </div>
   );
 }
-

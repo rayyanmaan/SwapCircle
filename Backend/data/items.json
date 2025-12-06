@@ -1,10 +1,58 @@
 [
   {
-    "id": "eef1f76a-da9e-4fae-b2e3-172f147d1051",
-    "title": "Updated",
-    "description": "A test",
-    "owner_id": "a6a9dc0bd01f4ce8b7e225cda043e75b",
+    "id": "b0332db2-cb99-43b7-8e48-584e1131f3f4",
+    "title": "Khaaki Shirt",
+    "description": "Full Sleeve\n\nCategory: Tops\nSize: L\nLocation: Buenos Aires\nCondition: Good\nBranded: No\nCredits: 2",
+    "owner_id": "537df97841c349668b48b871cfd568a4",
+    "status": "swapped",
+    "images": [
+      {
+        "id": "0f5b2549-0d9f-4d61-8ec3-8807081c48b2",
+        "url": "/static/images/0f5b2549-0d9f-4d61-8ec3-8807081c48b2.jpg"
+      }
+    ]
+  },
+  {
+    "id": "1ea386e2-beef-4765-a380-826c39733b31",
+    "title": "Star shoes",
+    "description": "Star looking shoes\n\nCategory: Shoes\nSize: 10\nLocation: Buenos Aires\nCondition: Like New\nBranded: No\nCredits: 2",
+    "owner_id": "537df97841c349668b48b871cfd568a4",
     "status": "available",
-    "images": []
+    "images": [
+      {
+        "id": "2fce8f17-8cd2-4568-8b0b-7c223e57c93d",
+        "url": "/static/images/2fce8f17-8cd2-4568-8b0b-7c223e57c93d.jpg"
+      }
+    ]
+  },
+  {
+    "id": "60daa127-9061-4261-a15f-14a194807411",
+    "title": "Long Brown Boots",
+    "description": "Very brown looking boots\n\nCategory: Shoes\nSize: 32\nLocation: Buenos Aires\nCondition: Like New\nBranded: No\nCredits: 2",
+    "owner_id": "d926bc991185416dbce213d233383e45",
+    "status": "swapped",
+    "images": [
+      {
+        "id": "16d407dc-cb9f-4149-93f7-3c51567516f5",
+        "url": "/static/images/16d407dc-cb9f-4149-93f7-3c51567516f5.jpg"
+      }
+    ]
+  },
+  {
+    "id": "8b824d13-40d2-4ddc-a90d-4f03a800891b",
+    "title": "Sandals",
+    "description": "some sandals\n\nCategory: Shoes\nSize: 10\nLocation: Buenos Aires\nCondition: Like New\nBranded: No\nCredits: 2",
+    "owner_id": "537df97841c349668b48b871cfd568a4",
+    "status": "swapped",
+    "images": [
+      {
+        "id": "e7eeb11e-395f-429e-87b7-3fb522bbc97f",
+        "url": "/static/images/e7eeb11e-395f-429e-87b7-3fb522bbc97f.jpeg"
+      },
+      {
+        "id": "128d8cd0-c431-4fe2-a86b-9e17d1b38304",
+        "url": "/static/images/128d8cd0-c431-4fe2-a86b-9e17d1b38304.png"
+      }
+    ]
   }
 ]

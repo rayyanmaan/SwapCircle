@@ -1,1 +1,9 @@
 .venv
+_pycache_/
+__pycache__/
+Backend/__pycache__/
+Backend/models/__pycache__/
+Backend/routes/__pycache__/
+Backend/services/__pycache__/
+Backend/database/__pycache__/
+Frontend/__pycache__/

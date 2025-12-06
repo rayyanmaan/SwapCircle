@@ -10,6 +10,8 @@ export default function ListingCard({
   credits,
   condition,
   timestamp,
+  status,
+  showSwappedStatus = false, // If true, show swapped status instead of condition
 }) {
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -22,23 +24,48 @@ export default function ListingCard({
     <a href={`/product/${id}`} className="group cursor-pointer">
       <div className="relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt">
         {/* Image with gradient overlay */}
-        <div
-          className="absolute inset-0 bg-gradient-to-br group-hover:scale-105 transition-transform duration-300"
-          style={{
-            backgroundImage: image ? `url(${image})` : 'none',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            background: !image ? 'linear-gradient(to bottom right, var(--swapcircle-neutral-200), var(--swapcircle-neutral-100))' : undefined
-          }}
-        >
-          {/* Gradient overlay for better text readability */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'linear-gradient(to top, rgba(37, 99, 235, 0.2), transparent)' }}></div>
-        </div>
+        {image && image !== '/api/placeholder/300' ? (
+          <div className="absolute inset-0 group-hover:scale-105 transition-transform duration-300">
+            <img
+              src={image}
+              alt={title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to placeholder if image fails to load
+                e.target.style.display = 'none';
+                e.target.parentElement.style.background = 'linear-gradient(to bottom right, var(--swapcircle-neutral-200), var(--swapcircle-neutral-100))';
+              }}
+            />
+            {/* Gradient overlay for better text readability */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'linear-gradient(to top, rgba(37, 99, 235, 0.2), transparent)' }}></div>
+          </div>
+        ) : (
+          <div
+            className="absolute inset-0 bg-gradient-to-br"
+            style={{ background: 'linear-gradient(to bottom right, var(--swapcircle-neutral-200), var(--swapcircle-neutral-100))' }}
+          >
+            {/* Gradient overlay for better text readability */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: 'linear-gradient(to top, rgba(37, 99, 235, 0.2), transparent)' }}></div>
+          </div>
+        )}
 
-        {/* Condition badge */}
-        {condition && (
+        {/* Condition badge or Swapped status badge */}
+        {showSwappedStatus && status === "swapped" ? (
+          <div className="absolute top-2 left-2 bg-gray-200 backdrop-blur-sm px-2 py-1 rounded-full">
+            <span className="text-xs font-medium text-gray-800">Swapped</span>
+          </div>
+        ) : condition && !showSwappedStatus ? (
           <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">
             <span className="text-xs font-medium text-swapcircle-primary">{condition}</span>
+          </div>
+        ) : null}
+
+        {/* Status badge (Pending) - positioned below swapped/condition badge or top-left if no badge */}
+        {status && status === "pending" && (
+          <div className={`absolute ${(showSwappedStatus && status === "swapped") || condition ? 'top-10 left-2' : 'top-2 left-2'} backdrop-blur-sm px-2 py-1 rounded-full bg-amber-100`}>
+            <span className="text-xs font-medium text-amber-800">
+              Pending
+            </span>
           </div>
         )}
 

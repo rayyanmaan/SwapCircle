@@ -1,78 +1,74 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import HeroSection from '@/components/HeroSection';
 import ListingsGrid from '@/components/ListingsGrid';
 import ValueProposition from '@/components/ValueProposition';
 import Footer from '@/components/Footer';
 import GuestRoute from '@/components/GuestRoute';
-
-// Featured products data
-const featuredListings = [
-  {
-    id: 1,
-    title: 'Vintage Denim Jacket',
-    size: 'Size M',
-    credits: 2,
-    condition: 'Gently Used',
-    timestamp: '2h ago',
-  },
-  {
-    id: 2,
-    title: 'Cozy Knit Sweater',
-    size: 'Size S',
-    credits: 1,
-    condition: 'Like New',
-    timestamp: '4h ago',
-  },
-  {
-    id: 3,
-    title: 'Floral Summer Dress',
-    size: 'Size M',
-    credits: 2,
-    condition: 'Like New',
-    timestamp: '6h ago',
-  },
-  {
-    id: 4,
-    title: 'Classic White Sneakers',
-    size: 'Size 8',
-    credits: 1,
-    condition: 'Good',
-    timestamp: '1d ago',
-  },
-  {
-    id: 5,
-    title: 'Navy Blue Blazer',
-    size: 'Size L',
-    credits: 3,
-    condition: 'Excellent',
-    timestamp: '1d ago',
-  },
-  {
-    id: 6,
-    title: 'Red Leather Backpack',
-    size: 'One Size',
-    credits: 5,
-    condition: 'Like New',
-    timestamp: '2d ago',
-  },
-  {
-    id: 7,
-    title: 'Striped Button Down Shirt',
-    size: 'Size M',
-    credits: 1,
-    condition: 'Gently Used',
-    timestamp: '2d ago',
-  },
-  {
-    id: 8,
-    title: 'Athletic Leggings',
-    size: 'Size S',
-    credits: 2,
-    condition: 'Excellent',
-    timestamp: '3d ago',
-  },
-];
+import { itemsAPI } from '@/services/api';
+import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
+  const { user } = useAuth();
+  const [featuredListings, setFeaturedListings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchFeaturedItems = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await itemsAPI.getItems();
+        // Filter to only show available items
+        const availableItems = Array.isArray(data) 
+          ? data.filter(item => item.status === "available")
+          : [];
+        
+        // Transform backend items to listing format
+        const transformedListings = availableItems.map((item) => {
+          // Parse metadata from description
+          const metadata = parseItemMetadata(item.description);
+          
+          // Get first image URL if available
+          const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
+          const imageUrl = firstImage ? getImageUrl(firstImage) : '/api/placeholder/300';
+          
+          // Check if current user is the owner
+          const isOwner = user && item.owner_id && user.id === item.owner_id;
+          
+          return {
+            id: item.id,
+            title: item.title,
+            size: metadata.size || 'Size M',
+            credits: metadata.credits || 2,
+            condition: metadata.condition || 'Good',
+            timestamp: 'Recently', // Backend doesn't store timestamp yet
+            category: metadata.category || 'General',
+            brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',
+            image: imageUrl,
+            isOwner: isOwner,
+          };
+        });
+
+        // Limit to 8 featured items (or all if less than 8)
+        const limitedListings = transformedListings.slice(0, 8);
+        setFeaturedListings(limitedListings);
+      } catch (err) {
+        console.error('Error fetching featured items:', err);
+        setError(err.message || 'Failed to load featured items');
+        // On error, set empty array so it shows "no items" message
+        setFeaturedListings([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedItems();
+  }, [user]); // Re-fetch if user changes (to update isOwner status)
+
   return (
     <GuestRoute>
       <main className="min-h-screen bg-swapcircle-white">
@@ -89,7 +85,32 @@ export default function Home() {
                 Discover the most popular items from your campus community
               </p>
             </div>
-            <ListingsGrid title="" listings={featuredListings} />
+            
+            {loading && (
+              <div className="text-center py-12">
+                <p className="text-swapcircle-secondary">Loading featured items...</p>
+              </div>
+            )}
+
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                {error}
+              </div>
+            )}
+
+            {!loading && !error && (
+              <>
+                {featuredListings.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-swapcircle-secondary text-lg">
+                      No items available yet. Be the first to list an item!
+                    </p>
+                  </div>
+                ) : (
+                  <ListingsGrid title="" listings={featuredListings} />
+                )}
+              </>
+            )}
           </div>
         </section>
 

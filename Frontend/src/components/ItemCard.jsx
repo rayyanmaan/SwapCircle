@@ -18,6 +18,7 @@ export default function ItemCard({
   imageUrl,
   condition,
   onSwapClick,
+  isOwner = false,
 }) {
   return (
     <div className="border rounded-lg p-4 bg-white">
@@ -71,12 +72,21 @@ export default function ItemCard({
       </div>
 
       {/* Swap Button */}
-      <button
-        className="btn-primary w-full"
-        onClick={onSwapClick}
-      >
-        View Details
-      </button>
+      {isOwner ? (
+        <button
+          className="btn-secondary w-full opacity-50 cursor-not-allowed"
+          disabled
+        >
+          Your Item
+        </button>
+      ) : (
+        <button
+          className="btn-primary w-full"
+          onClick={onSwapClick}
+        >
+          View Details
+        </button>
+      )}
     </div>
   );
 }
