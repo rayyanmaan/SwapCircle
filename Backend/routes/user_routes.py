@@ -1,129 +1,128 @@
-from fastapi import APIRouter, Depends, HTTPException
-from bson import ObjectId
-from utils.token_utils import decode_access_token
-from database.connection import get_db
-"""User-related routes (stubs)
-"""
-from fastapi import APIRouter
-from fastapi import APIRouter, HTTPException, status, Body, Request
-from Backend.services import user_service, auth_service
-from Backend.models.user_model import UserOut
+"""User-related routes (profile get/update with auth)"""
+from fastapi import APIRouter, HTTPException, status, Request
+
+from services import user_service, auth_service
+from models.user_model import UserOut
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-async def get_current_user(token: str, db):
-    payload = decode_access_token(token)
-    if not payload:
-        raise HTTPException(
-            status_code=401,
-            detail=("Invalid or expired token." " Please log in again."),
-        )
-    user = await db["users"].find_one({"_id": ObjectId(payload["user_id"])})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-
-    return user
-
-
-@router.get("/me")
-async def me(token: str, db=Depends(get_db)):
-    user = await get_current_user(token, db)
-    user["_id"] = str(user["_id"])
-    return user
-
-
-@router.get("/{user_id}")
-async def get_user(user_id: str, db=Depends(get_db)):
-    user = await db["users"].find_one({"_id": ObjectId(user_id)})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-
-    user["_id"] = str(user["_id"])
-    return user
 @router.get("/")
 async def list_users():
+    """List all users"""
     rows = user_service.list_users()
     return {"users": rows}
 
 
 @router.get("/{user_id}", response_model=UserOut)
 async def get_user(user_id: str):
-    u = user_service.get_user_by_id(user_id)
-    if not u:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
-    # Return only public fields
-    return {
-        "id": u.get("id"),
-        "email": u.get("email"),
-        "username": u.get("username"),
-        "full_name": u.get("full_name"),
-    }
+    """Get user by ID"""
+    user = user_service.get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    # Return public fields only
+    return UserOut(
+        id=user.get("id"),
+        email=user.get("email"),
+        username=user.get("username"),
+        full_name=user.get("full_name", ""),
+        credits=user.get("credits", 0)
+    )
 
 
 @router.patch("/{user_id}", response_model=UserOut)
-async def patch_user(user_id: str, payload: dict = Body(...), request: Request = None):
-    """Patch user profile fields. Allowed fields: `username`, `full_name`, `credits`.
-
-    This route performs a simple file-backed update using the same storage
-    format as `user_service`. It validates that the user exists and
-    persists allowed updates.
+async def patch_user(user_id: str, request: Request):
+    """Update user profile (requires Bearer token authentication)
+    
+    Allowed fields to update: username, full_name, credits
+    Owner must provide valid Bearer token for their own user_id.
     """
-    # require authentication: only the owner may update their profile
-    auth = request.headers.get("authorization") if request is not None else None
-    if not auth:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="missing authorization header")
-    parts = auth.split()
+    # Extract and validate Bearer token
+    auth_header = request.headers.get("authorization", "")
+    if not auth_header:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authorization header"
+        )
+    
+    parts = auth_header.split()
     if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid authorization header")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization header"
+        )
+    
     token = parts[1]
     if not auth_service.verify_access_token(token):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    # Extract user_id from token (format: "user_id|signature")
     try:
         token_user_id, _ = token.split("|", 1)
     except Exception:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format"
+        )
+    
+    # Check ownership: user can only update their own profile
     if token_user_id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="forbidden")
-
-    existing = user_service.get_user_by_id(user_id)
-    if not existing:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
-
-    # Whitelist updates
-    allowed = {"username", "full_name", "credits"}
-    updates = {k: v for k, v in payload.items() if k in allowed}
-    if not updates:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="no valid fields to update")
-
-    # Perform update by reading/writing users file via service-level helper if available,
-    # otherwise manipulate the users list directly here to persist changes.
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized: cannot update another user's profile"
+        )
+    
+    # Verify user exists
+    existing_user = user_service.get_user_by_id(user_id)
+    if not existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Get and parse request body
     try:
-        # Try to use an update_user if present
-        if hasattr(user_service, "update_user"):
-            updated = user_service.update_user(user_id, updates)
-        else:
-            # Fallback: manually load and persist
-            from services.user_service import _load_all, _save_all
-            users = _load_all()
-            updated = None
-            for i, u in enumerate(users):
-                if u.get("id") == user_id:
-                    for k, v in updates.items():
-                        u[k] = v
-                    users[i] = u
-                    _save_all(users)
-                    updated = u
-                    break
-
-        if not updated:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="failed to update user")
-
-        return {
-            "id": updated.get("id"),
-            "email": updated.get("email"),
-            "username": updated.get("username"),
-            "full_name": updated.get("full_name"),
-        }
+        body = await request.json()
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid JSON body"
+        )
+    
+    # Whitelist allowed update fields
+    allowed_fields = {"username", "full_name", "credits"}
+    updates = {k: v for k, v in body.items() if k in allowed_fields}
+    
+    if not updates:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No valid fields to update"
+        )
+    
+    # Perform update
+    try:
+        updated_user = user_service.update_user(user_id, updates)
+        if not updated_user:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update user"
+            )
+        
+        return UserOut(
+            id=updated_user.get("id"),
+            email=updated_user.get("email"),
+            username=updated_user.get("username"),
+            full_name=updated_user.get("full_name", ""),
+            credits=updated_user.get("credits", 0)
+        )
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update user: {str(e)}"
+        )

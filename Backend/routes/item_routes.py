@@ -14,7 +14,7 @@ from pydantic import ValidationError
 
 from models.item_model import ItemCreate, ItemOut, ItemUpdate
 from services import storage_service
-from services import image_service, auth_service, credit_service, swap_service, swap_service
+from services import image_service, auth_service, credit_service
 
 
 router = APIRouter(prefix="/items", tags=["items"])

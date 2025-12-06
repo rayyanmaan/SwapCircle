@@ -1,5 +1,7 @@
 from datetime import datetime
 from bson import ObjectId
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 
 
 def user_document(
