@@ -5,15 +5,16 @@ for password hashing and token creation.
 """
 from fastapi import APIRouter, HTTPException, status, Request
 from models.user_model import UserCreate, UserOut, Login, AuthResponse
-from services import user_service
-from services import auth_service
-from services import credit_service
-
+from services import user_service, auth_service
 from typing import Dict
+
+from models.user_model import UserCreate, UserOut, Login, AuthResponse
+from services import user_service, auth_service
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 async def register(payload: UserCreate):
+    """Register a new user"""
     # prevent duplicate emails
     existing = user_service.get_user_by_email(payload.email)
     if existing:
@@ -28,6 +29,7 @@ async def register(payload: UserCreate):
 
 @router.post("/login")
 async def login(payload: Login):
+    """Login with email and password"""
     # accept email + password only
     user = user_service.get_user_by_email(payload.email)
     if not user:
@@ -38,9 +40,9 @@ async def login(payload: Login):
     return {"token": token, "user": {"id": user["id"], "email": user["email"], "username": user["username"]}}
 
 
-
 @router.get("/me")
 async def me(request: Request) -> Dict:
+    """Get current authenticated user"""
     auth = request.headers.get("authorization")
     if not auth:
         raise HTTPException(status_code=401, detail="missing authorization header")
@@ -58,10 +60,8 @@ async def me(request: Request) -> Dict:
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
-    
     # Return credits from user object (updated after each transaction for performance)
     credits = user.get("credits", 0.0)
-    
     return {
         "id": user["id"],
         "email": user["email"],
@@ -71,9 +71,9 @@ async def me(request: Request) -> Dict:
     }
 
 
-
 @router.post("/verify/{token}")
 async def verify_email(token: str):
+    """Verify email via token"""
     # For development: accept the same HMAC access token format for verification links.
     if not auth_service.verify_access_token(token):
         raise HTTPException(status_code=400, detail="invalid token")

@@ -1,7 +1,12 @@
-from fastapi.testclient import TestClient
+import sys
 from pathlib import Path
 
-from Backend.main import app
+# Add Backend to path for imports
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from fastapi.testclient import TestClient
+
+from main import app
 
 USERS_FILE = Path(__file__).resolve().parents[1] / "data" / "users.json"
 ITEMS_FILE = Path(__file__).resolve().parents[1] / "data" / "items.json"
