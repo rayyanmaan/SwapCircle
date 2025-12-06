@@ -79,6 +79,22 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
   };
 
+  const refreshUser = async () => {
+    try {
+      const currentUser = await authAPI.getCurrentUser();
+      setUser(currentUser);
+      // Also update localStorage
+      if (typeof window !== 'undefined' && currentUser) {
+        localStorage.setItem('user', JSON.stringify(currentUser));
+      }
+      return currentUser;
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+      // If refresh fails, user might be logged out
+      return null;
+    }
+  };
+
   const value = {
     user,
     isAuthenticated,
@@ -86,6 +102,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

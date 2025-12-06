@@ -30,7 +30,7 @@ const CONDITIONS = ['Like New', 'Excellent', 'Good', 'Gently Used'];
 
 export default function UploadForm() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, refreshUser } = useAuth();
   const fileInputRef = useRef(null);
   const [images, setImages] = useState([]);
   const [formData, setFormData] = useState({
@@ -160,6 +160,9 @@ export default function UploadForm() {
 
       // Submit to backend
       const result = await itemsAPI.createItem(itemData, imageFiles);
+      
+      // Refresh user data to get updated credits
+      await refreshUser();
       
       // Redirect to profile page after successful submission
       router.push('/profile');
