@@ -181,9 +181,25 @@ async def create_item(
 
 
 @router.get("/", response_model=List[ItemOut])
-async def list_items():
-    """List all items. Items with pending swap requests will have status 'pending'."""
+async def list_items(owner_id: str = None, status: str = None):
+    """List all items with optional filtering.
+    
+    Query parameters:
+    - owner_id: Filter items by owner (more efficient than frontend filtering)
+    - status: Filter by status (available, pending, sold)
+    
+    Items with pending swap requests will have status 'pending'.
+    """
     rows = storage_service.list_items()
+    
+    # Apply owner_id filter if provided (optimization: filter at backend level)
+    if owner_id:
+        rows = [item for item in rows if item.get("owner_id") == owner_id]
+    
+    # Apply status filter if provided
+    if status:
+        rows = [item for item in rows if item.get("status") == status]
+    
     # Check for pending requests and update status if needed
     for item in rows:
         if item.get("status") == "available":
