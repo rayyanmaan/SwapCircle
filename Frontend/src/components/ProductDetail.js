@@ -26,7 +26,7 @@ export default function ProductDetail({ product }) {
 
     const images = productData.images && productData.images.length > 0
       ? productData.images.map(img => getImageUrl(img))
-      : ['/api/placeholder/800/1000'];
+      : ['/placeholder.svg'];
     
     return {
       id: productData.id,
@@ -148,7 +148,7 @@ export default function ProductDetail({ product }) {
                 alt={productData.title}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.src = '/api/placeholder/800/1000';
+                    e.target.src = '/placeholder.svg';
                 }}
               />
               
@@ -193,7 +193,7 @@ export default function ProductDetail({ product }) {
                       alt={`${productData.title} ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = '/api/placeholder/800/1000';
+                        e.target.src = '/placeholder.svg';
                       }}
                     />
                   </button>

@@ -35,10 +35,10 @@ export default function ProductDetail({ product }) {
               return getImageUrl(img);
             } catch (err) {
               console.error('Error processing image URL:', err, img);
-              return '/api/placeholder/800/1000';
+              return '/placeholder.svg';
             }
           })
-        : ['/api/placeholder/800/1000'];
+        : ['/placeholder.svg'];
 
       return {
         id: product.id,
@@ -178,11 +178,11 @@ export default function ProductDetail({ product }) {
             {/* Main Image */}
             <div className="relative aspect-[4/5] rounded-lg overflow-hidden mb-4 bg-swapcircle-alt">
               <img
-                src={productData.images[currentImageIndex] || '/api/placeholder/800/1000'}
+                src={productData.images[currentImageIndex] || '/placeholder.svg'}
                 alt={productData.title}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.src = '/api/placeholder/800/1000';
+                  e.target.src = '/placeholder.svg';
                 }}
               />
 
@@ -223,11 +223,11 @@ export default function ProductDetail({ product }) {
                     }`}
                   >
                     <img
-                      src={img || '/api/placeholder/80/120'}
+                      src={img || '/placeholder.svg'}
                       alt={`${productData.title} ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = '/api/placeholder/80/120';
+                        e.target.src = '/placeholder.svg';
                       }}
                     />
                   </button>

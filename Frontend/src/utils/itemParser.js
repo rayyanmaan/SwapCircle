@@ -95,7 +95,7 @@ export function parseItemMetadata(description) {
  */
 export function getImageUrl(image, apiBaseUrl = null) {
   if (!image || !image.url) {
-    return '/api/placeholder/300';
+    return '/placeholder.svg';
   }
 
   // Use provided base URL, fall back to env var, then localhost
