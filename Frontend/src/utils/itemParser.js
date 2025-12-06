@@ -24,11 +24,8 @@ export function parseItemMetadata(description) {
   }
 
   // Split by double newline to separate main description from metadata
-<<<<<<< HEAD
-=======
   // This assumes the UploadForm stores metadata after a blank line
   // Example: "Nice jacket\n\nCategory: Jackets\nSize: M"
->>>>>>> origin/main
   const parts = description.split('\n\n');
   const mainDescription = parts[0] || description;
 
@@ -42,17 +39,11 @@ export function parseItemMetadata(description) {
 
   // Parse metadata from the rest of the description
   if (parts.length > 1) {
-<<<<<<< HEAD
-    const metadataSection = parts.slice(1).join('\n\n');
-    
-    // Extract each field using regex
-=======
     // Join all parts after the first (in case metadata itself has blank lines)
     const metadataSection = parts.slice(1).join('\n\n');
     
     // Extract each field using regex with case-insensitive matching
     // Regex pattern: "FieldName: value" where value is everything until newline or end
->>>>>>> origin/main
     const categoryMatch = metadataSection.match(/Category:\s*(.+?)(?:\n|$)/i);
     if (categoryMatch) {
       category = categoryMatch[1].trim();
@@ -78,10 +69,7 @@ export function parseItemMetadata(description) {
       branded = brandedMatch[1].trim();
     }
 
-<<<<<<< HEAD
-=======
     // Credits expects a numeric value (\d+), parse as integer with base 10
->>>>>>> origin/main
     const creditsMatch = metadataSection.match(/Credits:\s*(\d+)(?:\n|$)/i);
     if (creditsMatch) {
       credits = parseInt(creditsMatch[1], 10);
@@ -100,27 +88,6 @@ export function parseItemMetadata(description) {
 }
 
 /**
-<<<<<<< HEAD
- * Get full image URL from backend image object
- * @param {Object} image - Image object with url property
- * @param {string} apiBaseUrl - Base URL for the API (defaults to localhost:8000)
- * @returns {string} Full image URL
- */
-export function getImageUrl(image, apiBaseUrl = null) {
-  if (!image || !image.url) {
-    return '/api/placeholder/300';
-  }
-
-  const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  
-  // If URL already starts with http, return as is
-  if (image.url.startsWith('http')) {
-    return image.url;
-  }
-
-  // Ensure URL starts with /
-  const url = image.url.startsWith('/') ? image.url : `/${image.url}`;
-=======
  * Resolve an image reference into a usable URL.
  * - If already absolute (http/https), return as-is.
  * - If relative, prefix with apiBaseUrl -> NEXT_PUBLIC_API_URL -> http://localhost:8000.
@@ -151,7 +118,5 @@ export function getImageUrl(image, apiBaseUrl = null) {
   // Example: "static/images/abc.jpg" becomes "/static/images/abc.jpg"
   const url = trimmedUrl.startsWith('/') ? trimmedUrl : `/${trimmedUrl}`;
   // Combine base URL with relative path (e.g., "http://localhost:8000/static/images/abc.jpg")
->>>>>>> origin/main
   return `${baseUrl}${url}`;
 }
-
