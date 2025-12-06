@@ -13,17 +13,17 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 async def register(payload: UserCreate):
     """Register a new user"""
     # prevent duplicate emails
-    existing = user_service.get_user_by_email(payload.email)
+    existing = await user_service.get_user_by_email(payload.email)
     if existing:
         raise HTTPException(status_code=400, detail="email already registered")
     
     # prevent duplicate usernames
-    existing_username = user_service.get_user_by_username(payload.username)
+    existing_username = await user_service.get_user_by_username(payload.username)
     if existing_username:
         raise HTTPException(status_code=400, detail="username already taken")
 
     salt, hashed = auth_service.hash_password(payload.password)
-    user = user_service.create_user(payload.email, payload.username, payload.full_name or "", salt, hashed)
+    user = await user_service.create_user(payload.email, payload.username, payload.full_name or "", salt, hashed)
     token = auth_service.create_access_token(user["id"])
     # Return UserOut model for consistency
     user_out = UserOut(
@@ -48,7 +48,7 @@ async def register(payload: UserCreate):
 async def login(payload: Login):
     """Login with email and password"""
     # accept email + password only
-    user = user_service.get_user_by_email(payload.email)
+    user = await user_service.get_user_by_email(payload.email)
     if not user:
         raise HTTPException(status_code=401, detail="invalid credentials")
     if not auth_service.verify_password(payload.password, user.get("salt"), user.get("password_hash")):
@@ -90,7 +90,7 @@ async def me(request: Request) -> Dict:
         user_id, _ = token.split("|", 1)
     except Exception:
         raise HTTPException(status_code=401, detail="invalid token")
-    user = user_service.get_user_by_id(user_id)
+    user = await user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
     # Return credits from user object (updated after each transaction for performance)
@@ -114,19 +114,9 @@ async def verify_email(token: str):
         user_id, _ = token.split("|", 1)
     except Exception:
         raise HTTPException(status_code=400, detail="invalid token")
-    user = user_service.get_user_by_id(user_id)
+    user = await user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
     # mark email verified
-    if hasattr(user_service, "update_user"):
-        user_service.update_user(user_id, {"email_verified": True})
-    else:
-        from services.user_service import _load_all, _save_all
-        users = _load_all()
-        for i, u in enumerate(users):
-            if u.get("id") == user_id:
-                u["email_verified"] = True
-                users[i] = u
-                _save_all(users)
-                break
+    await user_service.update_user(user_id, {"email_verified": True})
     return {"message": "email verified"}

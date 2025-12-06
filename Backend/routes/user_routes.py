@@ -10,14 +10,14 @@ router = APIRouter(prefix="/users", tags=["Users"])
 @router.get("/")
 async def list_users():
     """List all users"""
-    rows = user_service.list_users()
+    rows = await user_service.list_users()
     return {"users": rows}
 
 
 @router.get("/username/{username}", response_model=UserOut)
 async def get_user_by_username(username: str):
     """Get user by username"""
-    user = user_service.get_user_by_username(username)
+    user = await user_service.get_user_by_username(username)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -44,7 +44,7 @@ async def get_user_by_username(username: str):
 @router.get("/{user_id}", response_model=UserOut)
 async def get_user(user_id: str):
     """Get user by ID"""
-    user = user_service.get_user_by_id(user_id)
+    user = await user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -115,7 +115,7 @@ async def patch_user(user_id: str, request: Request):
         )
     
     # Verify user exists
-    existing_user = user_service.get_user_by_id(user_id)
+    existing_user = await user_service.get_user_by_id(user_id)
     if not existing_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -148,7 +148,7 @@ async def patch_user(user_id: str, request: Request):
     # Check username uniqueness if username is being updated
     if "username" in updates:
         new_username = updates["username"]
-        existing_user_with_username = user_service.get_user_by_username(new_username)
+        existing_user_with_username = await user_service.get_user_by_username(new_username)
         # Allow if it's the same user (no change) or username doesn't exist
         if existing_user_with_username and existing_user_with_username.get("id") != user_id:
             raise HTTPException(
@@ -158,7 +158,7 @@ async def patch_user(user_id: str, request: Request):
     
     # Perform update
     try:
-        updated_user = user_service.update_user(user_id, updates)
+        updated_user = await user_service.update_user(user_id, updates)
         if not updated_user:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -233,7 +233,7 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
         )
     
     # Verify user exists
-    existing_user = user_service.get_user_by_id(user_id)
+    existing_user = await user_service.get_user_by_id(user_id)
     if not existing_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -242,10 +242,10 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
     
     # Upload and validate image
     try:
-        url, image_id = image_service.upload_image(file, validate=True)
+        url, image_id = await image_service.upload_image(file, validate=True)
         
         # Update user's profile_pic
-        updated_user = user_service.update_user(user_id, {"profile_pic": url})
+        updated_user = await user_service.update_user(user_id, {"profile_pic": url})
         if not updated_user:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

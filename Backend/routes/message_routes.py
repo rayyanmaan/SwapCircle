@@ -40,7 +40,7 @@ async def send_message(
         )
 
     try:
-        created_message = message_service.create_message(
+        created_message = await message_service.create_message(
             sender_id=message.sender_id,
             recipient_id=message.recipient_id,
             content=message.content,
@@ -61,12 +61,12 @@ async def get_messages(
     try:
         if conversation_with:
             # Get conversation between two users
-            messages = message_service.get_conversation(
+            messages = await message_service.get_conversation(
                 current_user_id, conversation_with
             )
         else:
             # Get all messages involving the current user
-            messages = message_service.get_user_messages(current_user_id)
+            messages = await message_service.get_user_messages(current_user_id)
 
         return messages
     except Exception as e:
@@ -79,7 +79,7 @@ async def get_messages(
 async def get_conversations(current_user_id: str = Depends(get_current_user_id)):
     """Get list of users that current user has conversations with"""
     try:
-        conversations = message_service.get_user_conversations(current_user_id)
+        conversations = await message_service.get_user_conversations(current_user_id)
         return {"user_id": current_user_id, "conversations": conversations}
     except Exception as e:
         raise HTTPException(
@@ -93,7 +93,7 @@ async def get_message(
 ):
     """Get a specific message by ID"""
     try:
-        message = message_service.get_message_by_id(message_id)
+        message = await message_service.get_message_by_id(message_id)
         if not message:
             raise HTTPException(status_code=404, detail="Message not found")
 

@@ -25,7 +25,7 @@ async def request_swap(item_id: str, request: Request):
     # Require authentication
     user_id = auth_service.get_user_id_from_request(request)
     
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
     
@@ -45,7 +45,7 @@ async def request_swap(item_id: str, request: Request):
         )
     
     # Check if user already has a pending request for this item
-    existing_requests = swap_service.get_requests_for_requester(user_id)
+    existing_requests = await swap_service.get_requests_for_requester(user_id)
     for req in existing_requests:
         if req.get("item_id") == item_id and req.get("status") == "pending":
             raise HTTPException(
@@ -66,7 +66,7 @@ async def request_swap(item_id: str, request: Request):
                 credits_required = 1.0
     
     # Check if user has enough credits
-    user = get_user_by_id(user_id)
+    user = await get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
     
@@ -78,7 +78,7 @@ async def request_swap(item_id: str, request: Request):
         )
     
     # Create swap request (don't transfer credits yet)
-    swap_request = swap_service.create_swap_request(
+    swap_request = await swap_service.create_swap_request(
         item_id=item_id,
         requester_id=user_id,
         credits_required=credits_required
@@ -86,7 +86,7 @@ async def request_swap(item_id: str, request: Request):
     
     # Mark item as pending (has a swap request)
     it["status"] = "pending"
-    storage_service.upsert_item(it)
+    await storage_service.upsert_item(it)
     
     return {
         "status": "requested",
@@ -103,7 +103,7 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
     # Require authentication
     user_id = auth_service.get_user_id_from_request(request)
     
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
     
@@ -116,7 +116,7 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
         )
     
     # Get the swap request
-    swap_request = swap_service.get_swap_request(request_id)
+    swap_request = await swap_service.get_swap_request(request_id)
     if not swap_request:
         raise HTTPException(status_code=404, detail="swap request not found")
     
@@ -133,7 +133,7 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
     credits_required = swap_request.get("credits_required", 1.0)
     
     # Transfer credits from requester to owner
-    credit_service.deduct_credits(
+    await credit_service.deduct_credits(
         user_id=requester_id,
         amount=credits_required,
         transaction_type=TRANSACTION_TYPE_SWAP_DEBIT,
@@ -141,7 +141,7 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
     )
     
     # Record swap credit transaction for owner
-    credit_service.add_credits(
+    await credit_service.add_credits(
         user_id=item_owner_id,
         amount=credits_required,
         transaction_type=TRANSACTION_TYPE_SWAP_CREDIT,
@@ -149,14 +149,14 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
     )
     
     # Update swap request status to approved
-    swap_service.update_swap_request(request_id, "approved")
+    await swap_service.update_swap_request(request_id, "approved")
     
     # Cancel other pending requests for this item
-    swap_service.cancel_other_pending_requests(item_id, request_id)
+    await swap_service.cancel_other_pending_requests(item_id, request_id)
     
     # Mark item as swapped/locked
     it["status"] = "swapped"
-    storage_service.upsert_item(it)
+    await storage_service.upsert_item(it)
     
     return {
         "status": "approved",
@@ -172,7 +172,7 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
     # Require authentication
     user_id = auth_service.get_user_id_from_request(request)
     
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
     
@@ -185,7 +185,7 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
         )
     
     # Get the swap request
-    swap_request = swap_service.get_swap_request(request_id)
+    swap_request = await swap_service.get_swap_request(request_id)
     if not swap_request:
         raise HTTPException(status_code=404, detail="swap request not found")
     
@@ -199,14 +199,14 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
         )
     
     # Update swap request status to rejected
-    swap_service.update_swap_request(request_id, "rejected")
+    await swap_service.update_swap_request(request_id, "rejected")
     
     # Check if there are any other pending requests for this item
-    pending_requests = swap_service.get_pending_requests_for_item(item_id)
+    pending_requests = await swap_service.get_pending_requests_for_item(item_id)
     if not pending_requests:
         # No more pending requests, mark item as available again
         it["status"] = "available"
-        storage_service.upsert_item(it)
+        await storage_service.upsert_item(it)
     
     return {
         "status": "rejected",
@@ -226,16 +226,16 @@ async def get_swap_requests(request: Request):
     user_id = auth_service.get_user_id_from_request(request)
     
     # Get requests as owner (pending requests for items I own)
-    owner_requests = swap_service.get_pending_requests_for_owner(user_id)
+    owner_requests = await swap_service.get_pending_requests_for_owner(user_id)
     
     # Get requests as requester (requests I made)
-    requester_requests = swap_service.get_requests_for_requester(user_id)
+    requester_requests = await swap_service.get_requests_for_requester(user_id)
     
     # Enrich requests with item and user information
     enriched_owner_requests = []
     for req in owner_requests:
-        item = storage_service.get_item(req.get("item_id"))
-        requester = get_user_by_id(req.get("requester_id"))
+        item = await storage_service.get_item(req.get("item_id"))
+        requester = await get_user_by_id(req.get("requester_id"))
         enriched_owner_requests.append({
             **req,
             "item": item,
@@ -248,7 +248,7 @@ async def get_swap_requests(request: Request):
     
     enriched_requester_requests = []
     for req in requester_requests:
-        item = storage_service.get_item(req.get("item_id"))
+        item = await storage_service.get_item(req.get("item_id"))
         enriched_requester_requests.append({
             **req,
             "item": item
@@ -267,13 +267,13 @@ async def get_swap_history(request: Request):
     user_id = auth_service.get_user_id_from_request(request)
     
     # Get approved swaps where user is owner or requester
-    approved_swaps = swap_service.get_approved_swaps_for_user(user_id)
+    approved_swaps = await swap_service.get_approved_swaps_for_user(user_id)
     
     # Enrich swaps with item and user information
     enriched_swaps = []
     for swap in approved_swaps:
-        item = storage_service.get_item(swap.get("item_id"))
-        requester = get_user_by_id(swap.get("requester_id"))
+        item = await storage_service.get_item(swap.get("item_id"))
+        requester = await get_user_by_id(swap.get("requester_id"))
         item_owner_id = item.get("owner_id") if item else None
         
         enriched_swaps.append({
@@ -286,8 +286,8 @@ async def get_swap_history(request: Request):
             } if requester else None,
             "owner": {
                 "id": item_owner_id,
-                "username": get_user_by_id(item_owner_id).get("username") if item_owner_id else "Unknown",
-                "full_name": get_user_by_id(item_owner_id).get("full_name") if item_owner_id else None,
+                "username": (await get_user_by_id(item_owner_id)).get("username") if item_owner_id else "Unknown",
+                "full_name": (await get_user_by_id(item_owner_id)).get("full_name") if item_owner_id else None,
             } if item_owner_id else None
         })
     

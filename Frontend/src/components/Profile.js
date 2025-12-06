@@ -86,13 +86,19 @@ export default function Profile({ username: usernameProp }) {
 
         setListings(transformedListings);
         
-        // Fetch swap history (only for own profile)
-        if (isOwnProfile) {
+        // Fetch swap history (only for own profile and when authenticated)
+        if (isOwnProfile && isAuthenticated && authUser) {
           try {
             const historyData = await itemsAPI.getSwapHistory();
             setSwapHistory(Array.isArray(historyData) ? historyData : []);
           } catch (err) {
-            console.error('Error fetching swap history:', err);
+            // Silently handle auth errors - user might not be logged in
+            if (err.message && err.message.includes('authorization')) {
+              console.warn('Not authenticated to fetch swap history');
+            } else {
+              console.error('Error fetching swap history:', err);
+            }
+            setSwapHistory([]);
           }
         }
         

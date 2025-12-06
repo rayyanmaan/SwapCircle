@@ -32,7 +32,7 @@ def get_current_user_id(authorization: Optional[str] = Header(None)) -> str:
 async def get_balance(user_id: str = Depends(get_current_user_id)):
     """Get current user's credit balance"""
     try:
-        balance = credit_service.get_user_balance(user_id)
+        balance = await credit_service.get_user_balance(user_id)
         return {"user_id": user_id, "balance": balance}
     except Exception as e:
         raise HTTPException(
@@ -47,7 +47,7 @@ async def add_credits(amount: float, user_id: str = Depends(get_current_user_id)
         raise HTTPException(status_code=400, detail="Amount must be positive")
 
     try:
-        new_balance = credit_service.add_credits(user_id, amount)
+        new_balance = await credit_service.add_credits(user_id, amount)
         return {
             "user_id": user_id,
             "amount_added": amount,
@@ -67,7 +67,7 @@ async def deduct_credits(amount: float, user_id: str = Depends(get_current_user_
         raise HTTPException(status_code=400, detail="Amount must be positive")
 
     try:
-        new_balance = credit_service.deduct_credits(user_id, amount)
+        new_balance = await credit_service.deduct_credits(user_id, amount)
         return {
             "user_id": user_id,
             "amount_deducted": amount,
@@ -86,7 +86,7 @@ async def deduct_credits(amount: float, user_id: str = Depends(get_current_user_
 async def get_user_transactions(user_id: str = Depends(get_current_user_id)):
     """Get transaction history for current user"""
     try:
-        transactions = credit_service.get_user_transactions(user_id)
+        transactions = await credit_service.get_user_transactions(user_id)
         return {"user_id": user_id, "transactions": transactions}
     except Exception as e:
         raise HTTPException(

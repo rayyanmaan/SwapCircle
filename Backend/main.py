@@ -33,6 +33,30 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="SwapCircle Backend", lifespan=lifespan)
 
 
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler to ensure CORS headers are included in error responses."""
+    from fastapi import HTTPException
+    import traceback
+    
+    # Don't handle HTTPException here - let FastAPI handle it normally
+    if isinstance(exc, HTTPException):
+        raise exc
+    
+    # Log the full error for debugging
+    print(f"Unhandled exception: {exc}")
+    print(traceback.format_exc())
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": str(exc)},
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:3000",
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Custom handler for validation errors to provide detailed error messages."""

@@ -165,6 +165,20 @@ export default function UploadForm() {
       router.push('/profile');
     } catch (error) {
       console.error('Error creating item:', error);
+      
+      // Handle authentication errors specifically
+      if (error.message && (
+        error.message.includes('authorization') || 
+        error.message.includes('logged in') ||
+        error.message.includes('authenticated')
+      )) {
+        setErrors({ 
+          general: 'You must be logged in to create an item. Please log in and try again.' 
+        });
+        // Optionally redirect to login
+        // router.push('/login');
+        return;
+      }
       console.error('Error details:', error.data);
       
       // Extract error message

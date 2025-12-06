@@ -345,6 +345,11 @@ export const itemsAPI = {
     const url = `${API_BASE_URL}/items`;
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
+    // Check if user is authenticated
+    if (!token) {
+      throw new Error('You must be logged in to create an item. Please log in and try again.');
+    }
+
     // If there are images, use FormData for multipart/form-data
     if (imageFiles.length > 0) {
       const formData = new FormData();
@@ -372,7 +377,7 @@ export const itemsAPI = {
       const config = {
         method: 'POST',
         headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
+          Authorization: `Bearer ${token}`,  // Always include if we got here (token check above)
           // Don't set Content-Type - browser will set it with boundary for multipart
         },
         body: formData,
