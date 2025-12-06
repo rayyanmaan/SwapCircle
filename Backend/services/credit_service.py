@@ -52,7 +52,7 @@ def _record_transaction(
 
 def get_user_balance(user_id: str) -> float:
     """Calculate user's current balance from transaction history"""
-    from Backend.services.user_service import get_user_by_id
+    from services.user_service import get_user_by_id
 
     # First check if user exists
     user = get_user_by_id(user_id)
@@ -75,7 +75,7 @@ def get_user_balance(user_id: str) -> float:
 
 def add_credits(user_id: str, amount: float) -> float:
     """Add credits to user account and return new balance"""
-    from Backend.services.user_service import get_user_by_id
+    from services.user_service import get_user_by_id
 
     user = get_user_by_id(user_id)
     if not user:

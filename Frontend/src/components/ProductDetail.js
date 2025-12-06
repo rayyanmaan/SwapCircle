@@ -1,42 +1,93 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
 import AuthModal from './AuthModal';
+import { userAPI, itemsAPI } from '@/services/api';
+import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
 
 export default function ProductDetail({ product }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login');
-  
-  // Sample product data - replace with actual props
-  const sampleProduct = {
-    id: 1,
-    title: 'Padded Denim Bomber',
-    condition: 'Like New',
-    brand: 'ZARA',
-    size: 'M',
-    description: 'Beautiful padded denim bomber jacket in excellent condition. Perfect for layering. No stains or damage. Worn only a few times.',
-    credits: 2,
-    userCredits: 8,
-    images: [
-      '/api/placeholder/800/1000',
-      '/api/placeholder/800/1000',
-      '/api/placeholder/800/1000',
-    ],
-    seller: {
-      name: 'Alex Chen',
-      avatar: '/api/placeholder/100/100',
-      credits: 12,
-      lockDuration: '48 hours',
-    },
+  const [seller, setSeller] = useState(null);
+  const [userCredits, setUserCredits] = useState(0);
+
+  // Transform backend product data to component format
+  const transformProduct = (productData) => {
+    if (!productData) return null;
+
+    // Parse metadata from description
+    const metadata = parseItemMetadata(productData.description);
+
+    const images = productData.images && productData.images.length > 0
+      ? productData.images.map(img => getImageUrl(img))
+      : ['/placeholder.svg'];
+    
+    return {
+      id: productData.id,
+      title: productData.title,
+      condition: metadata.condition || 'Like New',
+      brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',
+      size: metadata.size || 'M',
+      description: metadata.mainDescription,
+      credits: metadata.credits || 2,
+      images: images,
+      owner_id: productData.owner_id,
+      status: productData.status || 'available', // available, pending, swapped, locked
+    };
   };
 
-  const productData = product || sampleProduct;
+  const productData = transformProduct(product);
+
+  // Check if current user is the owner
+  const isOwner = user && productData?.owner_id && user.id === productData.owner_id;
+
+  // Fetch seller information if owner_id is available
+  useEffect(() => {
+    const fetchSeller = async () => {
+      if (productData?.owner_id) {
+        try {
+          const sellerData = await userAPI.getUser(productData.owner_id);
+          setSeller({
+            name: sellerData.full_name || sellerData.username || 'Unknown',
+            avatar: sellerData.avatar || sellerData.username?.[0]?.toUpperCase() || '?',
+            credits: sellerData.credits || 0,
+            lockDuration: '48 hours',
+          });
+        } catch (err) {
+          console.error('Error fetching seller:', err);
+          setSeller({
+            name: 'Unknown',
+            avatar: '?',
+            credits: 0,
+            lockDuration: '48 hours',
+          });
+        }
+      }
+    };
+
+    fetchSeller();
+  }, [productData?.owner_id]);
+
+  // Get user credits
+  useEffect(() => {
+    if (user) {
+      setUserCredits(user.credits || 0);
+    }
+  }, [user]);
+
+  if (!productData) {
+    return (
+      <div className="min-h-screen bg-swapcircle-white flex items-center justify-center">
+        <p className="text-swapcircle-secondary">Product not found</p>
+      </div>
+    );
+  }
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % productData.images.length);
@@ -50,13 +101,37 @@ export default function ProductDetail({ product }) {
     setCurrentImageIndex(index);
   };
 
-  const handleSwapClick = () => {
+  const handleSwapClick = async () => {
     if (!isAuthenticated) {
       setAuthMode('login');
       setShowAuthModal(true);
       return;
     }
-    setShowSwapModal(true);
+
+    // Prevent swapping own items (double check on frontend)
+    if (isOwner) {
+      alert('You cannot swap your own items');
+      return;
+    }
+
+    // Check if item is available
+    if (product?.status && product.status !== 'available' && product.status !== 'pending') {
+      alert('This item is no longer available for swap');
+      return;
+    }
+
+    try {
+      // Call the swap request API endpoint
+      const result = await itemsAPI.requestSwap(productData.id);
+      // Show success modal with request message
+      alert(result.message || 'Swap request created! Waiting for owner approval.');
+      setShowSwapModal(true);
+      // Refresh the page to show updated status
+      window.location.reload();
+    } catch (error) {
+      console.error('Error requesting swap:', error);
+      alert(error.message || 'Failed to request swap. Please try again.');
+    }
   };
 
   return (
@@ -68,7 +143,14 @@ export default function ProductDetail({ product }) {
           <div className="relative">
             {/* Main Image */}
             <div className="relative aspect-[4/5] rounded-lg overflow-hidden mb-4 bg-swapcircle-alt">
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom right, var(--swapcircle-neutral-200), var(--swapcircle-neutral-100))' }}></div>
+              <img
+                src={productData.images[currentImageIndex]}
+                alt={productData.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                    e.target.src = '/placeholder.svg';
+                }}
+              />
               
               {/* Navigation Arrows */}
               {productData.images.length > 1 && (
@@ -106,7 +188,14 @@ export default function ProductDetail({ product }) {
                       index === currentImageIndex ? 'border-swapcircle-primary' : 'border-transparent opacity-50'
                     }`}
                   >
-                    <div className="w-full h-full bg-gradient-to-br from-neutral-200 to-neutral-400"></div>
+                    <img
+                      src={productData.images[index]}
+                      alt={`${productData.title} ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = '/placeholder.svg';
+                      }}
+                    />
                   </button>
                 ))}
               </div>
@@ -146,7 +235,7 @@ export default function ProductDetail({ product }) {
               <h3 className="heading-primary text-lg font-semibold mb-4">Cost to acquire:</h3>
               <div className="flex items-center justify-between mb-6">
                 <p className="text-swapcircle-secondary text-sm">
-                  You have {productData.userCredits} credits available
+                  You have {userCredits} credits available
                 </p>
                 <div className="flex items-center gap-2">
                   <svg
@@ -171,10 +260,46 @@ export default function ProductDetail({ product }) {
                     className="btn-primary w-full py-4 text-lg"
                     onClick={handleSwapClick}
                   >
-                    Swap Now
+                    Request Swap
                   </button>
                   <p className="text-sm text-swapcircle-tertiary text-center">
-                    Please log in to swap items
+                    Please log in to request a swap
+                  </p>
+                </div>
+              ) : isOwner ? (
+                <div className="space-y-3">
+                  <button 
+                    className="btn-secondary w-full py-4 text-lg cursor-not-allowed opacity-50"
+                    disabled
+                  >
+                    Your Item
+                  </button>
+                  <p className="text-sm text-swapcircle-tertiary text-center">
+                    You cannot swap your own items
+                  </p>
+                </div>
+              ) : productData?.status === 'pending' ? (
+                <div className="space-y-3">
+                  <button 
+                    className="btn-secondary w-full py-4 text-lg cursor-not-allowed opacity-50"
+                    disabled
+                  >
+                    Pending Request
+                  </button>
+                  <p className="text-sm text-swapcircle-tertiary text-center">
+                    This item has a pending swap request
+                  </p>
+                </div>
+              ) : productData?.status === 'swapped' || productData?.status === 'locked' ? (
+                <div className="space-y-3">
+                  <button 
+                    className="btn-secondary w-full py-4 text-lg cursor-not-allowed opacity-50"
+                    disabled
+                  >
+                    Unavailable
+                  </button>
+                  <p className="text-sm text-swapcircle-tertiary text-center">
+                    This item is no longer available
                   </p>
                 </div>
               ) : (
@@ -182,27 +307,31 @@ export default function ProductDetail({ product }) {
                   className="btn-primary w-full py-4 text-lg"
                   onClick={handleSwapClick}
                 >
-                  Swap Now
+                  Request Swap
                 </button>
               )}
             </div>
 
             {/* Seller Section */}
-            <div className="card-swapcircle border-2 rounded-lg p-6 border-swapcircle">
-              <h3 className="heading-primary text-lg font-semibold mb-4">Seller</h3>
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-neutral-200 to-neutral-400"></div>
-                <div>
-                  <p className="heading-primary text-lg font-semibold">{productData.seller.name}</p>
-                  <p className="text-swapcircle-secondary text-sm">
-                    {productData.seller.credits} credits • {productData.seller.lockDuration} lock
-                  </p>
+            {seller && (
+              <div className="card-swapcircle border-2 rounded-lg p-6 border-swapcircle">
+                <h3 className="heading-primary text-lg font-semibold mb-4">Seller</h3>
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-16 h-16 rounded-full bg-swapcircle-primary flex items-center justify-center">
+                    <span className="text-white text-2xl font-bold">{seller.avatar}</span>
+                  </div>
+                  <div>
+                    <p className="heading-primary text-lg font-semibold">{seller.name}</p>
+                    <p className="text-swapcircle-secondary text-sm">
+                      {seller.credits} credits • {seller.lockDuration} lock
+                    </p>
+                  </div>
                 </div>
+                <button className="btn-secondary w-full">
+                  💬 Message Seller
+                </button>
               </div>
-              <button className="btn-secondary w-full">
-                💬 Message Seller
-              </button>
-            </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex space-x-3">

@@ -1,15 +1,3 @@
-from passlib.context import CryptContext
-from fastapi import HTTPException
-from app.models.user_model import user_document
-from app.utils.validators import (
-    validate_email,
-    validate_password,
-    validate_instagram,
-    validate_whatsapp,
-)
-from app.utils.token_utils import create_access_token
-from pydantic import BaseModel, EmailStr
-from bson import ObjectId
 """Authentication helpers used by the auth routes.
 
 This is a small, development-only implementation:
@@ -18,12 +6,15 @@ This is a small, development-only implementation:
   the project's secret key. For production, replace with JWTs (PyJWT or
   python-jose) and a proper auth flow.
 """
+from passlib.context import CryptContext
+from fastapi import HTTPException
+from pydantic import BaseModel, EmailStr
 from hashlib import sha256
 import hmac
 import uuid
 from typing import Tuple
 
-from Backend.config import settings
+from config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
