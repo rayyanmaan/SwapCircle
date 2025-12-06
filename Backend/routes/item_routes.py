@@ -19,8 +19,10 @@ meaningful comments, consistent error messages, and helpful documentation.
 from typing import List, Optional
 from uuid import uuid4
 import json
+import re
 
 # Note: re module removed as it's no longer needed (credits parsing moved to swap_routes)
+
 
 from fastapi import APIRouter, UploadFile, File, Body, HTTPException, status, Request
 from pydantic import ValidationError
@@ -66,7 +68,6 @@ async def create_item(
     # We parse manually to avoid FastAPI trying to parse Body() from multipart data.
     item = None
     ctype = request.headers.get("content-type", "")
-
     if ctype.startswith("application/json"):
         try:
             body = await request.json()
@@ -204,7 +205,6 @@ async def create_item(
     except Exception as e:
         # Log the error but don't fail the item creation
         print(f"Warning: Failed to award credits to user {owner_id}: {str(e)}")
-
     return ItemOut(**stored)
 
 
@@ -507,17 +507,16 @@ async def lock_item(item_id: str, request: Request):
     it = storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
-
     # Prevent users from locking their own items
     item_owner_id = it.get("owner_id")
     if item_owner_id and item_owner_id == user_id:
         raise HTTPException(
-            status_code=403, detail="You cannot swap or purchase your own items"
+            status_code=403,
+            detail="You cannot swap or purchase your own items"
         )
 
     if it.get("status") == "locked":
         raise HTTPException(status_code=400, detail="already locked")
-
     it["status"] = "locked"
     storage_service.upsert_item(it)
     return {"status": "locked"}
@@ -550,7 +549,6 @@ async def unlock_item(item_id: str, request: Request):
     it = storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
-
     # Only the owner can unlock their own items
     item_owner_id = it.get("owner_id")
     if item_owner_id and item_owner_id != user_id:

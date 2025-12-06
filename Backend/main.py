@@ -76,7 +76,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         except Exception as e:
             # If we can't serialize it, just note the type
             body_data = f"<unable to serialize: {type(exc.body).__name__}>"
-
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={

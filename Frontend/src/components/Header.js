@@ -64,10 +64,18 @@ export default function Header() {
             <nav className="hidden md:flex items-center space-x-6">
               <Link
                 href="/browse"
-                className="font-medium link-swapcircle"
+                className="font-medium link-swapcircle hover:opacity-70 transition-opacity"
               >
                 Browse
               </Link>
+              {isAuthenticated && (
+                <Link
+                  href="/upload"
+                  className="font-medium link-swapcircle hover:opacity-70 transition-opacity"
+                >
+                  List Item
+                </Link>
+              )}
             </nav>
 
             {/* Search Bar - Desktop */}
@@ -101,9 +109,6 @@ export default function Header() {
                     className="btn-credit hover:bg-swapcircle-credit/80 transition-colors"
                   >
                     {user?.credits || 0} credits
-                  </Link>
-                  <Link href="/upload" className="btn-primary">
-                    List Item
                   </Link>
                   <div className="relative" ref={dropdownRef}>
                     <button
@@ -222,6 +227,15 @@ export default function Header() {
                 >
                   Browse
                 </Link>
+                {isAuthenticated && (
+                  <Link
+                    href="/upload"
+                    className="font-medium py-2 link-swapcircle"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    List Item
+                  </Link>
+                )}
               </nav>
               <div className="flex flex-col space-y-2 pt-4 border-t border-swapcircle">
                 {isAuthenticated ? (
@@ -240,11 +254,11 @@ export default function Header() {
                       </div>
                     </div>
                     <Link
-                      href="/upload"
-                      className="btn-primary text-left"
+                      href="/profile"
+                      className="btn-secondary text-left"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      List Item
+                      Profile
                     </Link>
                     <button
                       onClick={() => {

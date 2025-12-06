@@ -120,4 +120,3 @@ export function getImageUrl(image, apiBaseUrl = null) {
   // Combine base URL with relative path (e.g., "http://localhost:8000/static/images/abc.jpg")
   return `${baseUrl}${url}`;
 }
-

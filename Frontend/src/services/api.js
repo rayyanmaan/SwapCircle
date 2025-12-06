@@ -481,4 +481,3 @@ export const itemsAPI = {
 };
 
 export default apiRequest;
-
