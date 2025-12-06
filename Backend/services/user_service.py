@@ -34,15 +34,20 @@ async def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
     return _convert_id(user)
 
 
-async def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
-    """Get user by ID."""
+async def get_user_by_id(user_id: str, session=None) -> Optional[Dict[str, Any]]:
+    """Get user by ID.
+    
+    Args:
+        user_id: The user ID to look up
+        session: Optional MongoDB session for transactions
+    """
     db = get_db()
     users_collection = db["users"]
     try:
-        user = await users_collection.find_one({"_id": ObjectId(user_id)})
+        user = await users_collection.find_one({"_id": ObjectId(user_id)}, session=session)
     except Exception:
         # If ObjectId conversion fails, try as string
-        user = await users_collection.find_one({"id": user_id})
+        user = await users_collection.find_one({"id": user_id}, session=session)
     return _convert_id(user)
 
 

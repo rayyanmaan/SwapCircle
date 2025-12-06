@@ -178,29 +178,73 @@ async def add_credits(
     db = get_db()
     client: AsyncIOMotorClient = db.client
     
-    # Use MongoDB transaction for atomicity
-    async with client.start_session() as session:
-        async with session.start_transaction():
-            # Get fresh user data
-            user = await get_user_by_id(user_id)
-            if not user:
-                raise ValueError(f"User {user_id} not found")
+    # Check if MongoDB supports transactions (requires replica set or sharded cluster)
+    # For standalone instances, we'll do operations without transactions
+    try:
+        # Try to use MongoDB transaction for atomicity
+        async with client.start_session() as session:
+            try:
+                async with session.start_transaction():
+                    print(f"DEBUG: Starting transaction to add {amount} credits to user {user_id}")
+                    # Get fresh user data within transaction
+                    user = await get_user_by_id(user_id, session=session)
+                    if not user:
+                        raise ValueError(f"User {user_id} not found")
 
-            # Record the transaction first (for audit trail)
-            await _record_transaction(
-                user_id=user_id,
-                amount=amount,
-                transaction_type=transaction_type,
-                description=description,
-                session=session,
-            )
+                    # Record the transaction first (for audit trail)
+                    print(f"DEBUG: Recording transaction for user {user_id}")
+                    await _record_transaction(
+                        user_id=user_id,
+                        amount=amount,
+                        transaction_type=transaction_type,
+                        description=description,
+                        session=session,
+                    )
 
-            # Update user's credits field directly (for performance - O(1) instead of O(n))
-            current_credits = user.get("credits", 0.0)
-            new_credits = current_credits + amount
-            await update_user(user_id, {"credits": new_credits}, session=session)
+                    # Update user's credits field directly (for performance - O(1) instead of O(n))
+                    current_credits = user.get("credits", 0.0)
+                    new_credits = current_credits + amount
+                    print(f"DEBUG: Updating user credits from {current_credits} to {new_credits}")
+                    await update_user(user_id, {"credits": new_credits}, session=session)
+                    print(f"DEBUG: Transaction completed successfully")
+                
+                # Transaction commits automatically when exiting the context manager
+                print(f"DEBUG: Transaction committed, returning new_credits: {new_credits}")
+                return new_credits
+            except Exception as e:
+                # Transaction will be aborted automatically
+                import traceback
+                print(f"ERROR: Transaction failed in add_credits: {str(e)}")
+                print(traceback.format_exc())
+                raise
+    except Exception as e:
+        # If transactions aren't supported (standalone MongoDB), fall back to non-transactional
+        import traceback
+        print(f"WARNING: MongoDB transactions not available ({str(e)}). Using non-transactional operations.")
+        print(traceback.format_exc())
+        
+        # Get fresh user data
+        user = await get_user_by_id(user_id)
+        if not user:
+            raise ValueError(f"User {user_id} not found")
 
-    return new_credits
+        # Record the transaction first (for audit trail)
+        print(f"DEBUG: Recording transaction (non-transactional) for user {user_id}")
+        await _record_transaction(
+            user_id=user_id,
+            amount=amount,
+            transaction_type=transaction_type,
+            description=description,
+            session=None,  # No session for standalone
+        )
+
+        # Update user's credits field directly
+        current_credits = user.get("credits", 0.0)
+        new_credits = current_credits + amount
+        print(f"DEBUG: Updating user credits (non-transactional) from {current_credits} to {new_credits}")
+        await update_user(user_id, {"credits": new_credits}, session=None)
+        print(f"DEBUG: Non-transactional operation completed, returning new_credits: {new_credits}")
+        return new_credits
 
 
 async def deduct_credits(
@@ -240,36 +284,76 @@ async def deduct_credits(
     db = get_db()
     client: AsyncIOMotorClient = db.client
     
-    # Use MongoDB transaction for atomicity
-    async with client.start_session() as session:
-        async with session.start_transaction():
-            # Get fresh user data
-            user = await get_user_by_id(user_id)
-            if not user:
-                raise ValueError(f"User {user_id} not found")
+    # Check if MongoDB supports transactions (requires replica set or sharded cluster)
+    # For standalone instances, we'll do operations without transactions
+    try:
+        # Try to use MongoDB transaction for atomicity
+        async with client.start_session() as session:
+            try:
+                async with session.start_transaction():
+                    # Get fresh user data within transaction
+                    user = await get_user_by_id(user_id, session=session)
+                    if not user:
+                        raise ValueError(f"User {user_id} not found")
 
-            current_balance = user.get("credits", 0.0)
+                    current_balance = user.get("credits", 0.0)
 
-            # Check if user has sufficient credits before proceeding
-            if current_balance < amount:
-                raise ValueError(
-                    f"Insufficient credits. Current balance: {current_balance}, required: {amount}"
-                )
+                    # Check if user has sufficient credits before proceeding
+                    if current_balance < amount:
+                        raise ValueError(
+                            f"Insufficient credits. Current balance: {current_balance}, required: {amount}"
+                        )
 
-            # Record the transaction first (for audit trail)
-            await _record_transaction(
-                user_id=user_id,
-                amount=amount,
-                transaction_type=transaction_type,
-                description=description,
-                session=session,
+                    # Record the transaction first (for audit trail)
+                    await _record_transaction(
+                        user_id=user_id,
+                        amount=amount,
+                        transaction_type=transaction_type,
+                        description=description,
+                        session=session,
+                    )
+
+                    # Update user's credits field directly (for performance - O(1) instead of O(n))
+                    new_credits = current_balance - amount
+                    await update_user(user_id, {"credits": new_credits}, session=session)
+                
+                # Transaction commits automatically when exiting the context manager
+                return new_credits
+            except Exception as e:
+                # Transaction will be aborted automatically
+                print(f"Transaction failed in deduct_credits: {str(e)}")
+                raise
+    except Exception as e:
+        # If transactions aren't supported (standalone MongoDB), fall back to non-transactional
+        print(f"Warning: MongoDB transactions not available ({str(e)}). Using non-transactional operations.")
+        
+        # Get fresh user data
+        user = await get_user_by_id(user_id)
+        if not user:
+            raise ValueError(f"User {user_id} not found")
+
+        current_balance = user.get("credits", 0.0)
+
+        # Check if user has sufficient credits before proceeding
+        if current_balance < amount:
+            raise ValueError(
+                f"Insufficient credits. Current balance: {current_balance}, required: {amount}"
             )
 
-            # Update user's credits field directly (for performance - O(1) instead of O(n))
-            new_credits = current_balance - amount
-            await update_user(user_id, {"credits": new_credits}, session=session)
+        # Record the transaction first (for audit trail)
+        await _record_transaction(
+            user_id=user_id,
+            amount=amount,
+            transaction_type=transaction_type,
+            description=description,
+            session=None,  # No session for standalone
+        )
 
-    return new_credits
+        # Update user's credits field directly
+        new_credits = current_balance - amount
+        await update_user(user_id, {"credits": new_credits}, session=None)
+        
+        return new_credits
 
 
 async def get_user_transactions(user_id: str) -> List[Dict[str, Any]]:
