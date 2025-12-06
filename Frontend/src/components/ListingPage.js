@@ -5,7 +5,7 @@ import AuthModal from './AuthModal';
 import ItemCard from './ItemCard';
 import { useState, useEffect } from 'react';
 import { itemsAPI } from '@/services/api';
-import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 
 /**
  * ListingPage Component
@@ -58,8 +58,8 @@ export default function ListingPage() {
 
   // Transform backend item format to ItemCard format
   const transformItem = (item) => {
-    // Parse metadata from description
-    const metadata = parseItemMetadata(item.description);
+    // Get metadata (prefers direct fields, falls back to parsing description for old items)
+    const metadata = getItemMetadata(item);
     
     // Get first image URL if available
     const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;

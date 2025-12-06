@@ -318,6 +318,12 @@ export const itemsAPI = {
       const itemJson = JSON.stringify({
         title: itemData.title,
         description: itemData.description || null,
+        category: itemData.category || null,
+        size: itemData.size || null,
+        location: itemData.location || null,
+        condition: itemData.condition || null,
+        branded: itemData.branded || null,
+        credits: itemData.credits || 1.0,
       });
       formData.append('item', itemJson);
       

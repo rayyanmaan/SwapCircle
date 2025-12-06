@@ -27,7 +27,6 @@ const LOCATIONS = [
 ];
 
 const CONDITIONS = ['Like New', 'Excellent', 'Good', 'Gently Used'];
-const CREDITS_OPTIONS = [1, 2, 3, 4, 5];
 
 export default function UploadForm() {
   const router = useRouter();
@@ -42,7 +41,7 @@ export default function UploadForm() {
     location: '',
     condition: '',
     branded: 'No',
-    credits: 2,
+    credits: 1,
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -140,7 +139,13 @@ export default function UploadForm() {
 
       const itemData = {
         title: formData.title.trim(),
-        description: `${formData.description}\n\nCategory: ${formData.category}\nSize: ${formData.size}\nLocation: ${formData.location}\nCondition: ${formData.condition}\nBranded: ${formData.branded}\nCredits: ${formData.credits}`,
+        description: formData.description.trim(),
+        category: formData.category,
+        size: formData.size.trim(),
+        location: formData.location,
+        condition: formData.condition,
+        branded: formData.branded,
+        credits: formData.credits,
       };
 
       // Extract image files
@@ -454,28 +459,6 @@ export default function UploadForm() {
           </div>
         </div>
 
-        {/* Credits */}
-        <div>
-          <label className="block text-sm font-medium mb-2 text-swapcircle-primary">
-            Credits *
-          </label>
-          <div className="grid grid-cols-5 gap-3">
-            {CREDITS_OPTIONS.map((credit) => (
-              <button
-                key={credit}
-                type="button"
-                onClick={() => handleRadioChange('credits', credit)}
-                className={`px-4 py-3 border-2 rounded-lg font-medium transition-colors ${
-                  formData.credits === credit
-                    ? 'border-swapcircle-primary bg-swapcircle-credit text-swapcircle-blue'
-                    : 'border-swapcircle text-swapcircle-secondary hover:border-swapcircle-hover'
-                }`}
-              >
-                {credit}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Form Actions */}
         <div className="flex flex-col sm:flex-row gap-4 pt-6">

@@ -7,7 +7,7 @@ import ValueProposition from '@/components/ValueProposition';
 import Footer from '@/components/Footer';
 import GuestRoute from '@/components/GuestRoute';
 import { itemsAPI } from '@/services/api';
-import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
@@ -29,8 +29,8 @@ export default function Home() {
         
         // Transform backend items to listing format
         const transformedListings = availableItems.map((item) => {
-          // Parse metadata from description
-          const metadata = parseItemMetadata(item.description);
+          // Get metadata (prefers direct fields, falls back to parsing description for old items)
+          const metadata = getItemMetadata(item);
           
           // Get first image URL if available
           const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;

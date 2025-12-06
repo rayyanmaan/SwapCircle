@@ -1,29 +1,2 @@
 [
-  {
-    "id": "2bb3372b-05fc-4a61-97cf-573d3ae5b537",
-    "item_id": "60daa127-9061-4261-a15f-14a194807411",
-    "requester_id": "537df97841c349668b48b871cfd568a4",
-    "credits_required": 2.0,
-    "status": "approved",
-    "created_at": "2025-12-02T15:59:56.829710",
-    "updated_at": "2025-12-02T16:02:49.495661"
-  },
-  {
-    "id": "3aaac00d-c4d2-4fd7-a2fe-7a6f029e513b",
-    "item_id": "b0332db2-cb99-43b7-8e48-584e1131f3f4",
-    "requester_id": "d926bc991185416dbce213d233383e45",
-    "credits_required": 2.0,
-    "status": "approved",
-    "created_at": "2025-12-02T16:13:00.899256",
-    "updated_at": "2025-12-02T16:13:35.743504"
-  },
-  {
-    "id": "01a13cc7-46b2-48b2-ab49-0141fe61f713",
-    "item_id": "8b824d13-40d2-4ddc-a90d-4f03a800891b",
-    "requester_id": "d926bc991185416dbce213d233383e45",
-    "credits_required": 2.0,
-    "status": "approved",
-    "created_at": "2025-12-06T09:59:39.682198",
-    "updated_at": "2025-12-06T10:08:18.311776"
-  }
 ]

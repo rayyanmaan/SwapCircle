@@ -7,7 +7,7 @@ import FilterSidebar from '@/components/FilterSidebar';
 import SearchBar from '@/components/SearchBar';
 import SortDropdown from '@/components/SortDropdown';
 import { itemsAPI } from '@/services/api';
-import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function BrowsePage() {
@@ -52,8 +52,8 @@ export default function BrowsePage() {
   // Transform backend items to listing format
   const transformListings = (items) => {
     return items.map((item) => {
-      // Parse metadata from description
-      const metadata = parseItemMetadata(item.description);
+      // Get metadata (prefers direct fields, falls back to parsing description for old items)
+      const metadata = getItemMetadata(item);
       
       // Get first image URL if available
       const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
@@ -71,7 +71,7 @@ export default function BrowsePage() {
         id: item.id,
         title: item.title,
         size: metadata.size || 'Size M',
-        credits: metadata.credits || 2,
+        credits: metadata.credits || 1,
         condition: metadata.condition || 'Good',
         timestamp: 'Recently', // Backend doesn't store timestamp yet
         category: metadata.category || 'General',

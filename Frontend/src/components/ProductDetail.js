@@ -6,7 +6,7 @@ import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
 import AuthModal from './AuthModal';
 import { userAPI, itemsAPI } from '@/services/api';
-import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 
 export default function ProductDetail({ product }) {
   const { isAuthenticated, user } = useAuth();
@@ -21,8 +21,8 @@ export default function ProductDetail({ product }) {
   const transformProduct = (productData) => {
     if (!productData) return null;
 
-    // Parse metadata from description
-    const metadata = parseItemMetadata(productData.description);
+    // Get metadata (prefers direct fields, falls back to parsing description for old items)
+    const metadata = getItemMetadata(productData);
 
     const images = productData.images && productData.images.length > 0
       ? productData.images.map(img => getImageUrl(img))
