@@ -41,9 +41,8 @@ export default function Profile() {
           swapped: 0, // Backend doesn't track this yet
         });
 
-        // Fetch all items and filter for user's items
-        const allItems = await itemsAPI.getItems();
-        const userItems = allItems.filter(item => item.owner_id === authUser.id);
+        // Fetch only this user's items (backend filters for efficiency)
+        const userItems = await itemsAPI.getItems({ owner_id: authUser.id });
         
         // Transform items to listing format
         const transformedListings = userItems.map((item) => {
