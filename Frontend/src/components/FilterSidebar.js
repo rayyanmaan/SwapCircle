@@ -12,7 +12,16 @@ const CATEGORIES = [
   'Accessories',
 ];
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'One Size'];
+const LOCATIONS = [
+  'San Francisco',
+  'Berlin',
+  'Buenos Aires',
+  'Hyderabad',
+  'Seoul',
+  'Taipei',
+  'Tokyo',
+  'Other',
+];
 
 const CONDITIONS = [
   'Like New',
@@ -32,7 +41,7 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
   const updateFilter = (filterType, value, checked) => {
     const newFilters = { ...localFilters };
     
-    if (filterType === 'categories' || filterType === 'sizes' || filterType === 'conditions') {
+    if (filterType === 'categories' || filterType === 'conditions' || filterType === 'locations') {
       if (checked) {
         newFilters[filterType] = [...newFilters[filterType], value];
       } else {
@@ -52,8 +61,8 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
     updateFilter('categories', category, checked);
   };
 
-  const handleSizeChange = (size, checked) => {
-    updateFilter('sizes', size, checked);
+  const handleLocationChange = (location, checked) => {
+    updateFilter('locations', location, checked);
   };
 
   const handleConditionChange = (condition, checked) => {
@@ -70,7 +79,7 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
   const clearAllFilters = () => {
     const clearedFilters = {
       categories: [],
-      sizes: [],
+      locations: [],
       conditions: [],
       minCredits: null,
       maxCredits: null,
@@ -147,33 +156,28 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
           </div>
         </div>
 
-        {/* Sizes */}
+        {/* Location */}
         <div>
           <h3 className="heading-primary font-semibold mb-3">
-            Size
+            Location
           </h3>
-          <div className="grid grid-cols-3 gap-2">
-            {SIZES.map((size) => (
+          <div className="space-y-2">
+            {LOCATIONS.map((location) => (
               <label
-                key={size}
-                className={`flex items-center justify-center p-2 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                  localFilters.sizes.includes(size) 
-                    ? 'border-swapcircle-primary bg-swapcircle-credit' 
-                    : 'border-swapcircle'
-                }`}
+                key={location}
+                className="flex items-center cursor-pointer group"
               >
                 <input
                   type="checkbox"
-                  checked={localFilters.sizes.includes(size)}
-                  onChange={(e) => handleSizeChange(size, e.target.checked)}
-                  className="sr-only"
+                  checked={localFilters.locations?.includes(location) || false}
+                  onChange={(e) => handleLocationChange(location, e.target.checked)}
+                  className="w-4 h-4 rounded border-swapcircle focus:ring-2 focus:ring-primary"
+                  style={{
+                    accentColor: 'var(--swapcircle-primary)',
+                  }}
                 />
-                <span className={`text-sm font-medium ${
-                  localFilters.sizes.includes(size) 
-                    ? 'text-swapcircle-blue' 
-                    : 'text-swapcircle-secondary'
-                }`}>
-                  {size}
+                <span className="ml-2 text-sm transition-colors group-hover:opacity-70 text-swapcircle-secondary">
+                  {location}
                 </span>
               </label>
             ))}
@@ -205,41 +209,6 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
                 </span>
               </label>
             ))}
-          </div>
-        </div>
-
-        {/* Credits Range */}
-        <div>
-          <h3 className="heading-primary font-semibold mb-3">
-            Credits Range
-          </h3>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs mb-1 text-swapcircle-secondary">
-                Min Credits
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={localFilters.minCredits ?? ''}
-                onChange={(e) => handleCreditsChange('minCredits', e.target.value)}
-                placeholder="0"
-                className="input-swapcircle"
-              />
-            </div>
-            <div>
-              <label className="block text-xs mb-1 text-swapcircle-secondary">
-                Max Credits
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={localFilters.maxCredits ?? ''}
-                onChange={(e) => handleCreditsChange('maxCredits', e.target.value)}
-                placeholder="No limit"
-                className="input-swapcircle"
-              />
-            </div>
           </div>
         </div>
       </div>
