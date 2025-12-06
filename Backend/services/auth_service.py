@@ -10,6 +10,7 @@ from app.utils.validators import (
 from app.utils.token_utils import create_access_token
 from pydantic import BaseModel, EmailStr
 from bson import ObjectId
+
 """Authentication helpers used by the auth routes.
 
 This is a small, development-only implementation:
@@ -27,6 +28,7 @@ from Backend.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 def hash_password(password: str, salt: str = None) -> Tuple[str, str]:
     """Return (salt, hashed) for a given password."""
     if salt is None:
@@ -35,10 +37,13 @@ def hash_password(password: str, salt: str = None) -> Tuple[str, str]:
     h.update((salt + password).encode("utf-8"))
     return salt, h.hexdigest()
 
+
 class AuthService:
 
     def __init__(self, db):
         self.users = db["users"]
+
+
 def verify_password(plain: str, salt: str, hashed: str) -> bool:
     s, h = hash_password(plain, salt)
     return h == hashed
@@ -98,6 +103,8 @@ def verify_password(plain: str, salt: str, hashed: str) -> bool:
         )
 
         return {"access_token": token, "token_type": "bearer"}
+
+
 def create_access_token(user_id: str) -> str:
     """Create a simple HMAC-signed token for development.
 
@@ -114,5 +121,7 @@ def verify_access_token(token: str) -> bool:
         user_id, sig = token.split("|", 1)
     except ValueError:
         return False
-    expected = hmac.new(settings.secret_key.encode("utf-8"), user_id.encode("utf-8"), sha256).hexdigest()
+    expected = hmac.new(
+        settings.secret_key.encode("utf-8"), user_id.encode("utf-8"), sha256
+    ).hexdigest()
     return hmac.compare_digest(expected, sig)

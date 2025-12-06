@@ -4,6 +4,12 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// Validate API_BASE_URL
+if (typeof window !== 'undefined' && !API_BASE_URL.startsWith('http')) {
+  console.error('Invalid API_BASE_URL:', API_BASE_URL);
+  console.error('Please set NEXT_PUBLIC_API_URL in your .env.local file');
+}
+
 // Enable mock mode for frontend testing when backend is not available
 const MOCK_MODE = process.env.NEXT_PUBLIC_MOCK_AUTH === 'true' || false;
 
@@ -18,7 +24,15 @@ const MOCK_USERS = {
  * Make an API request
  */
 async function apiRequest(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // Ensure endpoint starts with /
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${normalizedEndpoint}`;
+  
+  // Log URL in development for debugging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('API Request:', url);
+  }
+  
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
   const config = {
@@ -39,11 +53,59 @@ async function apiRequest(endpoint, options = {}) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.detail || data.message || 'An error occurred');
+      // Handle structured error responses
+      let errorMessage = 'An error occurred';
+      
+      if (data.detail) {
+        // If detail is an object with validation errors
+        if (typeof data.detail === 'object' && !Array.isArray(data.detail)) {
+          if (data.detail.message) {
+            errorMessage = data.detail.message;
+            // Add validation errors if present
+            if (data.detail.errors && Array.isArray(data.detail.errors)) {
+              const validationErrors = data.detail.errors
+                .map(err => {
+                  if (typeof err === 'string') return err;
+                  if (err.field && err.message) {
+                    return `${err.field}: ${err.message}`;
+                  }
+                  return err.message || JSON.stringify(err);
+                })
+                .join(', ');
+              if (validationErrors) {
+                errorMessage += ` - ${validationErrors}`;
+              }
+            }
+          } else {
+            // If it's just an object, try to stringify it nicely
+            errorMessage = JSON.stringify(data.detail, null, 2);
+          }
+        } else if (Array.isArray(data.detail)) {
+          // If detail is an array of errors
+          errorMessage = data.detail.map(err => 
+            typeof err === 'string' ? err : JSON.stringify(err)
+          ).join(', ');
+        } else {
+          // If detail is a string
+          errorMessage = data.detail;
+        }
+      } else if (data.message) {
+        errorMessage = data.message;
+      }
+      
+      const error = new Error(errorMessage);
+      // Attach the full error data for debugging
+      error.data = data;
+      throw error;
     }
 
     return data;
   } catch (error) {
+    // Handle network errors (connection refused, etc.)
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      console.error('Network error - Backend may not be running:', error);
+      throw new Error(`Cannot connect to backend at ${API_BASE_URL}. Please ensure the backend server is running.`);
+    }
     if (error.message) {
       throw error;
     }
@@ -240,13 +302,117 @@ export const itemsAPI = {
   },
 
   /**
-   * Create new item
+   * Create new item with images
    */
-  async createItem(itemData) {
-    return apiRequest('/items', {
-      method: 'POST',
-      body: itemData,
-    });
+  async createItem(itemData, imageFiles = []) {
+    const url = `${API_BASE_URL}/items`;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    // If there are images, use FormData for multipart/form-data
+    if (imageFiles.length > 0) {
+      const formData = new FormData();
+      
+      // For FastAPI multipart with Body(), we can send JSON string in a form field
+      // The backend route checks content-type and can handle both JSON body and multipart
+      // When using multipart, FastAPI can parse the 'item' field as JSON if sent as string
+      const itemJson = JSON.stringify({
+        title: itemData.title,
+        description: itemData.description || null,
+      });
+      formData.append('item', itemJson);
+      
+      // Add image files
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      const config = {
+        method: 'POST',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+          // Don't set Content-Type - browser will set it with boundary for multipart
+        },
+        body: formData,
+      };
+
+      try {
+        const response = await fetch(url, config);
+        const data = await response.json();
+
+        if (!response.ok) {
+          // Handle structured error responses (validation errors)
+          let errorMessage = 'An error occurred';
+          
+          if (data.detail) {
+            // If detail is an object with validation errors
+            if (typeof data.detail === 'object' && !Array.isArray(data.detail)) {
+              if (data.detail.message) {
+                errorMessage = data.detail.message;
+                // Add validation errors if present
+                if (data.detail.errors && Array.isArray(data.detail.errors)) {
+                  const validationErrors = data.detail.errors
+                    .map(err => {
+                      if (typeof err === 'string') return err;
+                      if (err.field && err.message) {
+                        return `${err.field}: ${err.message}`;
+                      }
+                      return err.message || JSON.stringify(err);
+                    })
+                    .join(', ');
+                  if (validationErrors) {
+                    errorMessage += ` - ${validationErrors}`;
+                  }
+                }
+              } else {
+                // If it's just an object, try to stringify it nicely
+                errorMessage = JSON.stringify(data.detail, null, 2);
+              }
+            } else if (Array.isArray(data.detail)) {
+              // If detail is an array of errors
+              errorMessage = data.detail.map(err => 
+                typeof err === 'string' ? err : JSON.stringify(err)
+              ).join(', ');
+            } else {
+              // If detail is a string
+              errorMessage = data.detail;
+            }
+          } else if (data.message) {
+            errorMessage = data.message;
+          }
+          
+          // Log the full error for debugging
+          console.error('API Error Response:', {
+            status: response.status,
+            statusText: response.statusText,
+            data: data
+          });
+          
+          const error = new Error(errorMessage);
+          // Attach the full error data for debugging
+          error.data = data;
+          throw error;
+        }
+
+        return data;
+      } catch (error) {
+        // Re-throw if it's already an Error with a message
+        if (error instanceof Error && error.message) {
+          throw error;
+        }
+        // Handle network errors
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          console.error('Network error - Backend may not be running:', error);
+          throw new Error(`Cannot connect to backend at ${API_BASE_URL}. Please ensure the backend server is running.`);
+        }
+        throw new Error('Network error. Please check your connection.');
+      }
+    } else {
+      // No images, use regular JSON request
+      return apiRequest('/items', {
+        method: 'POST',
+        body: itemData,
+      });
+    }
   },
 
   /**
@@ -265,6 +431,51 @@ export const itemsAPI = {
   async deleteItem(itemId) {
     return apiRequest(`/items/${itemId}`, {
       method: 'DELETE',
+    });
+  },
+
+  /**
+   * Request a swap/purchase for an item (creates a swap request)
+   */
+  async requestSwap(itemId) {
+    return apiRequest(`/swaps/items/${itemId}/request`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Approve a swap request (owner only)
+   */
+  async approveSwapRequest(itemId, requestId) {
+    return apiRequest(`/swaps/items/${itemId}/requests/${requestId}/approve`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Reject a swap request (owner only)
+   */
+  async rejectSwapRequest(itemId, requestId) {
+    return apiRequest(`/swaps/items/${itemId}/requests/${requestId}/reject`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Get swap requests for the authenticated user
+   */
+  async getSwapRequests() {
+    return apiRequest(`/swaps/requests`, {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Get swap history (approved swaps) for the authenticated user
+   */
+  async getSwapHistory() {
+    return apiRequest(`/swaps/history`, {
+      method: 'GET',
     });
   },
 };
