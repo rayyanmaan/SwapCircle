@@ -1,46 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
-from bson import ObjectId
-from utils.token_utils import decode_access_token
-from database.connection import get_db
 """User-related routes (stubs)
 """
-from fastapi import APIRouter
 from fastapi import APIRouter, HTTPException, status, Body, Request
-from Backend.services import user_service, auth_service
-from Backend.models.user_model import UserOut
+from services import user_service, auth_service, credit_service
+from models.user_model import UserOut
 
 router = APIRouter(prefix="/users", tags=["Users"])
-
-
-async def get_current_user(token: str, db):
-    payload = decode_access_token(token)
-    if not payload:
-        raise HTTPException(
-            status_code=401,
-            detail=("Invalid or expired token." " Please log in again."),
-        )
-    user = await db["users"].find_one({"_id": ObjectId(payload["user_id"])})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-
-    return user
-
-
-@router.get("/me")
-async def me(token: str, db=Depends(get_db)):
-    user = await get_current_user(token, db)
-    user["_id"] = str(user["_id"])
-    return user
-
-
-@router.get("/{user_id}")
-async def get_user(user_id: str, db=Depends(get_db)):
-    user = await db["users"].find_one({"_id": ObjectId(user_id)})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-
-    user["_id"] = str(user["_id"])
-    return user
 @router.get("/")
 async def list_users():
     rows = user_service.list_users()
@@ -52,12 +16,17 @@ async def get_user(user_id: str):
     u = user_service.get_user_by_id(user_id)
     if not u:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="user not found")
-    # Return only public fields
+    
+    # Return credits from user object (updated after each transaction for performance)
+    credits = u.get("credits", 0.0)
+    
+    # Return only public fields with credits
     return {
         "id": u.get("id"),
         "email": u.get("email"),
         "username": u.get("username"),
         "full_name": u.get("full_name"),
+        "credits": credits,
     }
 
 
@@ -104,7 +73,7 @@ async def patch_user(user_id: str, payload: dict = Body(...), request: Request =
             updated = user_service.update_user(user_id, updates)
         else:
             # Fallback: manually load and persist
-            from Backend.services.user_service import _load_all, _save_all
+            from services.user_service import _load_all, _save_all
             users = _load_all()
             updated = None
             for i, u in enumerate(users):
@@ -119,11 +88,15 @@ async def patch_user(user_id: str, payload: dict = Body(...), request: Request =
         if not updated:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="failed to update user")
 
+        # Return credits from user object (updated after each transaction for performance)
+        credits = updated.get("credits", 0.0)
+
         return {
             "id": updated.get("id"),
             "email": updated.get("email"),
             "username": updated.get("username"),
             "full_name": updated.get("full_name"),
+            "credits": credits,
         }
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

@@ -30,4 +30,5 @@ Before making any changes:
 - [theme.md](./theme.md) - Theme, fonts, and styling guide
 - [components.md](./components.md) - Component documentation and structure
 - [styling-guide.md](./styling-guide.md) - **IMPORTANT**: How to style components using utility classes (no inline styles!)
+- [api-integration.md](./api-integration.md) - Frontend-Backend API integration documentation
 

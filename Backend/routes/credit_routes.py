@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter, HTTPException, Depends, Header
 from typing import Optional
-from Backend.services import credit_service, auth_service
-from Backend.models.transaction_model import TransactionCreate, TransactionOut
+from services import credit_service, auth_service
+from models.transaction_model import TransactionCreate, TransactionOut
 
 router = APIRouter(prefix="/credits", tags=["credits"])
 

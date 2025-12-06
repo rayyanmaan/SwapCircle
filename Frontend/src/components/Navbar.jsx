@@ -55,25 +55,27 @@ export default function Navbar() {
                 Home
               </Link>
               <Link
-                href="/listing"
+                href="/browse"
                 className="font-medium link-swapcircle hover:opacity-70 transition-opacity"
               >
-                Listing
+                Browse
               </Link>
-              <Link
-                href="/upload"
-                onClick={(e) => handleProtectedLink(e, '/upload')}
-                className="font-medium link-swapcircle hover:opacity-70 transition-opacity"
-              >
-                Upload
-              </Link>
-              <Link
-                href="/profile"
-                onClick={(e) => handleProtectedLink(e, '/profile')}
-                className="font-medium link-swapcircle hover:opacity-70 transition-opacity"
-              >
-                Profile
-              </Link>
+              {isAuthenticated && (
+                <>
+                  <Link
+                    href="/upload"
+                    className="font-medium link-swapcircle hover:opacity-70 transition-opacity"
+                  >
+                    Upload
+                  </Link>
+                  <Link
+                    href="/profile"
+                    className="font-medium link-swapcircle hover:opacity-70 transition-opacity"
+                  >
+                    Profile
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Auth Buttons */}

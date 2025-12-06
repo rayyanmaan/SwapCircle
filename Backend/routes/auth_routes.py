@@ -1,46 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from app.services.auth_service import AuthService
-from app.database.connection import get_db
 """Authentication routes (register / login) for development.
 
 These endpoints use `user_service` (file-backed users) and `auth_service`
 for password hashing and token creation.
 """
-from fastapi import APIRouter, HTTPException, status, Depends, Request
-from Backend.models.user_model import UserCreate, UserOut, Login, AuthResponse
-from Backend.services import user_service
-from Backend.services import auth_service
+from fastapi import APIRouter, HTTPException, status, Request
+from models.user_model import UserCreate, UserOut, Login, AuthResponse
+from services import user_service
+from services import auth_service
+from services import credit_service
 
 from typing import Dict
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-
-class RegisterRequest(BaseModel):
-    name: str
-    email: str
-    password: str
-    instagram_handle: str | None = None
-    whatsapp_number: str | None = None
-
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-
-@router.post("/register")
-async def register(request: RegisterRequest, db=Depends(get_db)):
-    auth = AuthService(db)
-    user_id = await auth.register_user(request)
-    return {"message": "User registered", "user_id": user_id}
-
-
-@router.post("/login")
-async def login(request: LoginRequest, db=Depends(get_db)):
-    auth = AuthService(db)
-    return await auth.login_user(request.email, request.password)
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 async def register(payload: UserCreate):
     # prevent duplicate emails
@@ -87,7 +58,17 @@ async def me(request: Request) -> Dict:
     user = user_service.get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
-    return {"id": user["id"], "email": user["email"], "username": user["username"], "full_name": user.get("full_name")}
+    
+    # Return credits from user object (updated after each transaction for performance)
+    credits = user.get("credits", 0.0)
+    
+    return {
+        "id": user["id"],
+        "email": user["email"],
+        "username": user["username"],
+        "full_name": user.get("full_name"),
+        "credits": credits,
+    }
 
 
 
@@ -107,7 +88,7 @@ async def verify_email(token: str):
     if hasattr(user_service, "update_user"):
         user_service.update_user(user_id, {"email_verified": True})
     else:
-        from Backend.services.user_service import _load_all, _save_all
+        from services.user_service import _load_all, _save_all
         users = _load_all()
         for i, u in enumerate(users):
             if u.get("id") == user_id:

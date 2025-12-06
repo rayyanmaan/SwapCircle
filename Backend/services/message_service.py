@@ -31,7 +31,7 @@ def _save_messages(messages: List[Dict[str, Any]]):
 
 def create_message(sender_id: str, recipient_id: str, content: str) -> Dict[str, Any]:
     """Create a new message and save it"""
-    from Backend.services.user_service import get_user_by_id
+    from services.user_service import get_user_by_id
 
     # Verify both users exist
     sender = get_user_by_id(sender_id)
@@ -117,7 +117,7 @@ def get_user_conversations(user_id: str) -> List[Dict[str, Any]]:
             conversation_partners.add(msg.get("sender_id"))
 
     # Get user details for each conversation partner
-    from Backend.services.user_service import get_user_by_id
+    from services.user_service import get_user_by_id
 
     conversations = []
     for partner_id in conversation_partners:
