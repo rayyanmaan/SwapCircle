@@ -406,6 +406,10 @@ async def update_item(
     partial updates (PATCH semantics) - only provided fields will be updated.
     New images can be added by including them in the request.
 
+    This endpoint supports both JSON and multipart/form-data requests.
+    For multipart requests, the item data should be in a form field named 'item'
+    as a JSON string, with images in separate form fields.
+
     Args:
         item_id: The unique identifier of the item to update
         patch: Optional dictionary containing fields to update (title, description, status)
@@ -430,7 +434,9 @@ async def update_item(
     # If item has an owner, only allow owner to modify
     if it.get("owner_id") and it.get("owner_id") != token_user_id:
         raise HTTPException(status_code=403, detail="forbidden")
-    # Support JSON body patch when Content-Type is application/json
+    
+    # Support JSON bodies and multipart/form-data with JSON in 'item' form field.
+    # We parse manually to avoid FastAPI trying to parse Body() from multipart data.
     patch_data = patch
     if request is not None:
         ctype = request.headers.get("content-type", "")
@@ -439,6 +445,34 @@ async def update_item(
                 patch_data = await request.json()
             except Exception:
                 patch_data = patch
+        elif ctype.startswith("multipart/form-data"):
+            # For multipart, try to get 'item' from form data as JSON string
+            try:
+                form_data = await request.form()
+                item_str = form_data.get("item")
+                if item_str:
+                    try:
+                        patch_data = json.loads(item_str)
+                    except json.JSONDecodeError as e:
+                        raise HTTPException(
+                            status_code=400,
+                            detail=f"Failed to parse 'item' field as JSON: {str(e)}"
+                        )
+                # If no 'item' field in multipart and patch is None, that's an error
+                elif patch is None:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Missing 'item' field in form data for multipart request"
+                    )
+            except HTTPException:
+                raise
+            except Exception as e:
+                # If form parsing fails, try to continue with patch if provided
+                if patch is None:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Error processing multipart form data: {str(e)}"
+                    )
 
     if patch_data is None:
         raise HTTPException(status_code=400, detail="patch payload required")

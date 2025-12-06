@@ -422,13 +422,113 @@ export const itemsAPI = {
   },
 
   /**
-   * Update item
+   * Update item with optional images
    */
-  async updateItem(itemId, updates) {
-    return apiRequest(`/items/${itemId}`, {
-      method: 'PATCH',
-      body: updates,
-    });
+  async updateItem(itemId, updates, imageFiles = []) {
+    const url = `${API_BASE_URL}/items/${itemId}`;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    // If there are new images to upload, use FormData for multipart/form-data
+    if (imageFiles && imageFiles.length > 0) {
+      const formData = new FormData();
+      
+      // For FastAPI multipart with PATCH, send JSON string in 'item' form field
+      // The backend route checks content-type and can handle both JSON body and multipart
+      const itemJson = JSON.stringify(updates);
+      formData.append('item', itemJson);
+      
+      // Add image files
+      imageFiles.forEach((file) => {
+        formData.append('images', file);
+      });
+
+      const config = {
+        method: 'PATCH',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+          // Don't set Content-Type - browser will set it with boundary for multipart
+        },
+        body: formData,
+      };
+
+      try {
+        const response = await fetch(url, config);
+        const data = await response.json();
+
+        if (!response.ok) {
+          // Handle structured error responses (validation errors)
+          let errorMessage = 'An error occurred';
+          
+          if (data.detail) {
+            // If detail is an object with validation errors
+            if (typeof data.detail === 'object' && !Array.isArray(data.detail)) {
+              if (data.detail.message) {
+                errorMessage = data.detail.message;
+                // Add validation errors if present
+                if (data.detail.errors && Array.isArray(data.detail.errors)) {
+                  const validationErrors = data.detail.errors
+                    .map(err => {
+                      if (typeof err === 'string') return err;
+                      if (err.field && err.message) {
+                        return `${err.field}: ${err.message}`;
+                      }
+                      return err.message || JSON.stringify(err);
+                    })
+                    .join(', ');
+                  if (validationErrors) {
+                    errorMessage += ` - ${validationErrors}`;
+                  }
+                }
+              } else {
+                // If it's just an object, try to stringify it nicely
+                errorMessage = JSON.stringify(data.detail, null, 2);
+              }
+            } else if (Array.isArray(data.detail)) {
+              // If detail is an array of errors
+              errorMessage = data.detail.map(err => 
+                typeof err === 'string' ? err : JSON.stringify(err)
+              ).join(', ');
+            } else {
+              // If detail is a string
+              errorMessage = data.detail;
+            }
+          } else if (data.message) {
+            errorMessage = data.message;
+          }
+          
+          // Log the full error for debugging
+          console.error('API Error Response:', {
+            status: response.status,
+            statusText: response.statusText,
+            data: data
+          });
+          
+          const error = new Error(errorMessage);
+          // Attach the full error data for debugging
+          error.data = data;
+          throw error;
+        }
+
+        return data;
+      } catch (error) {
+        // Re-throw if it's already an Error with a message
+        if (error instanceof Error && error.message) {
+          throw error;
+        }
+        // Handle network errors
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          console.error('Network error - Backend may not be running:', error);
+          throw new Error(`Cannot connect to backend at ${API_BASE_URL}. Please ensure the backend server is running.`);
+        }
+        throw new Error('Network error. Please check your connection.');
+      }
+    } else {
+      // No new images, use regular JSON request
+      return apiRequest(`/items/${itemId}`, {
+        method: 'PATCH',
+        body: updates,
+      });
+    }
   },
 
   /**
