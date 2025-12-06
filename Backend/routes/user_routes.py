@@ -104,7 +104,7 @@ async def patch_user(user_id: str, payload: dict = Body(...), request: Request =
             updated = user_service.update_user(user_id, updates)
         else:
             # Fallback: manually load and persist
-            from Backend.services.user_service import _load_all, _save_all
+            from services.user_service import _load_all, _save_all
             users = _load_all()
             updated = None
             for i, u in enumerate(users):

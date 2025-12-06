@@ -107,7 +107,7 @@ async def verify_email(token: str):
     if hasattr(user_service, "update_user"):
         user_service.update_user(user_id, {"email_verified": True})
     else:
-        from Backend.services.user_service import _load_all, _save_all
+        from services.user_service import _load_all, _save_all
         users = _load_all()
         for i, u in enumerate(users):
             if u.get("id") == user_id:

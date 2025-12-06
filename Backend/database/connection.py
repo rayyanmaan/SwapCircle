@@ -5,7 +5,7 @@ it small; replace with Motor/PyMongo when moving to a real database.
 """
 import asyncio
 
-from Backend.config import settings
+from config import settings
 
 
 _db_client = None
