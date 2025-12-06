@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter, HTTPException, Depends, Header, Body
 from typing import Optional, List
-from Backend.services import message_service, auth_service
-from Backend.models.message_model import MessageCreate, MessageOut
+from services import message_service, auth_service
+from models.message_model import MessageCreate, MessageOut
 
 router = APIRouter(prefix="/messages", tags=["messages"])
 

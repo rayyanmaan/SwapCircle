@@ -19,12 +19,15 @@ This is a small, development-only implementation:
   the project's secret key. For production, replace with JWTs (PyJWT or
   python-jose) and a proper auth flow.
 """
+from passlib.context import CryptContext
+from fastapi import HTTPException
+from pydantic import BaseModel, EmailStr
 from hashlib import sha256
 import hmac
 import uuid
 from typing import Tuple
 
-from Backend.config import settings
+from config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

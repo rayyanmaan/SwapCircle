@@ -3,7 +3,6 @@
 Mounts static files and includes the items router. Uses the database
 connection helpers in `Backend/database/connection.py`.
 """
-
 from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.staticfiles import StaticFiles
