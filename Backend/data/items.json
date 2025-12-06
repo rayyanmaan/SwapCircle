@@ -1,9 +1,17 @@
 [
   {
-    "id": "eef1f76a-da9e-4fae-b2e3-172f147d1051",
-    "title": "Updated",
-    "description": "A test",
-    "owner_id": "a6a9dc0bd01f4ce8b7e225cda043e75b",
+    "id": "0a9f2d3a-84ea-41d7-953f-c6f7f23ae86f",
+    "title": "User1 Item",
+    "description": "Test",
+    "owner_id": "afa5b8ca4efe4901bbc71f6c5f907fde",
+    "status": "available",
+    "images": []
+  },
+  {
+    "id": "0ecd7d64-184a-45f1-8af1-195987d8b4b7",
+    "title": "User2 Item",
+    "description": "Test",
+    "owner_id": "38eb98fea9914bb69b6ebd590374df51",
     "status": "available",
     "images": []
   }

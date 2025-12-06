@@ -1,42 +1,22 @@
 [
   {
-    "id": "a6a9dc0bd01f4ce8b7e225cda043e75b",
-    "email": "verifyuser@example.com",
-    "username": "verifyuser",
-    "full_name": "Verify User",
-    "credits": 0,
-    "email_verified": true,
-    "salt": "e7a1b3797ca34173afa3179eb25a6311",
-    "password_hash": "3674ee5e6295bde19683f0c92e927f0ef596baacec0d94e0160a65935f293d5c"
-  },
-  {
-    "id": "76a3232c2c224f16b2d67b6760135a6c",
-    "email": "other@example.com",
-    "username": "other",
-    "full_name": "",
-    "credits": 0,
-    "email_verified": false,
-    "salt": "baffd9c6940e4f30b3ed2462bb2f0c01",
-    "password_hash": "7e61c37639c0f144ebd7f6f96cc7b578bcf1767130452c2cdd0ff43d441a64d4"
-  },
-  {
-    "id": "318005d529154a20a118a583ff92b463",
-    "email": "test@example.com",
+    "id": "afa5b8ca4efe4901bbc71f6c5f907fde",
+    "email": "user1@example.com",
     "username": "testuser",
-    "full_name": "Test User",
+    "full_name": "Test",
     "credits": 0,
     "email_verified": false,
-    "salt": "e005cf8a311446b49b7e6f7233a1cb9a",
-    "password_hash": "3c77a4d9088b32d525291543c462dc7390420489f645eb82da4209d98b0c8885"
+    "salt": "5b7a365b470b4f6291efe32aedc0b195",
+    "password_hash": "5950e8b39203325c4bf7308d0d49878874a19484439bc3ff17d6f619bf3b39a4"
   },
   {
-    "id": "fd15293347c44a919b66d4a411568745",
-    "email": "demo@example.com",
-    "username": "johndoe",
-    "full_name": "",
+    "id": "38eb98fea9914bb69b6ebd590374df51",
+    "email": "user2@example.com",
+    "username": "testuser",
+    "full_name": "Test",
     "credits": 0,
     "email_verified": false,
-    "salt": "b3871dc92a904855bad526525764452e",
-    "password_hash": "30c1e2225fa69147fcf59e4eca06f4a620e63f737bd154dd6b90e6b66dfb42e6"
+    "salt": "709178e4ad8a4c22bec62b035dd2d078",
+    "password_hash": "ff14184ed744ce908023a99a93019b4ac496e2f5b0b2187c4db5b92159f3c978"
   }
 ]

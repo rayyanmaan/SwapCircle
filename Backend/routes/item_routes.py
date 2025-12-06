@@ -49,7 +49,7 @@ async def create_item(
                     msg = error["msg"]
                     errors.append(f"{field}: {msg}")
                 raise HTTPException(
-                    status_code=422,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail={
                         "message": "Validation error",
                         "errors": errors,
@@ -88,7 +88,7 @@ async def create_item(
                     msg = error["msg"]
                     errors.append(f"{field}: {msg}")
                 raise HTTPException(
-                    status_code=422,
+                    status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                     detail={
                         "message": "Validation error",
                         "errors": errors,
@@ -116,7 +116,7 @@ async def create_item(
                         msg = error["msg"]
                         errors.append(f"{field}: {msg}")
                     raise HTTPException(
-                        status_code=422,
+                        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                         detail={
                             "message": "Validation error",
                             "errors": errors,
