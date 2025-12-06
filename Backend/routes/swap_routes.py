@@ -52,13 +52,17 @@ async def request_swap(item_id: str, request: Request):
                 detail="You already have a pending swap request for this item"
             )
     
-    # Parse metadata from description to get credits required
-    description = it.get("description", "")
-    credits_required = 2.0  # Default
-    if description:
-        credits_match = re.search(r"Credits:\s*(\d+)", description, re.IGNORECASE)
-        if credits_match:
-            credits_required = float(credits_match.group(1))
+    # Get credits required from item (use new field if available, fallback to parsing description for backward compatibility)
+    credits_required = it.get("credits", 1.0)  # Default is 1 credit for all items
+    if credits_required is None:
+        # Fallback: parse from description for backward compatibility with old items
+        description = it.get("description", "")
+        if description:
+            credits_match = re.search(r"Credits:\s*(\d+)", description, re.IGNORECASE)
+            if credits_match:
+                credits_required = float(credits_match.group(1))
+            else:
+                credits_required = 1.0
     
     # Check if user has enough credits
     user = get_user_by_id(user_id)
@@ -125,7 +129,7 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
         )
     
     requester_id = swap_request.get("requester_id")
-    credits_required = swap_request.get("credits_required", 2.0)
+    credits_required = swap_request.get("credits_required", 1.0)
     
     # Transfer credits from requester to owner
     credit_service.deduct_credits(

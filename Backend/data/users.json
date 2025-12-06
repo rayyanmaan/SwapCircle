@@ -1,30 +1,10 @@
 [
   {
-    "id": "a6a9dc0bd01f4ce8b7e225cda043e75b",
-    "email": "verifyuser@example.com",
-    "username": "verifyuser",
-    "full_name": "Verify User",
-    "credits": 0,
-    "email_verified": true,
-    "salt": "e7a1b3797ca34173afa3179eb25a6311",
-    "password_hash": "3674ee5e6295bde19683f0c92e927f0ef596baacec0d94e0160a65935f293d5c"
-  },
-  {
-    "id": "76a3232c2c224f16b2d67b6760135a6c",
-    "email": "other@example.com",
-    "username": "other",
-    "full_name": "",
-    "credits": 0,
-    "email_verified": false,
-    "salt": "baffd9c6940e4f30b3ed2462bb2f0c01",
-    "password_hash": "7e61c37639c0f144ebd7f6f96cc7b578bcf1767130452c2cdd0ff43d441a64d4"
-  },
-  {
     "id": "537df97841c349668b48b871cfd568a4",
     "email": "test@swapcircle.com",
     "username": "test",
     "full_name": "",
-    "credits": 8.0,
+    "credits": 1.0,
     "email_verified": false,
     "salt": "feb45903d34b4fc4a9db193c6b0ae7ba",
     "password_hash": "ecb90f12d84c190a2bad6c1296351dbc103df056a8b7af37feeddab2bb577541"

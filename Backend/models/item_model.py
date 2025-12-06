@@ -12,11 +12,23 @@ class ImageOut(BaseModel):
 class ItemCreate(BaseModel):
     title: str
     description: Optional[str] = None
+    category: Optional[str] = None
+    size: Optional[str] = None
+    location: Optional[str] = None
+    condition: Optional[str] = None
+    branded: Optional[str] = "No"
+    credits: Optional[float] = 1.0
 
 
 class ItemUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    category: Optional[str] = None
+    size: Optional[str] = None
+    location: Optional[str] = None
+    condition: Optional[str] = None
+    branded: Optional[str] = None
+    credits: Optional[float] = None
     status: Optional[str] = None
 
 

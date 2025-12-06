@@ -46,8 +46,8 @@ export default function Profile() {
         
         // Transform items to listing format
         const transformedListings = userItems.map((item) => {
-          // Parse metadata from description
-          const metadata = parseItemMetadata(item.description);
+          // Get metadata (prefers direct fields, falls back to parsing description for old items)
+          const metadata = getItemMetadata(item);
           
           // Get first image URL if available
           const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;

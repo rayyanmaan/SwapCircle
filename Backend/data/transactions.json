@@ -1,82 +1,10 @@
 [
   {
-    "id": "c4d832bd648f4ea893ee39d732593a54",
+    "id": "9881d4a854b948299605ae855af0b422",
     "user_id": "537df97841c349668b48b871cfd568a4",
     "amount": 2.0,
     "type": "item_upload",
-    "description": "Credits awarded for uploading item: Khaaki Shirt",
-    "created_at": "2025-12-02T12:25:09.098539"
-  },
-  {
-    "id": "65c41f7b47c84ffbb504bedcc6d400ed",
-    "user_id": "537df97841c349668b48b871cfd568a4",
-    "amount": 2.0,
-    "type": "item_upload",
-    "description": "Credits awarded for uploading item: Star shoes",
-    "created_at": "2025-12-02T15:29:30.113128"
-  },
-  {
-    "id": "b208305a4d934f5783647dcd8bf645ce",
-    "user_id": "d926bc991185416dbce213d233383e45",
-    "amount": 2.0,
-    "type": "item_upload",
-    "description": "Credits awarded for uploading item: Long Brown Boots",
-    "created_at": "2025-12-02T15:49:57.290253"
-  },
-  {
-    "id": "0fd2f4add8e24ceeb350b34c23562a2d",
-    "user_id": "537df97841c349668b48b871cfd568a4",
-    "amount": 2.0,
-    "type": "credit_deduct",
-    "description": "Deducted 2.0 credits from account",
-    "created_at": "2025-12-02T16:02:49.502874"
-  },
-  {
-    "id": "1f638ce62c8a47baa76d2c3b8ba3d8d3",
-    "user_id": "d926bc991185416dbce213d233383e45",
-    "amount": 2.0,
-    "type": "swap_credit",
-    "description": "Credits received from approved swap of item: Long Brown Boots",
-    "created_at": "2025-12-02T16:02:49.508050"
-  },
-  {
-    "id": "9008b6d2f3934143928099f70fc1318a",
-    "user_id": "d926bc991185416dbce213d233383e45",
-    "amount": 2.0,
-    "type": "credit_deduct",
-    "description": "Deducted 2.0 credits from account",
-    "created_at": "2025-12-02T16:13:35.750005"
-  },
-  {
-    "id": "d8592227916644209c0fa74b79ad0dd6",
-    "user_id": "537df97841c349668b48b871cfd568a4",
-    "amount": 2.0,
-    "type": "swap_credit",
-    "description": "Credits received from approved swap of item: Khaaki Shirt",
-    "created_at": "2025-12-02T16:13:35.755047"
-  },
-  {
-    "id": "59bf18373ef74beabf507d2a5111bca0",
-    "user_id": "537df97841c349668b48b871cfd568a4",
-    "amount": 2.0,
-    "type": "item_upload",
-    "description": "Credits awarded for uploading item: Sandals",
-    "created_at": "2025-12-06T09:54:40.642641"
-  },
-  {
-    "id": "a5425169e99d4f7a8cd9299db04310d1",
-    "user_id": "d926bc991185416dbce213d233383e45",
-    "amount": 2.0,
-    "type": "credit_deduct",
-    "description": "Deducted 2.0 credits from account",
-    "created_at": "2025-12-06T10:08:18.315369"
-  },
-  {
-    "id": "50eb9c09779143d38c5d08493cdd47d5",
-    "user_id": "537df97841c349668b48b871cfd568a4",
-    "amount": 2.0,
-    "type": "swap_credit",
-    "description": "Credits received from approved swap of item: Sandals",
-    "created_at": "2025-12-06T10:08:18.317929"
+    "description": "Credits awarded for uploading item: Balance Shoe",
+    "created_at": "2025-12-06T15:44:51.966840"
   }
 ]

@@ -1,12 +1,47 @@
 /**
  * Utility functions to parse item metadata from description
  * 
- * The UploadForm stores metadata in the description field in this format:
- * "Main description\n\nCategory: X\nSize: Y\nLocation: Z\nCondition: W\nBranded: V\nCredits: N"
+ * NOTE: New items store metadata as separate fields. This function provides
+ * backward compatibility for old items that stored metadata in description.
  */
 
 /**
- * Parse item metadata from description string
+ * Get item metadata, preferring direct fields but falling back to parsing description
+ * @param {Object} item - The item object (may have direct fields or metadata in description)
+ * @returns {Object} Metadata with main description and extracted fields
+ */
+export function getItemMetadata(item) {
+  if (!item) {
+    return {
+      mainDescription: '',
+      category: null,
+      size: null,
+      location: null,
+      condition: null,
+      branded: null,
+      credits: null,
+    };
+  }
+
+  // If item has direct fields (new format), use them
+  if (item.category !== undefined || item.size !== undefined || item.location !== undefined) {
+    return {
+      mainDescription: item.description || '',
+      category: item.category || null,
+      size: item.size || null,
+      location: item.location || null,
+      condition: item.condition || null,
+      branded: item.branded || null,
+      credits: item.credits || null,
+    };
+  }
+
+  // Fallback: parse from description (old format)
+  return parseItemMetadata(item.description);
+}
+
+/**
+ * Parse item metadata from description string (for backward compatibility)
  * @param {string} description - The item description that may contain metadata
  * @returns {Object} Parsed metadata with main description and extracted fields
  */

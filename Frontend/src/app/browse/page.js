@@ -7,7 +7,7 @@ import FilterSidebar from '@/components/FilterSidebar';
 import SearchBar from '@/components/SearchBar';
 import SortDropdown from '@/components/SortDropdown';
 import { itemsAPI } from '@/services/api';
-import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function BrowsePage() {
@@ -16,7 +16,7 @@ export default function BrowsePage() {
   const [sortBy, setSortBy] = useState('newest');
   const [filters, setFilters] = useState({
     categories: [],
-    sizes: [],
+    locations: [],
     conditions: [],
     minCredits: null,
     maxCredits: null,
@@ -52,8 +52,8 @@ export default function BrowsePage() {
   // Transform backend items to listing format
   const transformListings = (items) => {
     return items.map((item) => {
-      // Parse metadata from description
-      const metadata = parseItemMetadata(item.description);
+      // Get metadata (prefers direct fields, falls back to parsing description for old items)
+      const metadata = getItemMetadata(item);
       
       // Get first image URL if available
       const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
@@ -71,8 +71,9 @@ export default function BrowsePage() {
         id: item.id,
         title: item.title,
         size: metadata.size || 'Size M',
-        credits: metadata.credits || 2,
+        credits: metadata.credits || 1,
         condition: metadata.condition || 'Good',
+        location: metadata.location || null,
         timestamp: 'Recently', // Backend doesn't store timestamp yet
         category: metadata.category || 'General',
         brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',
@@ -105,10 +106,10 @@ export default function BrowsePage() {
       );
     }
 
-    // Size filter
-    if (filters.sizes.length > 0) {
+    // Location filter
+    if (filters.locations && filters.locations.length > 0) {
       filtered = filtered.filter((item) =>
-        filters.sizes.some((size) => item.size.includes(size))
+        item.location && filters.locations.includes(item.location)
       );
     }
 
@@ -119,7 +120,7 @@ export default function BrowsePage() {
       );
     }
 
-    // Credits range filter
+    // Credits range filter (since all items are 1 credit now, this is less useful but kept for compatibility)
     if (filters.minCredits !== null) {
       filtered = filtered.filter((item) => item.credits >= filters.minCredits);
     }
@@ -161,7 +162,7 @@ export default function BrowsePage() {
   const clearFilters = () => {
     setFilters({
       categories: [],
-      sizes: [],
+      locations: [],
       conditions: [],
       minCredits: null,
       maxCredits: null,
@@ -171,7 +172,7 @@ export default function BrowsePage() {
 
   const activeFilterCount =
     filters.categories.length +
-    filters.sizes.length +
+    (filters.locations?.length || 0) +
     filters.conditions.length +
     (filters.minCredits !== null ? 1 : 0) +
     (filters.maxCredits !== null ? 1 : 0);
@@ -245,12 +246,12 @@ export default function BrowsePage() {
                   {cat}
                 </span>
               ))}
-              {filters.sizes.map((size) => (
+              {filters.locations?.map((loc) => (
                 <span
-                  key={size}
+                  key={loc}
                   className="px-3 py-1 rounded-full text-sm bg-white border border-swapcircle text-swapcircle-secondary"
                 >
-                  {size}
+                  {loc}
                 </span>
               ))}
               {filters.conditions.map((cond) => (

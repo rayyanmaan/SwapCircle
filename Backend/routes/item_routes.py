@@ -48,7 +48,7 @@ async def create_item(
     For multipart requests, the item data should be in a form field named 'item'
     as a JSON string, with images in separate form fields.
 
-    Upon successful creation, the user is automatically awarded 2 credits
+    Upon successful creation, the user is automatically awarded 1 credit
     for uploading an item (using the item_upload transaction type).
 
     Args:
@@ -185,20 +185,26 @@ async def create_item(
         "id": item_id,
         "title": item.title,
         "description": item.description,
+        "category": item.category,
+        "size": item.size,
+        "location": item.location,
+        "condition": item.condition,
+        "branded": item.branded,
+        "credits": item.credits,
         "owner_id": owner_id,
         "status": "available",
         "images": images_out,
     }
     storage_service.upsert_item(stored)
 
-    # Award 2 credits to the user for uploading an item
+    # Award 1 credit to the user for uploading an item
     # Using transaction type constant to ensure consistency
     from utils.constants import TRANSACTION_TYPE_ITEM_UPLOAD
 
     try:
         credit_service.add_credits(
             user_id=owner_id,
-            amount=2.0,
+            amount=1.0,
             transaction_type=TRANSACTION_TYPE_ITEM_UPLOAD,
             description=f"Credits awarded for uploading item: {item.title}",
         )
@@ -441,6 +447,18 @@ async def update_item(
         it["title"] = patch_data.get("title")
     if "description" in patch_data:
         it["description"] = patch_data.get("description")
+    if "category" in patch_data:
+        it["category"] = patch_data.get("category")
+    if "size" in patch_data:
+        it["size"] = patch_data.get("size")
+    if "location" in patch_data:
+        it["location"] = patch_data.get("location")
+    if "condition" in patch_data:
+        it["condition"] = patch_data.get("condition")
+    if "branded" in patch_data:
+        it["branded"] = patch_data.get("branded")
+    if "credits" in patch_data:
+        it["credits"] = patch_data.get("credits")
     if "status" in patch_data:
         it["status"] = patch_data.get("status")
 
@@ -612,13 +630,17 @@ async def request_swap(item_id: str, request: Request):
                 detail="You already have a pending swap request for this item"
             )
     
-    # Parse metadata from description to get credits required
-    description = it.get("description", "")
-    credits_required = 2.0  # Default
-    if description:
-        credits_match = re.search(r"Credits:\s*(\d+)", description, re.IGNORECASE)
-        if credits_match:
-            credits_required = float(credits_match.group(1))
+    # Get credits required from item (use new field if available, fallback to parsing description for backward compatibility)
+    credits_required = it.get("credits", 1.0)  # Default is 1 credit for all items
+    if credits_required is None:
+        # Fallback: parse from description for backward compatibility with old items
+        description = it.get("description", "")
+        if description:
+            credits_match = re.search(r"Credits:\s*(\d+)", description, re.IGNORECASE)
+            if credits_match:
+                credits_required = float(credits_match.group(1))
+            else:
+                credits_required = 1.0
     
     # Check if user has enough credits
     from services.user_service import get_user_by_id
@@ -699,7 +721,7 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
         )
     
     requester_id = swap_request.get("requester_id")
-    credits_required = swap_request.get("credits_required", 2.0)
+    credits_required = swap_request.get("credits_required", 1.0)
     
     # Verify requester still has enough credits
     from services.user_service import get_user_by_id
