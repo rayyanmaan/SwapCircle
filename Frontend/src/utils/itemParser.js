@@ -97,22 +97,26 @@ export function parseItemMetadata(description) {
  * @returns {string} Full image URL safe for rendering
  */
 export function getImageUrl(image, apiBaseUrl = null) {
-  if (!image || !image.url) {
-    return '/placeholder.svg';
+  // Safety check: ensure image.url is a non-empty string.
+  // Prevents crashes from malformed backend data (non-string types, nulls, empty/whitespace strings).
+  if (!image || typeof image.url !== 'string' || !image.url.trim()) {
+    return process.env.NEXT_PUBLIC_PLACEHOLDER_URL || '/placeholder.svg';
   }
+
+  const trimmedUrl = image.url.trim();
 
   // Use provided base URL, fall back to env var, then localhost
   const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
   
   // If URL already starts with http(s), it's absolute — return as is
   // This handles external CDN URLs or fully-qualified backend URLs
-  if (image.url.startsWith('http')) {
-    return image.url;
+  if (trimmedUrl.startsWith('http')) {
+    return trimmedUrl;
   }
 
   // Ensure relative URL starts with / for proper path joining
   // Example: "static/images/abc.jpg" becomes "/static/images/abc.jpg"
-  const url = image.url.startsWith('/') ? image.url : `/${image.url}`;
+  const url = trimmedUrl.startsWith('/') ? trimmedUrl : `/${trimmedUrl}`;
   // Combine base URL with relative path (e.g., "http://localhost:8000/static/images/abc.jpg")
   return `${baseUrl}${url}`;
 }
