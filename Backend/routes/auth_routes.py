@@ -8,9 +8,6 @@ from models.user_model import UserCreate, UserOut, Login, AuthResponse
 from services import user_service, auth_service
 from typing import Dict
 
-from models.user_model import UserCreate, UserOut, Login, AuthResponse
-from services import user_service, auth_service
-
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 async def register(payload: UserCreate):
@@ -28,8 +25,23 @@ async def register(payload: UserCreate):
     salt, hashed = auth_service.hash_password(payload.password)
     user = user_service.create_user(payload.email, payload.username, payload.full_name or "", salt, hashed)
     token = auth_service.create_access_token(user["id"])
-    # return minimal user
-    return {"token": token, "user": {"id": user["id"], "email": user["email"], "username": user["username"], "full_name": user.get("full_name")}}
+    # Return UserOut model for consistency
+    user_out = UserOut(
+        id=user["id"],
+        email=user["email"],
+        username=user["username"],
+        full_name=user.get("full_name", ""),
+        credits=user.get("credits", 0.0),
+        email_verified=user.get("email_verified", False),
+        bio=user.get("bio"),
+        profile_pic=user.get("profile_pic"),
+        instagram_handle=user.get("instagram_handle"),
+        whatsapp_number=user.get("whatsapp_number"),
+        facebook_url=user.get("facebook_url"),
+        twitter_handle=user.get("twitter_handle"),
+        linkedin_url=user.get("linkedin_url")
+    )
+    return {"token": token, "user": user_out}
 
 
 @router.post("/login")
@@ -42,7 +54,23 @@ async def login(payload: Login):
     if not auth_service.verify_password(payload.password, user.get("salt"), user.get("password_hash")):
         raise HTTPException(status_code=401, detail="invalid credentials")
     token = auth_service.create_access_token(user["id"])
-    return {"token": token, "user": {"id": user["id"], "email": user["email"], "username": user["username"]}}
+    # Return UserOut model for consistency
+    user_out = UserOut(
+        id=user["id"],
+        email=user["email"],
+        username=user["username"],
+        full_name=user.get("full_name", ""),
+        credits=user.get("credits", 0.0),
+        email_verified=user.get("email_verified", False),
+        bio=user.get("bio"),
+        profile_pic=user.get("profile_pic"),
+        instagram_handle=user.get("instagram_handle"),
+        whatsapp_number=user.get("whatsapp_number"),
+        facebook_url=user.get("facebook_url"),
+        twitter_handle=user.get("twitter_handle"),
+        linkedin_url=user.get("linkedin_url")
+    )
+    return {"token": token, "user": user_out}
 
 
 @router.get("/me")

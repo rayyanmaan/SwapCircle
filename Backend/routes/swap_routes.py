@@ -12,6 +12,7 @@ import re
 
 from services import auth_service, swap_service, storage_service, credit_service
 from services.user_service import get_user_by_id
+from utils.constants import TRANSACTION_TYPE_SWAP_CREDIT, TRANSACTION_TYPE_SWAP_DEBIT
 
 router = APIRouter(prefix="/swaps", tags=["swaps"])
 
@@ -135,14 +136,15 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
     credit_service.deduct_credits(
         user_id=requester_id,
         amount=credits_required,
-        transaction_type="swap_credit",
+        transaction_type=TRANSACTION_TYPE_SWAP_DEBIT,
         description=f"Credits deducted for approved swap of item: {it.get('title')}"
     )
     
+    # Record swap credit transaction for owner
     credit_service.add_credits(
         user_id=item_owner_id,
         amount=credits_required,
-        transaction_type="swap_credit",
+        transaction_type=TRANSACTION_TYPE_SWAP_CREDIT,
         description=f"Credits received from approved swap of item: {it.get('title')}"
     )
     

@@ -297,7 +297,12 @@ def add_credits(
     return result["new_credits"]
 
 
-def deduct_credits(user_id: str, amount: float) -> float:
+def deduct_credits(
+    user_id: str,
+    amount: float,
+    transaction_type: str = TRANSACTION_TYPE_CREDIT_DEDUCT,
+    description: str = None,
+) -> float:
     """Deduct credits from user account and return new balance.
 
     This function atomically:
@@ -315,6 +320,8 @@ def deduct_credits(user_id: str, amount: float) -> float:
     Args:
         user_id: The ID of the user whose credits are being deducted
         amount: The amount of credits to deduct (must be positive)
+        transaction_type: Type of transaction (defaults to TRANSACTION_TYPE_CREDIT_DEDUCT)
+        description: Optional description of why credits were deducted
 
     Returns:
         The new credit balance after the deduction
@@ -323,6 +330,10 @@ def deduct_credits(user_id: str, amount: float) -> float:
         ValueError: If the user doesn't exist or has insufficient credits
     """
     from services.user_service import get_user_by_id, update_user
+
+    # Use default description if not provided
+    if description is None:
+        description = f"Deducted {amount} credits from account"
 
     # Define the operation to execute within the transaction
     def _deduct_credits_operation():
@@ -348,8 +359,8 @@ def deduct_credits(user_id: str, amount: float) -> float:
         transaction = _record_transaction(
             user_id=user_id,
             amount=amount,
-            transaction_type=TRANSACTION_TYPE_CREDIT_DEDUCT,
-            description=f"Deducted {amount} credits from account",
+            transaction_type=transaction_type,
+            description=description,
         )
 
         # Update user's credits field directly (for performance - O(1) instead of O(n))

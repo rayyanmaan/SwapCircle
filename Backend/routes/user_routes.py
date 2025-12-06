@@ -23,13 +23,14 @@ async def get_user_by_username(username: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    # Return public fields only (exclude email for public profiles)
+    # Return public fields only
     return UserOut(
         id=user.get("id"),
-        email=user.get("email", ""),  # Still include for backward compatibility
+        email=user.get("email", ""),
         username=user.get("username"),
         full_name=user.get("full_name", ""),
-        credits=user.get("credits", 0),
+        credits=user.get("credits", 0.0),
+        email_verified=user.get("email_verified", False),
         bio=user.get("bio"),
         profile_pic=user.get("profile_pic"),
         instagram_handle=user.get("instagram_handle"),
@@ -55,7 +56,8 @@ async def get_user(user_id: str):
         email=user.get("email"),
         username=user.get("username"),
         full_name=user.get("full_name", ""),
-        credits=user.get("credits", 0),
+        credits=user.get("credits", 0.0),
+        email_verified=user.get("email_verified", False),
         bio=user.get("bio"),
         profile_pic=user.get("profile_pic"),
         instagram_handle=user.get("instagram_handle"),
@@ -168,7 +170,8 @@ async def patch_user(user_id: str, request: Request):
             email=updated_user.get("email"),
             username=updated_user.get("username"),
             full_name=updated_user.get("full_name", ""),
-            credits=updated_user.get("credits", 0),
+            credits=updated_user.get("credits", 0.0),
+            email_verified=updated_user.get("email_verified", False),
             bio=updated_user.get("bio"),
             profile_pic=updated_user.get("profile_pic"),
             instagram_handle=updated_user.get("instagram_handle"),
@@ -254,7 +257,9 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
             email=updated_user.get("email"),
             username=updated_user.get("username"),
             full_name=updated_user.get("full_name", ""),
-            credits=updated_user.get("credits", 0),
+            credits=updated_user.get("credits", 0.0),
+            email_verified=updated_user.get("email_verified", False),
+            bio=updated_user.get("bio"),
             profile_pic=updated_user.get("profile_pic"),
             instagram_handle=updated_user.get("instagram_handle"),
             whatsapp_number=updated_user.get("whatsapp_number"),

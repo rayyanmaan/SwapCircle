@@ -8,6 +8,7 @@ from enum import Enum
 class TransactionType(str, Enum):
     CREDIT_ADD = "credit_add"
     CREDIT_DEDUCT = "credit_deduct"
+    ITEM_UPLOAD = "item_upload"
     SWAP_CREDIT = "swap_credit"
     SWAP_DEBIT = "swap_debit"
     PURCHASE = "purchase"

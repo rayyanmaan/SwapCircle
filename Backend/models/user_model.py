@@ -1,45 +1,70 @@
 from datetime import datetime
-from bson import ObjectId
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 
 def user_document(
-    name,
-    email,
-    password_hash,
-    profile_pic=None,
-    instagram_handle=None,
-    whatsapp_number=None,
+    email: str,
+    username: str,
+    full_name: str,
+    salt: str,
+    password_hash: str,
+    profile_pic: Optional[str] = None,
+    instagram_handle: Optional[str] = None,
+    whatsapp_number: Optional[str] = None,
+    facebook_url: Optional[str] = None,
+    twitter_handle: Optional[str] = None,
+    linkedin_url: Optional[str] = None,
+    bio: Optional[str] = None,
 ):
+    """Create a user document matching the JSON storage structure."""
     return {
-        "name": name,
         "email": email,
+        "username": username,
+        "full_name": full_name,
+        "credits": 0.0,
+        "email_verified": False,
+        "salt": salt,
         "password_hash": password_hash,
         "profile_pic": profile_pic,
-        "credits": 5,
-        "base_credits": 5,
         "instagram_handle": instagram_handle,
         "whatsapp_number": whatsapp_number,
-        "items_listed": [],
-        "created_at": datetime.utcnow(),
+        "facebook_url": facebook_url,
+        "twitter_handle": twitter_handle,
+        "linkedin_url": linkedin_url,
+        "bio": bio,
     }
 
 
 class UserCreate(BaseModel):
     email: EmailStr
     username: str
-    full_name: Optional[str]
+    full_name: Optional[str] = ""
     password: str
+
+
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    full_name: Optional[str] = None
+    bio: Optional[str] = None
+    profile_pic: Optional[str] = None
+    instagram_handle: Optional[str] = None
+    whatsapp_number: Optional[str] = None
+    facebook_url: Optional[str] = None
+    twitter_handle: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    credits: Optional[float] = None
+    email_verified: Optional[bool] = None
 
 
 class UserOut(BaseModel):
     id: str
     email: EmailStr
     username: str
-    full_name: Optional[str]
+    full_name: Optional[str] = ""
     bio: Optional[str] = None
-    credits: Optional[float] = 0
+    credits: float = 0.0
+    email_verified: bool = False
     profile_pic: Optional[str] = None
     instagram_handle: Optional[str] = None
     whatsapp_number: Optional[str] = None
