@@ -88,10 +88,13 @@ export function parseItemMetadata(description) {
 }
 
 /**
- * Get full image URL from backend image object
+ * Resolve an image reference into a usable URL.
+ * - If already absolute (http/https), return as-is.
+ * - If relative, prefix with apiBaseUrl -> NEXT_PUBLIC_API_URL -> http://localhost:8000.
+ * - If missing, fall back to the static placeholder asset.
  * @param {Object} image - Image object with url property
- * @param {string} apiBaseUrl - Base URL for the API (defaults to localhost:8000)
- * @returns {string} Full image URL
+ * @param {string|null} apiBaseUrl - Optional base URL override
+ * @returns {string} Full image URL safe for rendering
  */
 export function getImageUrl(image, apiBaseUrl = null) {
   if (!image || !image.url) {
