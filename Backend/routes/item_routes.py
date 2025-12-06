@@ -19,6 +19,7 @@ meaningful comments, consistent error messages, and helpful documentation.
 from typing import List, Optional
 from uuid import uuid4
 import json
+import re
 
 # Note: re module removed as it's no longer needed (credits parsing moved to swap_routes)
 

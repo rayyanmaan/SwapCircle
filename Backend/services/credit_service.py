@@ -131,9 +131,6 @@ def _record_transaction(
 
 
 def get_user_balance(user_id: str) -> float:
-<<<<<<< HEAD
-    """Calculate user's current balance from transaction history"""
-=======
     """Calculate user's current balance from transaction history.
 
     This function recalculates the balance by summing all transactions
@@ -149,7 +146,6 @@ def get_user_balance(user_id: str) -> float:
     Raises:
         ValueError: If the user doesn't exist
     """
->>>>>>> origin/main
     from services.user_service import get_user_by_id
 
     # First check if user exists
@@ -163,9 +159,6 @@ def get_user_balance(user_id: str) -> float:
 
     balance = 0.0
     for transaction in user_transactions:
-<<<<<<< HEAD
-        if transaction.get("type") in ["credit_add", "swap_credit", "item_upload"]:
-=======
         # Use constants for transaction type checking
         trans_type = transaction.get("type")
         if trans_type in [
@@ -173,7 +166,6 @@ def get_user_balance(user_id: str) -> float:
             TRANSACTION_TYPE_SWAP_CREDIT,
             TRANSACTION_TYPE_ITEM_UPLOAD,
         ]:
->>>>>>> origin/main
             balance += transaction.get("amount", 0)
         elif trans_type in [
             TRANSACTION_TYPE_CREDIT_DEDUCT,
@@ -184,24 +176,10 @@ def get_user_balance(user_id: str) -> float:
     return balance
 
 
-<<<<<<< HEAD
-def add_credits(user_id: str, amount: float, transaction_type: str = "credit_add", description: str = None) -> float:
-    """Add credits to user account and return new balance.
-    
-    This function:
-    1. Records the transaction (for audit trail)
-    2. Updates the user's credits field directly (for performance - avoids recalculating from all transactions)
-    
-    The user's credits field is the source of truth for balance queries.
-    Transactions are kept for audit/history purposes only.
-    """
-    from services.user_service import get_user_by_id, update_user
-=======
 def _execute_credit_transaction(
     user_id: str, operation: Callable[[], Dict[str, Any]]
 ) -> Dict[str, Any]:
     """Execute a credit operation atomically within a transaction.
->>>>>>> origin/main
 
     This helper function ensures that both the user credit update and
     transaction record are written atomically. If the server crashes
@@ -233,26 +211,6 @@ def _execute_credit_transaction(
     if not user:
         raise ValueError(f"User {user_id} not found")
 
-<<<<<<< HEAD
-    # Use default description if not provided
-    if description is None:
-        description = f"Added {amount} credits to account"
-
-    # Record the transaction first (for audit trail)
-    _record_transaction(
-        user_id=user_id,
-        amount=amount,
-        transaction_type=transaction_type,
-        description=description,
-    )
-
-    # Update user's credits field directly (for performance - O(1) instead of O(n) where n = transaction count)
-    current_credits = user.get("credits", 0.0)
-    new_credits = current_credits + amount
-    update_user(user_id, {"credits": new_credits})
-
-    return new_credits
-=======
     # Acquire per-user lock first (prevents race conditions for same user)
     user_lock = _get_user_lock(user_id)
     user_lock.acquire()
@@ -337,29 +295,10 @@ def add_credits(
     # Execute within transactional context (ensures atomicity)
     result = _execute_credit_transaction(user_id, _add_credits_operation)
     return result["new_credits"]
->>>>>>> origin/main
 
 
 def deduct_credits(user_id: str, amount: float) -> float:
     """Deduct credits from user account and return new balance.
-<<<<<<< HEAD
-    
-    This function:
-    1. Records the transaction (for audit trail)
-    2. Updates the user's credits field directly (for performance - avoids recalculating from all transactions)
-    
-    The user's credits field is the source of truth for balance queries.
-    Transactions are kept for audit/history purposes only.
-    """
-    from services.user_service import get_user_by_id, update_user
-
-    user = get_user_by_id(user_id)
-    if not user:
-        raise ValueError(f"User {user_id} not found")
-
-    current_balance = user.get("credits", 0.0)
-=======
->>>>>>> origin/main
 
     This function atomically:
     1. Checks if user has sufficient credits
@@ -413,21 +352,6 @@ def deduct_credits(user_id: str, amount: float) -> float:
             description=f"Deducted {amount} credits from account",
         )
 
-<<<<<<< HEAD
-    # Record the transaction first (for audit trail)
-    _record_transaction(
-        user_id=user_id,
-        amount=amount,
-        transaction_type="credit_deduct",
-        description=f"Deducted {amount} credits from account",
-    )
-
-    # Update user's credits field directly (for performance - O(1) instead of O(n) where n = transaction count)
-    new_credits = current_balance - amount
-    update_user(user_id, {"credits": new_credits})
-
-    return new_credits
-=======
         # Update user's credits field directly (for performance - O(1) instead of O(n))
         new_credits = current_balance - amount
         update_user(user_id, {"credits": new_credits})
@@ -437,7 +361,6 @@ def deduct_credits(user_id: str, amount: float) -> float:
     # Execute within transactional context (ensures atomicity)
     result = _execute_credit_transaction(user_id, _deduct_credits_operation)
     return result["new_credits"]
->>>>>>> origin/main
 
 
 def get_user_transactions(user_id: str) -> List[Dict[str, Any]]:
@@ -460,24 +383,6 @@ def get_user_transactions(user_id: str) -> List[Dict[str, Any]]:
 
 def sync_user_credits_from_transactions(user_id: str) -> float:
     """Recalculate and update user's credits from all transactions.
-<<<<<<< HEAD
-    
-    This is useful for data integrity checks or fixing discrepancies.
-    The user's credits field is updated to match the calculated balance.
-    """
-    from services.user_service import get_user_by_id, update_user
-    
-    user = get_user_by_id(user_id)
-    if not user:
-        raise ValueError(f"User {user_id} not found")
-    
-    # Calculate balance from transactions
-    calculated_balance = get_user_balance(user_id)
-    
-    # Update user's credits field to match calculated balance
-    update_user(user_id, {"credits": calculated_balance})
-    
-=======
 
     This function is useful for data integrity checks or fixing discrepancies
     between the user's credits field and the transaction history. It recalculates
@@ -507,5 +412,4 @@ def sync_user_credits_from_transactions(user_id: str) -> float:
     # Update user's credits field to match calculated balance
     update_user(user_id, {"credits": calculated_balance})
 
->>>>>>> origin/main
     return calculated_balance
