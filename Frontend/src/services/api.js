@@ -272,6 +272,13 @@ export const userAPI = {
   },
 
   /**
+   * Get user by username
+   */
+  async getUserByUsername(username) {
+    return apiRequest(`/users/username/${username}`);
+  },
+
+  /**
    * Update user profile
    */
   async updateUser(userId, updates) {
@@ -279,6 +286,36 @@ export const userAPI = {
       method: 'PATCH',
       body: updates,
     });
+  },
+
+  /**
+   * Upload profile picture
+   */
+  async uploadProfilePicture(userId, file) {
+    const url = `${API_BASE_URL}/users/${userId}/profile-picture`;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(errorData.detail || `Failed to upload profile picture: ${response.statusText}`);
+    }
+
+    return response.json();
   },
 };
 
