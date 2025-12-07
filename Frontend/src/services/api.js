@@ -144,7 +144,7 @@ export const authAPI = {
       };
     }
 
-    return apiRequest('/auth/register', {
+    const response = await apiRequest('/auth/register', {
       method: 'POST',
       body: {
         email,
@@ -153,6 +153,16 @@ export const authAPI = {
         full_name: fullName,
       },
     });
+
+    // Store token if provided (same as login)
+    if (response.token && typeof window !== 'undefined') {
+      localStorage.setItem('token', response.token);
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+    }
+
+    return response;
   },
 
   /**
@@ -624,6 +634,68 @@ export const itemsAPI = {
   async getSwapHistory() {
     return apiRequest(`/swaps/history`, {
       method: 'GET',
+    });
+  },
+};
+
+/**
+ * Notifications API
+ */
+export const notificationsAPI = {
+  /**
+   * Get all notifications for the authenticated user
+   */
+  async getAll(limit = 50, unreadOnly = false) {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (unreadOnly) params.append('unread_only', 'true');
+    return apiRequest(`/notifications?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Get recent swap events for the authenticated user (legacy endpoint)
+   */
+  async getRecent(sinceMinutes = 5) {
+    return apiRequest(`/notifications/recent?since_minutes=${sinceMinutes}`, {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Get count of unread notifications
+   */
+  async getUnreadCount() {
+    return apiRequest('/notifications/unread-count', {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Mark a notification as read
+   */
+  async markAsRead(notificationId) {
+    return apiRequest(`/notifications/${notificationId}/read`, {
+      method: 'PATCH',
+    });
+  },
+
+  /**
+   * Mark all notifications as read
+   */
+  async markAllAsRead() {
+    return apiRequest('/notifications/read-all', {
+      method: 'PATCH',
+    });
+  },
+
+  /**
+   * Delete a notification
+   */
+  async delete(notificationId) {
+    return apiRequest(`/notifications/${notificationId}`, {
+      method: 'DELETE',
     });
   },
 };

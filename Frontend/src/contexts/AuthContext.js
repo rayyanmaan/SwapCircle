@@ -62,6 +62,7 @@ export function AuthProvider({ children }) {
       const response = await authAPI.register(email, password, username, fullName);
       // After registration, automatically log in
       if (response.token) {
+        // Token is already stored by authAPI.register, just update state
         const userData = response.user || { email, username, full_name: fullName };
         setUser(userData);
         setIsAuthenticated(true);

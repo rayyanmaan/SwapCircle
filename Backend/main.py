@@ -17,6 +17,7 @@ from routes.item_routes import router as items_router
 from routes.auth_routes import router as auth_router
 from routes.user_routes import router as users_router
 from routes.swap_routes import router as swaps_router
+from routes.notification_routes import router as notifications_router
 
 
 @asynccontextmanager
@@ -128,6 +129,8 @@ app.include_router(auth_router)
 app.include_router(users_router)
 # include swaps router (swap requests, approvals, history)
 app.include_router(swaps_router)
+# include notifications router
+app.include_router(notifications_router)
 
 # CORS - allow frontend dev origin
 app.add_middleware(

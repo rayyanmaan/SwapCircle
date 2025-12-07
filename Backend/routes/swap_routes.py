@@ -10,7 +10,7 @@ Routes match the frontend API expectations:
 from fastapi import APIRouter, HTTPException, Request, status
 import re
 
-from services import auth_service, swap_service, storage_service, credit_service
+from services import auth_service, swap_service, storage_service, credit_service, notification_service
 from services.user_service import get_user_by_id
 from utils.constants import TRANSACTION_TYPE_SWAP_CREDIT, TRANSACTION_TYPE_SWAP_DEBIT
 
@@ -88,6 +88,22 @@ async def request_swap(item_id: str, request: Request):
     it["status"] = "pending"
     await storage_service.upsert_item(it)
     
+    # Create notification for the item owner
+    requester = await get_user_by_id(user_id)
+    requester_name = requester.get("username", "Someone") if requester else "Someone"
+    await notification_service.create_notification(
+        user_id=item_owner_id,
+        event_type="new_request",
+        request_id=swap_request["id"],
+        item_id=item_id,
+        metadata={
+            "item_title": it.get("title", "Unknown Item"),
+            "other_user_id": user_id,
+            "other_user_name": requester_name,
+            "status": "pending"
+        }
+    )
+    
     return {
         "status": "requested",
         "message": f"Swap request created. Waiting for owner approval.",
@@ -158,6 +174,22 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
     it["status"] = "swapped"
     await storage_service.upsert_item(it)
     
+    # Create notification for the requester
+    owner = await get_user_by_id(item_owner_id)
+    owner_name = owner.get("username", "Someone") if owner else "Someone"
+    await notification_service.create_notification(
+        user_id=requester_id,
+        event_type="approved",
+        request_id=request_id,
+        item_id=item_id,
+        metadata={
+            "item_title": it.get("title", "Unknown Item"),
+            "other_user_id": item_owner_id,
+            "other_user_name": owner_name,
+            "status": "approved"
+        }
+    )
+    
     return {
         "status": "approved",
         "message": f"Swap request approved. {credits_required} credits transferred.",
@@ -207,6 +239,23 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
         # No more pending requests, mark item as available again
         it["status"] = "available"
         await storage_service.upsert_item(it)
+    
+    # Create notification for the requester
+    requester_id = swap_request.get("requester_id")
+    owner = await get_user_by_id(item_owner_id)
+    owner_name = owner.get("username", "Someone") if owner else "Someone"
+    await notification_service.create_notification(
+        user_id=requester_id,
+        event_type="rejected",
+        request_id=request_id,
+        item_id=item_id,
+        metadata={
+            "item_title": it.get("title", "Unknown Item"),
+            "other_user_id": item_owner_id,
+            "other_user_name": owner_name,
+            "status": "rejected"
+        }
+    )
     
     return {
         "status": "rejected",

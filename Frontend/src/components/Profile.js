@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import ListingCard from './ListingCard';
 import SwapRequests from './SwapRequests';
 import SwapHistory from './SwapHistory';
@@ -12,9 +12,25 @@ import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 export default function Profile({ username: usernameProp }) {
   const { user: authUser, isAuthenticated } = useAuth();
   const params = useParams();
+  const searchParams = useSearchParams();
   const username = usernameProp || params?.username;
   
-  const [activeTab, setActiveTab] = useState('listings');
+  // Get initial tab from URL query parameter, default to 'listings'
+  const [activeTab, setActiveTab] = useState(() => {
+    const tabParam = searchParams?.get('tab');
+    if (tabParam && ['listings', 'favorites', 'swap-requests', 'history'].includes(tabParam)) {
+      return tabParam;
+    }
+    return 'listings';
+  });
+
+  // Update tab when URL query parameter changes
+  useEffect(() => {
+    const tabParam = searchParams?.get('tab');
+    if (tabParam && ['listings', 'favorites', 'swap-requests', 'history'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
   const [user, setUser] = useState(null);
   const [listings, setListings] = useState([]);
   const [favorites] = useState([]);
