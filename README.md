@@ -214,4 +214,4 @@ We welcome contributions! Please follow these steps:
 
 ---
 
-**Note**: This project is currently under active development. Features and documentation will be updated regularly.
+**Note**: This project is currently under active development. Features and documentation will be updated regularly!
