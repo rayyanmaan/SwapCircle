@@ -22,43 +22,43 @@ export function NotificationProvider({ children }) {
     };
   };
 
-  // Load notifications from backend
-  const loadNotifications = async () => {
-    if (!isAuthenticated || !user) return;
-
-    try {
-      const [notificationsData, unreadData] = await Promise.all([
-        notificationsAPI.getAll(50, false),
-        notificationsAPI.getUnreadCount(),
-      ]);
-
-      setNotifications(notificationsData || []);
-      setUnreadCount(unreadData?.count || 0);
-
-      // Show toast notifications for new unread notifications
-      if (window.__notificationContainer && notificationsData) {
-        const newUnreadNotifications = notificationsData.filter(
-          (n) => !n.read && !shownToastIds.current.has(n.id)
-        );
-
-        newUnreadNotifications.forEach((notification) => {
-          shownToastIds.current.add(notification.id);
-          const { message, type } = formatNotification(notification);
-          setTimeout(() => {
-            window.__notificationContainer.addNotification({
-              type,
-              message,
-              duration: 5000,
-            });
-          }, 0);
-        });
-      }
-    } catch (error) {
-      console.error('Error loading notifications:', error);
-    }
-  };
-
   useEffect(() => {
+    // Load notifications from backend
+    const loadNotifications = async () => {
+      if (!isAuthenticated || !user) return;
+
+      try {
+        const [notificationsData, unreadData] = await Promise.all([
+          notificationsAPI.getAll(50, false),
+          notificationsAPI.getUnreadCount(),
+        ]);
+
+        setNotifications(notificationsData || []);
+        setUnreadCount(unreadData?.count || 0);
+
+        // Show toast notifications for new unread notifications
+        if (window.__notificationContainer && notificationsData) {
+          const newUnreadNotifications = notificationsData.filter(
+            (n) => !n.read && !shownToastIds.current.has(n.id)
+          );
+
+          newUnreadNotifications.forEach((notification) => {
+            shownToastIds.current.add(notification.id);
+            const { message, type } = formatNotification(notification);
+            setTimeout(() => {
+              window.__notificationContainer.addNotification({
+                type,
+                message,
+                duration: 5000,
+              });
+            }, 0);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      }
+    };
+
     // Don't poll if still loading auth state or not authenticated
     if (loading || !isAuthenticated || !user) {
       if (!isAuthenticated) {

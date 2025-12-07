@@ -44,12 +44,12 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
-                  Women's
+                  Women&apos;s
                 </a>
               </li>
               <li>
                 <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
-                  Men's
+                  Men&apos;s
                 </a>
               </li>
               <li>
