@@ -38,7 +38,14 @@ class UserOut(BaseModel):
     email: EmailStr
     username: str
     full_name: Optional[str]
+    bio: Optional[str] = None
     credits: Optional[float] = 0
+    profile_pic: Optional[str] = None
+    instagram_handle: Optional[str] = None
+    whatsapp_number: Optional[str] = None
+    facebook_url: Optional[str] = None
+    twitter_handle: Optional[str] = None
+    linkedin_url: Optional[str] = None
 
 
 class Login(BaseModel):
