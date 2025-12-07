@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from './AuthModal';
 import Logo from './Logo';
+import NotificationCenter from './NotificationCenter';
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -110,6 +111,7 @@ export default function Header() {
                   >
                     {user?.credits || 0} credits
                   </Link>
+                  <NotificationCenter />
                   <div className="relative" ref={dropdownRef}>
                     <button
                       className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-swapcircle-neutral-100 transition-colors"
@@ -240,18 +242,21 @@ export default function Header() {
               <div className="flex flex-col space-y-2 pt-4 border-t border-swapcircle">
                 {isAuthenticated ? (
                   <>
-                    <div className="flex items-center space-x-3 py-2">
-                      <div className="w-10 h-10 rounded-full bg-swapcircle-primary flex items-center justify-center text-white font-semibold">
-                        {user?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                    <div className="flex items-center justify-between py-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 rounded-full bg-swapcircle-primary flex items-center justify-center text-white font-semibold">
+                          {user?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-swapcircle-primary">
+                            {user?.username || user?.email?.split('@')[0] || 'User'}
+                          </p>
+                          <p className="text-xs text-swapcircle-tertiary">
+                            {user?.credits || 0} credits
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-swapcircle-primary">
-                          {user?.username || user?.email?.split('@')[0] || 'User'}
-                        </p>
-                        <p className="text-xs text-swapcircle-tertiary">
-                          {user?.credits || 0} credits
-                        </p>
-                      </div>
+                      <NotificationCenter />
                     </div>
                     <Link
                       href="/profile"

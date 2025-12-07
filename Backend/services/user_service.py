@@ -1,96 +1,128 @@
-"""Simple user storage for development.
+"""User storage service using MongoDB.
 
-Stores users in `Backend/data/users.json` with the fields:
- - id
- - email
- - username
- - full_name
- - salt
- - password_hash
-
-This is intentionally minimal and synchronous.
+Stores users in MongoDB `users` collection with support for async operations.
 """
-import json
-from pathlib import Path
 from typing import Dict, Any, List, Optional
-import threading
-import uuid
-
-ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-USERS_FILE = DATA_DIR / "users.json"
-
-_lock = threading.Lock()
+from bson import ObjectId
+from database.connection import get_db
 
 
-def _load_all() -> List[Dict[str, Any]]:
-    if not USERS_FILE.exists():
-        return []
-    with USERS_FILE.open("r", encoding="utf-8") as f:
-        return json.load(f)
+def _convert_id(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Convert MongoDB _id to id for API compatibility."""
+    if doc is None:
+        return None
+    if "_id" in doc:
+        doc["id"] = str(doc["_id"])
+        del doc["_id"]
+    return doc
 
 
-def _save_all(items: List[Dict[str, Any]]):
-    with USERS_FILE.open("w", encoding="utf-8") as f:
-        json.dump(items, f, ensure_ascii=False, indent=2)
+async def list_users() -> List[Dict[str, Any]]:
+    """List all users."""
+    db = get_db()
+    users_collection = db["users"]
+    cursor = users_collection.find({})
+    users = await cursor.to_list(length=None)
+    return [_convert_id(user) for user in users]
 
 
-def list_users() -> List[Dict[str, Any]]:
-    return _load_all()
+async def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+    """Get user by email address."""
+    db = get_db()
+    users_collection = db["users"]
+    user = await users_collection.find_one({"email": email})
+    return _convert_id(user)
 
 
-def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
-    for u in _load_all():
-        if u.get("email") == email:
-            return u
-    return None
+async def get_user_by_id(user_id: str, session=None) -> Optional[Dict[str, Any]]:
+    """Get user by ID.
+    
+    Args:
+        user_id: The user ID to look up
+        session: Optional MongoDB session for transactions
+    """
+    db = get_db()
+    users_collection = db["users"]
+    try:
+        user = await users_collection.find_one({"_id": ObjectId(user_id)}, session=session)
+    except Exception:
+        # If ObjectId conversion fails, try as string
+        user = await users_collection.find_one({"id": user_id}, session=session)
+    return _convert_id(user)
 
 
-def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
-    for u in _load_all():
-        if u.get("id") == user_id:
-            return u
-    return None
+async def get_user_by_username(username: str) -> Optional[Dict[str, Any]]:
+    """Get user by username."""
+    db = get_db()
+    users_collection = db["users"]
+    user = await users_collection.find_one({"username": username})
+    return _convert_id(user)
 
 
-def create_user(email: str, username: str, full_name: str, salt: str, password_hash: str) -> Dict[str, Any]:
+async def create_user(email: str, username: str, full_name: str, salt: str, password_hash: str) -> Dict[str, Any]:
+    """Create a new user."""
+    db = get_db()
+    users_collection = db["users"]
     user = {
-        "id": uuid.uuid4().hex,
         "email": email,
         "username": username,
         "full_name": full_name,
-        "credits": 0,
+        "credits": 0.0,
         "email_verified": False,
         "salt": salt,
         "password_hash": password_hash,
     }
-    with _lock:
-        users = _load_all()
-        users.append(user)
-        _save_all(users)
-    return user
+    result = await users_collection.insert_one(user)
+    user["_id"] = result.inserted_id
+    return _convert_id(user)
 
 
-def update_user(user_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    """Update fields on a user and persist to disk. Returns the updated user or None if not found.
+async def update_user(user_id: str, updates: Dict[str, Any], session=None) -> Optional[Dict[str, Any]]:
+    """Update fields on a user. Returns the updated user or None if not found.
 
     Only a whitelist of fields are updated to avoid accidental modification of
-    authentication fields (`salt`, `password_hash`). This function is thread-safe.
+    authentication fields (`salt`, `password_hash`).
+    
+    Args:
+        user_id: The user ID to update
+        updates: Dictionary of fields to update
+        session: Optional MongoDB session for transactions
     """
-    allowed = {"username", "full_name", "credits", "email_verified"}
+    from motor.motor_asyncio import AsyncIOMotorClientSession
+    
+    allowed = {
+        "username", "full_name", "bio", "credits", "email_verified", "profile_pic",
+        "instagram_handle", "whatsapp_number", "facebook_url",
+        "twitter_handle", "linkedin_url"
+    }
     # filter updates to allowed keys
     filtered = {k: v for k, v in updates.items() if k in allowed}
     if not filtered:
         return None
 
-    with _lock:
-        users = _load_all()
-        for i, u in enumerate(users):
-            if u.get("id") == user_id:
-                for k, v in filtered.items():
-                    u[k] = v
-                users[i] = u
-                _save_all(users)
-                return u
-    return None
+    db = get_db()
+    users_collection = db["users"]
+    try:
+        # Try with ObjectId first
+        user_oid = ObjectId(user_id)
+        result = await users_collection.update_one(
+            {"_id": user_oid},
+            {"$set": filtered},
+            session=session
+        )
+        if result.matched_count == 0:
+            return None
+        # Fetch updated user
+        user = await users_collection.find_one({"_id": user_oid}, session=session)
+        return _convert_id(user)
+    except Exception:
+        # If ObjectId conversion fails, try as string
+        result = await users_collection.update_one(
+            {"id": user_id},
+            {"$set": filtered},
+            session=session
+        )
+        if result.matched_count == 0:
+            return None
+        user = await users_collection.find_one({"id": user_id}, session=session)
+        return _convert_id(user)

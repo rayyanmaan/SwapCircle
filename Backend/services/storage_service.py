@@ -1,63 +1,106 @@
-"""Simple file-backed storage for items.
+"""Item storage service using MongoDB.
 
-Keeps item records in Backend/data/items.json to enable quick local
-development without a database.
+Stores items in MongoDB `items` collection with support for async operations.
 """
-import json
-from pathlib import Path
 from typing import Dict, Any, List, Optional
-import threading
+from bson import ObjectId
+from database.connection import get_db
 
 
-ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT / "data"
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-ITEMS_FILE = DATA_DIR / "items.json"
-
-_lock = threading.Lock()
-
-
-def _load_all() -> List[Dict[str, Any]]:
-    if not ITEMS_FILE.exists():
-        return []
-    with ITEMS_FILE.open("r", encoding="utf-8") as f:
-        return json.load(f)
+def _convert_id(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """Convert MongoDB _id to id for API compatibility."""
+    if doc is None:
+        return None
+    if "_id" in doc:
+        doc["id"] = str(doc["_id"])
+        del doc["_id"]
+    return doc
 
 
-def _save_all(items: List[Dict[str, Any]]):
-    with ITEMS_FILE.open("w", encoding="utf-8") as f:
-        json.dump(items, f, ensure_ascii=False, indent=2)
+async def list_items(owner_id: Optional[str] = None, status: Optional[str] = None) -> List[Dict[str, Any]]:
+    """List all items, optionally filtered by owner_id and/or status."""
+    db = get_db()
+    items_collection = db["items"]
+    
+    query = {}
+    if owner_id:
+        query["owner_id"] = owner_id
+    if status:
+        query["status"] = status
+    
+    cursor = items_collection.find(query)
+    items = await cursor.to_list(length=None)
+    return [_convert_id(item) for item in items]
 
 
-def list_items() -> List[Dict[str, Any]]:
-    return _load_all()
+async def get_item(item_id: str) -> Optional[Dict[str, Any]]:
+    """Get item by ID."""
+    db = get_db()
+    items_collection = db["items"]
+    try:
+        item = await items_collection.find_one({"_id": ObjectId(item_id)})
+    except Exception:
+        # If ObjectId conversion fails, try as string id field
+        item = await items_collection.find_one({"id": item_id})
+    return _convert_id(item)
 
 
-def get_item(item_id: str) -> Optional[Dict[str, Any]]:
-    for it in _load_all():
-        if it.get("id") == item_id:
-            return it
-    return None
+async def upsert_item(item: Dict[str, Any]) -> Dict[str, Any]:
+    """Insert or update an item."""
+    db = get_db()
+    items_collection = db["items"]
+    
+    item_id = item.get("id")
+    if item_id:
+        # Try to update existing item
+        try:
+            # Remove id from item dict for MongoDB
+            item_copy = item.copy()
+            if "id" in item_copy:
+                del item_copy["id"]
+            
+            result = await items_collection.update_one(
+                {"_id": ObjectId(item_id)},
+                {"$set": item_copy},
+                upsert=False
+            )
+            if result.matched_count > 0:
+                # Fetch updated item
+                updated_item = await items_collection.find_one({"_id": ObjectId(item_id)})
+                return _convert_id(updated_item)
+        except Exception:
+            # If ObjectId conversion fails, try with string id
+            item_copy = item.copy()
+            if "id" in item_copy:
+                del item_copy["id"]
+            
+            result = await items_collection.update_one(
+                {"id": item_id},
+                {"$set": item_copy},
+                upsert=False
+            )
+            if result.matched_count > 0:
+                updated_item = await items_collection.find_one({"id": item_id})
+                return _convert_id(updated_item)
+    
+    # Insert new item
+    item_copy = item.copy()
+    if "id" in item_copy:
+        del item_copy["id"]
+    
+    result = await items_collection.insert_one(item_copy)
+    item_copy["_id"] = result.inserted_id
+    return _convert_id(item_copy)
 
 
-def upsert_item(item: Dict[str, Any]) -> Dict[str, Any]:
-    with _lock:
-        items = _load_all()
-        for i, it in enumerate(items):
-            if it.get("id") == item.get("id"):
-                items[i] = item
-                _save_all(items)
-                return item
-        items.append(item)
-        _save_all(items)
-        return item
-
-
-def delete_item(item_id: str) -> bool:
-    with _lock:
-        items = _load_all()
-        new_items = [it for it in items if it.get("id") != item_id]
-        if len(new_items) == len(items):
-            return False
-        _save_all(new_items)
-        return True
+async def delete_item(item_id: str) -> bool:
+    """Delete an item by ID."""
+    db = get_db()
+    items_collection = db["items"]
+    try:
+        result = await items_collection.delete_one({"_id": ObjectId(item_id)})
+        return result.deleted_count > 0
+    except Exception:
+        # If ObjectId conversion fails, try with string id
+        result = await items_collection.delete_one({"id": item_id})
+        return result.deleted_count > 0

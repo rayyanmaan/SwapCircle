@@ -6,7 +6,7 @@ import { getImageUrl } from '@/utils/itemParser';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function SwapRequests() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [swapRequests, setSwapRequests] = useState({ as_owner: [], as_requester: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,6 +34,11 @@ export default function SwapRequests() {
   const handleApprove = async (itemId, requestId) => {
     try {
       await itemsAPI.approveSwapRequest(itemId, requestId);
+      
+      // Refresh user data to get updated credits
+      if (refreshUser) {
+        await refreshUser();
+      }
       alert('Swap request approved! Credits have been transferred.');
       // Refresh swap requests
       const data = await itemsAPI.getSwapRequests();

@@ -17,6 +17,7 @@ from routes.item_routes import router as items_router
 from routes.auth_routes import router as auth_router
 from routes.user_routes import router as users_router
 from routes.swap_routes import router as swaps_router
+from routes.notification_routes import router as notifications_router
 
 
 @asynccontextmanager
@@ -31,6 +32,30 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="SwapCircle Backend", lifespan=lifespan)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler to ensure CORS headers are included in error responses."""
+    from fastapi import HTTPException
+    import traceback
+    
+    # Don't handle HTTPException here - let FastAPI handle it normally
+    if isinstance(exc, HTTPException):
+        raise exc
+    
+    # Log the full error for debugging
+    print(f"Unhandled exception: {exc}")
+    print(traceback.format_exc())
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": str(exc)},
+        headers={
+            "Access-Control-Allow-Origin": "http://localhost:3000",
+            "Access-Control-Allow-Credentials": "true",
+        }
+    )
 
 
 @app.exception_handler(RequestValidationError)
@@ -104,6 +129,8 @@ app.include_router(auth_router)
 app.include_router(users_router)
 # include swaps router (swap requests, approvals, history)
 app.include_router(swaps_router)
+# include notifications router
+app.include_router(notifications_router)
 
 # CORS - allow frontend dev origin
 app.add_middleware(

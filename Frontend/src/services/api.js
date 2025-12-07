@@ -144,7 +144,7 @@ export const authAPI = {
       };
     }
 
-    return apiRequest('/auth/register', {
+    const response = await apiRequest('/auth/register', {
       method: 'POST',
       body: {
         email,
@@ -153,6 +153,16 @@ export const authAPI = {
         full_name: fullName,
       },
     });
+
+    // Store token if provided (same as login)
+    if (response.token && typeof window !== 'undefined') {
+      localStorage.setItem('token', response.token);
+      if (response.user) {
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+    }
+
+    return response;
   },
 
   /**
@@ -272,6 +282,13 @@ export const userAPI = {
   },
 
   /**
+   * Get user by username
+   */
+  async getUserByUsername(username) {
+    return apiRequest(`/users/username/${username}`);
+  },
+
+  /**
    * Update user profile
    */
   async updateUser(userId, updates) {
@@ -279,6 +296,36 @@ export const userAPI = {
       method: 'PATCH',
       body: updates,
     });
+  },
+
+  /**
+   * Upload profile picture
+   */
+  async uploadProfilePicture(userId, file) {
+    const url = `${API_BASE_URL}/users/${userId}/profile-picture`;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(errorData.detail || `Failed to upload profile picture: ${response.statusText}`);
+    }
+
+    return response.json();
   },
 };
 
@@ -308,6 +355,11 @@ export const itemsAPI = {
     const url = `${API_BASE_URL}/items`;
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
+    // Check if user is authenticated
+    if (!token) {
+      throw new Error('You must be logged in to create an item. Please log in and try again.');
+    }
+
     // If there are images, use FormData for multipart/form-data
     if (imageFiles.length > 0) {
       const formData = new FormData();
@@ -335,7 +387,7 @@ export const itemsAPI = {
       const config = {
         method: 'POST',
         headers: {
-          ...(token && { Authorization: `Bearer ${token}` }),
+          Authorization: `Bearer ${token}`,  // Always include if we got here (token check above)
           // Don't set Content-Type - browser will set it with boundary for multipart
         },
         body: formData,
@@ -582,6 +634,68 @@ export const itemsAPI = {
   async getSwapHistory() {
     return apiRequest(`/swaps/history`, {
       method: 'GET',
+    });
+  },
+};
+
+/**
+ * Notifications API
+ */
+export const notificationsAPI = {
+  /**
+   * Get all notifications for the authenticated user
+   */
+  async getAll(limit = 50, unreadOnly = false) {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (unreadOnly) params.append('unread_only', 'true');
+    return apiRequest(`/notifications?${params.toString()}`, {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Get recent swap events for the authenticated user (legacy endpoint)
+   */
+  async getRecent(sinceMinutes = 5) {
+    return apiRequest(`/notifications/recent?since_minutes=${sinceMinutes}`, {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Get count of unread notifications
+   */
+  async getUnreadCount() {
+    return apiRequest('/notifications/unread-count', {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Mark a notification as read
+   */
+  async markAsRead(notificationId) {
+    return apiRequest(`/notifications/${notificationId}/read`, {
+      method: 'PATCH',
+    });
+  },
+
+  /**
+   * Mark all notifications as read
+   */
+  async markAllAsRead() {
+    return apiRequest('/notifications/read-all', {
+      method: 'PATCH',
+    });
+  },
+
+  /**
+   * Delete a notification
+   */
+  async delete(notificationId) {
+    return apiRequest(`/notifications/${notificationId}`, {
+      method: 'DELETE',
     });
   },
 };

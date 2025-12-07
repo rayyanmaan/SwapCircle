@@ -30,7 +30,7 @@ const CONDITIONS = ['Like New', 'Excellent', 'Good', 'Gently Used'];
 
 export default function UploadForm() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, refreshUser } = useAuth();
   const fileInputRef = useRef(null);
   const [images, setImages] = useState([]);
   const [formData, setFormData] = useState({
@@ -161,10 +161,27 @@ export default function UploadForm() {
       // Submit to backend
       const result = await itemsAPI.createItem(itemData, imageFiles);
       
+      // Refresh user data to get updated credits
+      await refreshUser();
+      
       // Redirect to profile page after successful submission
       router.push('/profile');
     } catch (error) {
       console.error('Error creating item:', error);
+      
+      // Handle authentication errors specifically
+      if (error.message && (
+        error.message.includes('authorization') || 
+        error.message.includes('logged in') ||
+        error.message.includes('authenticated')
+      )) {
+        setErrors({ 
+          general: 'You must be logged in to create an item. Please log in and try again.' 
+        });
+        // Optionally redirect to login
+        // router.push('/login');
+        return;
+      }
       console.error('Error details:', error.data);
       
       // Extract error message

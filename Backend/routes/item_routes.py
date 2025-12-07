@@ -177,9 +177,19 @@ async def create_item(
     item_id = str(uuid4())
     images_out = []
     if images:
-        for up in images:
-            url, img_id = image_service.upload_image(up)
-            images_out.append({"id": img_id, "url": url})
+        try:
+            for up in images:
+                url, img_id = await image_service.upload_image(up)
+                images_out.append({"id": img_id, "url": url})
+        except HTTPException:
+            # Re-raise HTTPExceptions (validation errors, etc.)
+            raise
+        except Exception as e:
+            # Wrap other exceptions (like Firebase errors) in HTTPException
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to upload image: {str(e)}"
+            )
 
     stored = {
         "id": item_id,
@@ -195,22 +205,25 @@ async def create_item(
         "status": "available",
         "images": images_out,
     }
-    storage_service.upsert_item(stored)
+    await storage_service.upsert_item(stored)
 
     # Award 1 credit to the user for uploading an item
     # Using transaction type constant to ensure consistency
     from utils.constants import TRANSACTION_TYPE_ITEM_UPLOAD
 
     try:
-        credit_service.add_credits(
+        new_balance = await credit_service.add_credits(
             user_id=owner_id,
             amount=1.0,
             transaction_type=TRANSACTION_TYPE_ITEM_UPLOAD,
             description=f"Credits awarded for uploading item: {item.title}",
         )
+        print(f"Successfully awarded 1 credit to user {owner_id}. New balance: {new_balance}")
     except Exception as e:
         # Log the error but don't fail the item creation
-        print(f"Warning: Failed to award credits to user {owner_id}: {str(e)}")
+        import traceback
+        print(f"ERROR: Failed to award credits to user {owner_id}: {str(e)}")
+        print(traceback.format_exc())
     return ItemOut(**stored)
 
 
@@ -225,11 +238,7 @@ async def list_items(owner_id: str = None, status: str = None):
 
     Items with pending swap requests will automatically get status 'pending'.
     """
-    rows = storage_service.list_items()
-
-    # Apply owner_id filter (optimized backend-side filtering)
-    if owner_id:
-        rows = [item for item in rows if item.get("owner_id") == owner_id]
+    rows = await storage_service.list_items(owner_id=owner_id, status=status)
 
     # Apply status filter
     if status:
@@ -238,7 +247,7 @@ async def list_items(owner_id: str = None, status: str = None):
     # Update status based on pending swap requests
     for item in rows:
         if item.get("status") == "available":
-            pending_requests = swap_service.get_pending_requests_for_item(item.get("id"))
+            pending_requests = await swap_service.get_pending_requests_for_item(item.get("id"))
             if pending_requests:
                 item["status"] = "pending"
 
@@ -267,18 +276,18 @@ async def get_swap_requests(request: Request):
         raise HTTPException(status_code=401, detail="invalid token")
     
     # Get requests as owner (pending requests for items I own)
-    owner_requests = swap_service.get_pending_requests_for_owner(user_id)
+    owner_requests = await swap_service.get_pending_requests_for_owner(user_id)
     
     # Get requests as requester (requests I made)
-    requester_requests = swap_service.get_requests_for_requester(user_id)
+    requester_requests = await swap_service.get_requests_for_requester(user_id)
     
     # Enrich requests with item and user information
     from services.user_service import get_user_by_id
     
     enriched_owner_requests = []
     for req in owner_requests:
-        item = storage_service.get_item(req.get("item_id"))
-        requester = get_user_by_id(req.get("requester_id"))
+        item = await storage_service.get_item(req.get("item_id"))
+        requester = await get_user_by_id(req.get("requester_id"))
         enriched_owner_requests.append({
             **req,
             "item": {
@@ -295,7 +304,7 @@ async def get_swap_requests(request: Request):
     
     enriched_requester_requests = []
     for req in requester_requests:
-        item = storage_service.get_item(req.get("item_id"))
+        item = await storage_service.get_item(req.get("item_id"))
         enriched_requester_requests.append({
             **req,
             "item": {
@@ -330,16 +339,16 @@ async def get_swap_history(request: Request):
         raise HTTPException(status_code=401, detail="invalid token")
     
     # Get approved swaps where user is owner or requester
-    approved_swaps = swap_service.get_approved_swaps_for_user(user_id)
+    approved_swaps = await swap_service.get_approved_swaps_for_user(user_id)
     
     # Enrich swaps with item and user information
     from services.user_service import get_user_by_id
     
     enriched_swaps = []
     for swap in approved_swaps:
-        item = storage_service.get_item(swap.get("item_id"))
-        requester = get_user_by_id(swap.get("requester_id"))
-        item_owner = get_user_by_id(item.get("owner_id")) if item else None
+        item = await storage_service.get_item(swap.get("item_id"))
+        requester = await get_user_by_id(swap.get("requester_id"))
+        item_owner = await get_user_by_id(item.get("owner_id")) if item else None
         
         # Determine if user is the seller (owner) or buyer (requester)
         is_seller = item and item.get("owner_id") == user_id
@@ -380,13 +389,13 @@ async def get_item(item_id: str):
     Raises:
         HTTPException: 404 if item not found
     """
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
 
     # Check for pending requests and update status if needed
     if it.get("status") == "available":
-        pending_requests = swap_service.get_pending_requests_for_item(item_id)
+        pending_requests = await swap_service.get_pending_requests_for_item(item_id)
         if len(pending_requests) > 0:
             it["status"] = "pending"
 
@@ -426,7 +435,7 @@ async def update_item(
             - 404 if item not found
             - 400 if patch payload is missing
     """
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
     # Require authentication and ensure the caller is the owner
@@ -498,10 +507,10 @@ async def update_item(
 
     if images:
         for up in images:
-            url, img_id = image_service.upload_image(up)
+            url, img_id = await image_service.upload_image(up)
             it.setdefault("images", []).append({"id": img_id, "url": url})
 
-    storage_service.upsert_item(it)
+    await storage_service.upsert_item(it)
     return ItemOut(**it)
 
 
@@ -521,14 +530,14 @@ async def delete_item(item_id: str):
     Raises:
         HTTPException: 404 if item not found
     """
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
 
     for img in it.get("images", []):
-        image_service.delete_image(img.get("id"))
+        await image_service.delete_image(img.get("id"))
 
-    storage_service.delete_item(item_id)
+    await storage_service.delete_item(item_id)
     return None
 
 
@@ -556,7 +565,7 @@ async def lock_item(item_id: str, request: Request):
     # Require authentication using centralized auth helper
     user_id = auth_service.get_user_id_from_request(request)
 
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
     # Prevent users from locking their own items
@@ -570,7 +579,7 @@ async def lock_item(item_id: str, request: Request):
     if it.get("status") == "locked":
         raise HTTPException(status_code=400, detail="already locked")
     it["status"] = "locked"
-    storage_service.upsert_item(it)
+    await storage_service.upsert_item(it)
     return {"status": "locked"}
 
 
@@ -598,7 +607,7 @@ async def unlock_item(item_id: str, request: Request):
     # Require authentication using centralized auth helper
     user_id = auth_service.get_user_id_from_request(request)
 
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
     # Only the owner can unlock their own items
@@ -612,7 +621,7 @@ async def unlock_item(item_id: str, request: Request):
         raise HTTPException(status_code=400, detail="not locked")
 
     it["status"] = "available"
-    storage_service.upsert_item(it)
+    await storage_service.upsert_item(it)
     return {"status": "available"}
 
 
@@ -636,7 +645,7 @@ async def request_swap(item_id: str, request: Request):
     except Exception:
         raise HTTPException(status_code=401, detail="invalid token")
     
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
     
@@ -656,7 +665,7 @@ async def request_swap(item_id: str, request: Request):
         )
     
     # Check if user already has a pending request for this item
-    existing_requests = swap_service.get_requests_for_requester(user_id)
+    existing_requests = await swap_service.get_requests_for_requester(user_id)
     for req in existing_requests:
         if req.get("item_id") == item_id and req.get("status") == "pending":
             raise HTTPException(
@@ -678,7 +687,7 @@ async def request_swap(item_id: str, request: Request):
     
     # Check if user has enough credits
     from services.user_service import get_user_by_id
-    user = get_user_by_id(user_id)
+    user = await get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
     
@@ -690,7 +699,7 @@ async def request_swap(item_id: str, request: Request):
         )
     
     # Create swap request (don't transfer credits yet)
-    swap_request = swap_service.create_swap_request(
+    swap_request = await swap_service.create_swap_request(
         item_id=item_id,
         requester_id=user_id,
         credits_required=credits_required
@@ -698,7 +707,7 @@ async def request_swap(item_id: str, request: Request):
     
     # Mark item as pending (has a swap request)
     it["status"] = "pending"
-    storage_service.upsert_item(it)
+    await storage_service.upsert_item(it)
     
     return {
         "status": "requested",
@@ -728,7 +737,7 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
         raise HTTPException(status_code=401, detail="invalid token")
     
     # Get the swap request
-    swap_request = swap_service.get_swap_request(request_id)
+    swap_request = await swap_service.get_swap_request(request_id)
     if not swap_request:
         raise HTTPException(status_code=404, detail="swap request not found")
     
@@ -742,7 +751,7 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
         )
     
     # Get the item
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
     
@@ -759,7 +768,7 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
     
     # Verify requester still has enough credits
     from services.user_service import get_user_by_id
-    requester = get_user_by_id(requester_id)
+    requester = await get_user_by_id(requester_id)
     if not requester:
         raise HTTPException(status_code=404, detail="requester not found")
     
@@ -771,24 +780,24 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
         )
     
     # Update swap request status to approved
-    swap_service.update_swap_request(request_id, "approved")
+    await swap_service.update_swap_request(request_id, "approved")
     
     # Cancel other pending requests for this item
-    swap_service.cancel_other_pending_requests(item_id, request_id)
+    await swap_service.cancel_other_pending_requests(item_id, request_id)
     
     # Mark item as swapped/locked
     it["status"] = "swapped"
-    storage_service.upsert_item(it)
+    await storage_service.upsert_item(it)
     
     # NOW transfer credits (only after approval)
     # Deduct credits from buyer
-    credit_service.deduct_credits(
+    await credit_service.deduct_credits(
         user_id=requester_id,
         amount=credits_required
     )
     
     # Add credits to seller
-    credit_service.add_credits(
+    await credit_service.add_credits(
         user_id=item_owner_id,
         amount=credits_required,
         transaction_type="swap_credit",
@@ -823,7 +832,7 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
         raise HTTPException(status_code=401, detail="invalid token")
     
     # Get the swap request
-    swap_request = swap_service.get_swap_request(request_id)
+    swap_request = await swap_service.get_swap_request(request_id)
     if not swap_request:
         raise HTTPException(status_code=404, detail="swap request not found")
     
@@ -837,7 +846,7 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
         )
     
     # Get the item
-    it = storage_service.get_item(item_id)
+    it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
     
@@ -850,13 +859,13 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
         )
     
     # Update swap request status to rejected
-    swap_service.update_swap_request(request_id, "rejected")
+    await swap_service.update_swap_request(request_id, "rejected")
     
     # If no other pending requests, mark item as available again
     pending_requests = swap_service.get_pending_requests_for_item(item_id)
     if len(pending_requests) == 0:
         it["status"] = "available"
-        storage_service.upsert_item(it)
+        await storage_service.upsert_item(it)
     
     return {
         "status": "rejected",
