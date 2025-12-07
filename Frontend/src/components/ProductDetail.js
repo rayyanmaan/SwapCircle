@@ -57,7 +57,6 @@ export default function ProductDetail({ product }) {
           const sellerData = await userAPI.getUser(productData.owner_id);
           setSeller({
             name: sellerData.full_name || sellerData.username || 'Unknown',
-            username: sellerData.username,
             avatar: sellerData.avatar || sellerData.username?.[0]?.toUpperCase() || '?',
             credits: sellerData.credits || 0,
             lockDuration: '48 hours',
@@ -66,7 +65,6 @@ export default function ProductDetail({ product }) {
           console.error('Error fetching seller:', err);
           setSeller({
             name: 'Unknown',
-            username: null,
             avatar: '?',
             credits: 0,
             lockDuration: '48 hours',
@@ -324,30 +322,16 @@ export default function ProductDetail({ product }) {
                   <div className="w-16 h-16 rounded-full bg-swapcircle-primary flex items-center justify-center">
                     <span className="text-white text-2xl font-bold">{seller.avatar}</span>
                   </div>
-                  <div className="flex-1">
-                    {seller.username ? (
-                      <a
-                        href={`/profile/${seller.username}`}
-                        className="heading-primary text-lg font-semibold hover:text-swapcircle-primary hover:underline block"
-                      >
-                        {seller.name}
-                      </a>
-                    ) : (
-                      <p className="heading-primary text-lg font-semibold">{seller.name}</p>
-                    )}
+                  <div>
+                    <p className="heading-primary text-lg font-semibold">{seller.name}</p>
                     <p className="text-swapcircle-secondary text-sm">
                       {seller.credits} credits • {seller.lockDuration} lock
                     </p>
                   </div>
                 </div>
-                {seller.username && (
-                  <a
-                    href={`/profile/${seller.username}`}
-                    className="btn-secondary w-full text-center block"
-                  >
-                    View Profile
-                  </a>
-                )}
+                <button className="btn-secondary w-full">
+                  💬 Message Seller
+                </button>
               </div>
             )}
 

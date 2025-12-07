@@ -19,11 +19,6 @@ async def register(payload: UserCreate):
     existing = user_service.get_user_by_email(payload.email)
     if existing:
         raise HTTPException(status_code=400, detail="email already registered")
-    
-    # prevent duplicate usernames
-    existing_username = user_service.get_user_by_username(payload.username)
-    if existing_username:
-        raise HTTPException(status_code=400, detail="username already taken")
 
     salt, hashed = auth_service.hash_password(payload.password)
     user = user_service.create_user(payload.email, payload.username, payload.full_name or "", salt, hashed)

@@ -3,18 +3,11 @@
     "id": "537df97841c349668b48b871cfd568a4",
     "email": "test@swapcircle.com",
     "username": "test",
-    "full_name": "Test Account",
+    "full_name": "",
     "credits": 1.0,
     "email_verified": false,
     "salt": "feb45903d34b4fc4a9db193c6b0ae7ba",
-    "password_hash": "ecb90f12d84c190a2bad6c1296351dbc103df056a8b7af37feeddab2bb577541",
-    "instagram_handle": "testexample",
-    "whatsapp_number": null,
-    "facebook_url": null,
-    "twitter_handle": null,
-    "linkedin_url": null,
-    "profile_pic": "/static/images/709a89bc-28e7-4a7f-9212-fee21332e01e.jpg",
-    "bio": "This is a tesssst biooo! 22"
+    "password_hash": "ecb90f12d84c190a2bad6c1296351dbc103df056a8b7af37feeddab2bb577541"
   },
   {
     "id": "d926bc991185416dbce213d233383e45",

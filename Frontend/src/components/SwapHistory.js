@@ -94,16 +94,7 @@ export default function SwapHistory() {
                 <div className="space-y-1 text-sm text-swapcircle-secondary mb-4">
                   <p>
                     <strong>{swap.is_seller ? 'Sold to' : 'Bought from'}:</strong>{' '}
-                    {swap.other_user?.username ? (
-                      <a
-                        href={`/profile/${swap.other_user.username}`}
-                        className="text-swapcircle-primary hover:underline"
-                      >
-                        {swap.other_user?.full_name || swap.other_user?.username || 'Unknown'}
-                      </a>
-                    ) : (
-                      swap.other_user?.full_name || swap.other_user?.username || 'Unknown'
-                    )}
+                    {swap.other_user?.full_name || swap.other_user?.username || 'Unknown'}
                   </p>
                   <p>
                     <strong>Credits:</strong> {swap.credits_required}
