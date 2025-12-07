@@ -54,13 +54,6 @@ def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def get_user_by_username(username: str) -> Optional[Dict[str, Any]]:
-    for u in _load_all():
-        if u.get("username") == username:
-            return u
-    return None
-
-
 def create_user(email: str, username: str, full_name: str, salt: str, password_hash: str) -> Dict[str, Any]:
     user = {
         "id": uuid.uuid4().hex,
@@ -85,11 +78,7 @@ def update_user(user_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any
     Only a whitelist of fields are updated to avoid accidental modification of
     authentication fields (`salt`, `password_hash`). This function is thread-safe.
     """
-    allowed = {
-        "username", "full_name", "bio", "credits", "email_verified", "profile_pic",
-        "instagram_handle", "whatsapp_number", "facebook_url",
-        "twitter_handle", "linkedin_url"
-    }
+    allowed = {"username", "full_name", "credits", "email_verified"}
     # filter updates to allowed keys
     filtered = {k: v for k, v in updates.items() if k in allowed}
     if not filtered:
