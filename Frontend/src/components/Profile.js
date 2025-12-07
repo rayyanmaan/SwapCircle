@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import ListingCard from './ListingCard';
 import SwapRequests from './SwapRequests';
 import SwapHistory from './SwapHistory';
@@ -178,7 +179,7 @@ export default function Profile({ username: usernameProp }) {
           {error}
         </div>
         <div className="text-center py-4">
-          <a href="/" className="btn-primary">Go to Home</a>
+          <Link href="/" className="btn-primary">Go to Home</Link>
         </div>
       </div>
     );
@@ -189,7 +190,7 @@ export default function Profile({ username: usernameProp }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
           <p className="text-swapcircle-secondary mb-4">User not found</p>
-          <a href="/" className="btn-primary">Go to Home</a>
+          <Link href="/" className="btn-primary">Go to Home</Link>
         </div>
       </div>
     );

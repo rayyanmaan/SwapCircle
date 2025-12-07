@@ -166,7 +166,7 @@ export default function SwapRequests() {
           My Swap Requests
         </h2>
         {swapRequests.as_requester.length === 0 ? (
-          <p className="text-swapcircle-secondary">You haven't made any swap requests yet.</p>
+          <p className="text-swapcircle-secondary">You haven&apos;t made any swap requests yet.</p>
         ) : (
           <div className="space-y-4">
             {swapRequests.as_requester.map((request) => {

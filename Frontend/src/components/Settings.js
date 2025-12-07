@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI } from '@/services/api';
 import { getImageUrl } from '@/utils/itemParser';
@@ -221,7 +222,7 @@ export default function Settings() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
           <p className="text-swapcircle-secondary mb-4">Please log in to view settings</p>
-          <a href="/" className="btn-primary">Go to Home</a>
+          <Link href="/" className="btn-primary">Go to Home</Link>
         </div>
       </div>
     );
@@ -471,12 +472,12 @@ export default function Settings() {
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
-          <a
+          <Link
             href="/profile"
             className="px-6 py-2 border border-swapcircle rounded-lg text-swapcircle-secondary hover:bg-swapcircle-alt"
           >
             Cancel
-          </a>
+          </Link>
         </div>
       </div>
     </div>

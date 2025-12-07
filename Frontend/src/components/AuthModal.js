@@ -278,7 +278,7 @@ export default function AuthModal({ isOpen, onClose, mode = 'login' }) {
               >
                 {authMode === 'login' ? (
                   <>
-                    Don't have an account?{' '}
+                    Don&apos;t have an account?{' '}
                     <span className="font-medium underline">Sign up</span>
                   </>
                 ) : (
