@@ -115,11 +115,22 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 
 # mount static so uploaded images under static/images are reachable
-# Use absolute path to ensure it works regardless of where the app is run from
+# Note: Static files are only mounted if the directory exists and is writable
+# In production (Vercel), we use Firebase Storage instead, so static mounting is optional
 ROOT = Path(__file__).resolve().parent
 STATIC_DIR = ROOT / "static"
-STATIC_DIR.mkdir(exist_ok=True)
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+# Only create static directory if we're not on a read-only filesystem (e.g., Vercel)
+# Since we're using Firebase Storage, this is mainly for local development
+try:
+    STATIC_DIR.mkdir(exist_ok=True)
+    # Only mount static files if directory creation succeeded
+    if STATIC_DIR.exists():
+        app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+except OSError:
+    # Read-only filesystem (e.g., Vercel) - skip static mounting
+    # Images are served from Firebase Storage instead
+    pass
 
 # include items router
 app.include_router(items_router)
@@ -132,10 +143,18 @@ app.include_router(swaps_router)
 # include notifications router
 app.include_router(notifications_router)
 
-# CORS - allow frontend dev origin
+# CORS - configure allowed origins from environment variable
+# Default to localhost for development, but allow production URL via env var
+import os
+from config import settings
+
+# Get allowed origins from environment variable, default to localhost
+allowed_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
