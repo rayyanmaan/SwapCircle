@@ -6,7 +6,7 @@ pydantic-settings>=2.0.0  # For pydantic v2 BaseSettings support
 python-dotenv>=1.0.0
 pytest>=7.0.0
 httpx>=0.23.0
-motor>=3.1.1        # async MongoDB driver (recommended)
+motor>=3.1.1        # async MongoDB driver
 email-validator
 passlib[bcrypt]>=1.7.4
 firebase-admin>=6.0.0
