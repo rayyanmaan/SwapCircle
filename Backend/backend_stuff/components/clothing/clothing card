@@ -1,0 +1,146 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
+import { Heart, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+const conditionLabels = {
+  like_new: "Like New",
+  gently_used: "Gently Used",
+  good: "Good",
+  fair: "Fair"
+};
+
+export default function ClothingCard({ item }) {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setIsFavorited(currentUser?.favorites?.includes(item.id) || false);
+    } catch (error) {
+      console.log("User not logged in");
+    }
+  };
+
+  const handleCardClick = () => {
+    navigate(createPageUrl("ProductDetail") + `?id=${item.id}`);
+  };
+
+  const handleFavorite = async (e) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      navigate(createPageUrl("Login"));
+      return;
+    }
+
+    const newFavorites = isFavorited
+      ? (user.favorites || []).filter(id => id !== item.id)
+      : [...(user.favorites || []), item.id];
+
+    try {
+      await base44.auth.updateMe({ favorites: newFavorites });
+      setIsFavorited(!isFavorited);
+      // Update local user state
+      setUser({ ...user, favorites: newFavorites });
+    } catch (error) {
+      console.error("Error updating favorites:", error);
+    }
+  };
+
+  const imageUrl = item.images?.[0] || 'https://images.unsplash.com/photo-1434389677669-e08b4cac3105?w=500';
+
+  return (
+    <motion.div
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      onClick={handleCardClick}
+      className="group cursor-pointer"
+    >
+      <div className="relative overflow-hidden rounded-xl bg-gray-100 mb-4 aspect-[3/4] border border-gray-200">
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse" />
+        )}
+        
+        {imageError ? (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-100">
+            <div className="text-4xl mb-2">👕</div>
+            <div className="text-xs">Image not available</div>
+          </div>
+        ) : (
+          <img
+            src={imageUrl}
+            alt={item.title}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => {
+              console.error("Image failed to load:", imageUrl);
+              setImageError(true);
+            }}
+            className={`w-full h-full object-cover transition-all duration-500 ${
+              imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+            } group-hover:scale-105`}
+          />
+        )}
+        
+        {/* Condition Badge */}
+        <div className="absolute top-3 left-3">
+          <div className="px-3 py-1.5 bg-white rounded-lg text-xs font-medium text-black shadow-sm border border-gray-100">
+            {conditionLabels[item.condition]}
+          </div>
+        </div>
+
+        {/* Availability Badge */}
+        {item.status === 'unavailable' && (
+          <Badge className="absolute top-3 right-14 bg-red-500 text-white border-0 text-xs">
+            Not Available
+          </Badge>
+        )}
+
+        {/* Favorite Button */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleFavorite}
+          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm hover:shadow-md transition-all border border-gray-100"
+        >
+          <Heart
+            className={`w-4 h-4 transition-colors ${
+              isFavorited ? 'fill-red-500 text-red-500' : 'text-gray-700'
+            }`}
+          />
+        </motion.button>
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex justify-between items-start gap-2">
+          <h3 className="font-medium text-black group-hover:text-gray-700 transition-colors line-clamp-1">
+            {item.title}
+          </h3>
+          <div className="flex-shrink-0 px-2.5 py-1 bg-blue-50 rounded-lg border border-blue-100">
+            <span className="text-sm font-semibold text-blue-700">{item.credits}c</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-600">Size {item.size}</span>
+          <div className="flex items-center gap-1 text-gray-500">
+            <MapPin className="w-3.5 h-3.5" />
+            <span className="text-xs">{item.location}</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
