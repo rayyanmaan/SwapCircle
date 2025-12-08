@@ -17,14 +17,54 @@ async def connect_db():
     """Connect to MongoDB using Motor async client."""
     global _db_client, _database
     try:
-        _db_client = AsyncIOMotorClient(settings.mongodb_uri)
+        # For mongodb+srv (MongoDB Atlas), SSL/TLS is automatically enabled
+        # We just need to ensure proper timeout settings
+        # Note: mongodb+srv:// automatically uses TLS, don't add tls=True as it may cause conflicts
+        
+        # Build connection options
+        client_options = {
+            'serverSelectionTimeoutMS': 30000,
+            'connectTimeoutMS': 30000,
+        }
+        
+        # For mongodb+srv, TLS is handled automatically by the connection string
+        # For regular mongodb://, we might need to add TLS options
+        if not settings.mongodb_uri.startswith('mongodb+srv://'):
+            # Only add TLS options for non-SRV connections if needed
+            import ssl
+            ssl_context = ssl.create_default_context()
+            client_options['tls'] = True
+            client_options['tlsAllowInvalidCertificates'] = False
+        
+        _db_client = AsyncIOMotorClient(
+            settings.mongodb_uri,
+            **client_options
+        )
+        
         _database = _db_client[settings.database_name]
         # Test the connection
         await _db_client.admin.command('ping')
         print(f"MongoDB connected to {settings.database_name}")
     except Exception as e:
-        error_msg = str(e)
-        if "authentication failed" in error_msg.lower() or "bad auth" in error_msg.lower():
+        error_msg = str(e).lower()
+        
+        # Check for SSL/TLS errors
+        if "ssl" in error_msg or "tls" in error_msg or "handshake" in error_msg:
+            print("\n" + "="*60)
+            print("MongoDB SSL/TLS Connection Error!")
+            print("="*60)
+            print("Failed to establish SSL connection to MongoDB Atlas.")
+            print("\nPossible issues:")
+            print("1. Missing CA certificates in Docker image (should be fixed in Dockerfile)")
+            print("2. Network/firewall blocking SSL connections")
+            print("3. MongoDB Atlas IP whitelist doesn't include Render's IP ranges")
+            print("4. Connection string format issue")
+            print("\nSolutions:")
+            print("- Ensure Dockerfile includes 'ca-certificates' package")
+            print("- Whitelist 0.0.0.0/0 in MongoDB Atlas Network Access (for testing)")
+            print("- Verify connection string uses 'mongodb+srv://' for Atlas")
+            print("="*60 + "\n")
+        elif "authentication failed" in error_msg or "bad auth" in error_msg:
             print("\n" + "="*60)
             print("MongoDB Authentication Error!")
             print("="*60)
