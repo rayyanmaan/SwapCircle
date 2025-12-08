@@ -1,0 +1,24 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: swapcircle-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Override Firebase credentials path to absolute path in container
+      - FIREBASE_CREDENTIALS_PATH=/app/pics-storage-37f99-firebase-adminsdk-fbsvc-96dca777fc.json
+      # Map JWT_SECRET_KEY to SECRET_KEY (config.py expects SECRET_KEY)
+      - SECRET_KEY=${JWT_SECRET_KEY:-${SECRET_KEY:-changeme}}
+      # CORS origins (can be overridden via .env)
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001}
+    volumes:
+      # Mount Firebase credentials file
+      - ./pics-storage-37f99-firebase-adminsdk-fbsvc-96dca777fc.json:/app/pics-storage-37f99-firebase-adminsdk-fbsvc-96dca777fc.json:ro
+      # Mount static directory for local development (optional)
+      - ./static:/app/static
+    restart: unless-stopped
+
