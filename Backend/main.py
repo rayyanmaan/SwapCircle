@@ -18,6 +18,7 @@ from routes.auth_routes import router as auth_router
 from routes.user_routes import router as users_router
 from routes.swap_routes import router as swaps_router
 from routes.notification_routes import router as notifications_router
+from routes.rating_routes import router as ratings_router
 
 
 @asynccontextmanager
@@ -274,6 +275,8 @@ app.include_router(users_router)
 app.include_router(swaps_router)
 # include notifications router
 app.include_router(notifications_router)
+# include ratings router
+app.include_router(ratings_router)
 
 # Debug: Print all registered routes on startup
 print("\n" + "="*80)
