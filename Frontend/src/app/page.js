@@ -45,6 +45,7 @@ export default function Home() {
             size: metadata.size || 'Size M',
             credits: metadata.credits || 2,
             condition: metadata.condition || 'Good',
+            location: metadata.location || null,
             timestamp: 'Recently', // Backend doesn't store timestamp yet
             category: metadata.category || 'General',
             brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',

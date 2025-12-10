@@ -13,6 +13,7 @@ export default function ListingCard({
   size,
   credits,
   condition,
+  location,
   timestamp,
   status,
   showSwappedStatus = false,
@@ -127,6 +128,13 @@ export default function ListingCard({
             <span className="text-xs font-medium text-swapcircle-primary">{condition}</span>
           </div>
         ) : null}
+
+        {/* Location badge */}
+        {location && (
+          <div className="absolute top-2 left-2 bottom-auto mt-9 bg-slate-600/90 backdrop-blur-sm px-2 py-1 rounded-full">
+            <span className="text-xs font-medium text-white">{location}</span>
+          </div>
+        )}
 
         {/* Status badge (Pending) - positioned below swapped/condition badge or top-left if no badge */}
         {status && status === "pending" && (

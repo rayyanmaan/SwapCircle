@@ -42,6 +42,7 @@ export default function ProductDetail({ product }) {
       condition: metadata.condition || 'Like New',
       brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',
       size: metadata.size || 'M',
+      location: metadata.location || null,
       description: metadata.mainDescription,
       credits: metadata.credits || 2,
       images: images,
@@ -283,6 +284,11 @@ export default function ProductDetail({ product }) {
               <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#FEF3C7', color: '#F59E0B' }}>
                 Size: {productData.size}
               </span>
+              {productData.location && (
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-slate-600 text-white">
+                  📍 {productData.location}
+                </span>
+              )}
             </div>
 
             {/* About Section */}
