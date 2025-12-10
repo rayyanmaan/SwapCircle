@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Footer from '@/components/Footer';
 
 export default function ContactPage() {
-  const [activeModal, setActiveModal] = useState(null); // 'contact' | 'feedback' | 'bug' | null
+  const [activeModal, setActiveModal] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [successEmail, setSuccessEmail] = useState(''); // Store email for success modal
+  const [successEmail, setSuccessEmail] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,6 +14,13 @@ export default function ContactPage() {
     message: ''
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [showConfirmClose, setShowConfirmClose] = useState(false);
+
+  const hasUnsavedChanges = () => {
+    return formData.name || formData.email || formData.subject || formData.message;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -21,14 +28,25 @@ export default function ContactPage() {
       ...prev,
       [name]: value
     }));
+    // Clear errors when user starts typing
+    setError('');
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+    setFieldErrors({});
     
     try {
-      const response = await fetch('http://localhost:8000/contact', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,13 +61,8 @@ export default function ContactPage() {
       });
 
       if (response.ok) {
-        // Store email before clearing form
         setSuccessEmail(formData.email);
-        
-        // Show success modal
         setShowSuccess(true);
-        
-        // Clear form
         setFormData({
           name: '',
           email: '',
@@ -57,20 +70,51 @@ export default function ContactPage() {
           message: ''
         });
         
-        // Close success modal after 7 seconds
         setTimeout(() => {
           setShowSuccess(false);
           setActiveModal(null);
           setSuccessEmail('');
         }, 7000);
       } else {
-        alert('Failed to send message. Please try again.');
+        const errorData = await response.json();
+        
+        // Handle field-specific validation errors
+        if (errorData.detail && typeof errorData.detail === 'object') {
+          setFieldErrors(errorData.detail);
+        } else if (Array.isArray(errorData.detail)) {
+          // Handle validation errors array
+          const errors = {};
+          errorData.detail.forEach(err => {
+            if (err.loc && err.loc.length > 0) {
+              const field = err.loc[err.loc.length - 1];
+              errors[field] = err.msg;
+            }
+          });
+          if (Object.keys(errors).length > 0) {
+            setFieldErrors(errors);
+          } else {
+            setError(errorData.detail[0]?.msg || 'Failed to send message. Please try again.');
+          }
+        } else {
+          setError(errorData.detail || 'Failed to send message. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error sending message. Please try again.');
+      setError('Error sending message. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    if (hasUnsavedChanges()) {
+      setShowConfirmClose(true);
+    } else {
+      setActiveModal(null);
+      setError('');
+      setFieldErrors({});
+      setShowConfirmClose(false);
     }
   };
 
@@ -127,16 +171,18 @@ export default function ContactPage() {
       {/* ========== CONTACT FORM MODAL ========== */}
       {activeModal && !showSuccess && (
         <>
+          {/* Blur Background - Only clickable when NOT loading */}
           <div 
-            className="fixed inset-0 backdrop-blur-sm z-40"
-            onClick={() => setActiveModal(null)}
+            className={`fixed inset-0 backdrop-blur-sm z-40 ${!loading ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+            onClick={() => !loading && handleCloseModal()}
           />
           
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4">
             <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-lg pointer-events-auto">
               <button
-                onClick={() => setActiveModal(null)}
-                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 text-2xl"
+                onClick={handleCloseModal}
+                disabled={loading}
+                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 text-2xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 ×
               </button>
@@ -153,6 +199,13 @@ export default function ContactPage() {
                 {activeModal === 'bug' && 'Report errors or bugs to the team.'}
               </p>
 
+              {/* General Error Message Display */}
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 text-sm">{error}</p>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <input
@@ -162,8 +215,11 @@ export default function ContactPage() {
                     onChange={handleInputChange}
                     placeholder="Your name"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500 ${
+                      fieldErrors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                   />
+                  {fieldErrors.name && <p className="text-red-600 text-xs mt-1">{fieldErrors.name}</p>}
                 </div>
 
                 <div>
@@ -174,8 +230,11 @@ export default function ContactPage() {
                     onChange={handleInputChange}
                     placeholder="Enter your email"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500 ${
+                      fieldErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                   />
+                  {fieldErrors.email && <p className="text-red-600 text-xs mt-1">{fieldErrors.email}</p>}
                 </div>
 
                 <div>
@@ -186,8 +245,11 @@ export default function ContactPage() {
                     onChange={handleInputChange}
                     placeholder="Subject"
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500 ${
+                      fieldErrors.subject ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                   />
+                  {fieldErrors.subject && <p className="text-red-600 text-xs mt-1">{fieldErrors.subject}</p>}
                 </div>
 
                 <div>
@@ -202,11 +264,13 @@ export default function ContactPage() {
                     }
                     required
                     rows="4"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary resize-none text-sm text-gray-900 placeholder-gray-500"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary resize-none text-sm text-gray-900 placeholder-gray-500 ${
+                      fieldErrors.message ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
                   />
+                  {fieldErrors.message && <p className="text-red-600 text-xs mt-1">{fieldErrors.message}</p>}
                 </div>
 
-                {/* Submit Button with Hand Cursor */}
                 <button
                   type="submit"
                   disabled={loading}
@@ -216,6 +280,39 @@ export default function ContactPage() {
                 </button>
               </form>
             </div>
+
+            {/* Unsaved Changes Confirmation Modal */}
+            {showConfirmClose && (
+              <>
+                <div className="fixed inset-0 backdrop-blur-sm z-50" />
+                <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4">
+                  <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg pointer-events-auto">
+                    <h3 className="text-lg font-serif text-black mb-3">Discard changes?</h3>
+                    <p className="text-gray-700 text-sm mb-6">You have unsaved changes. Are you sure you want to close?</p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowConfirmClose(false)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition"
+                      >
+                        Keep editing
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveModal(null);
+                          setFormData({ name: '', email: '', subject: '', message: '' });
+                          setError('');
+                          setFieldErrors({});
+                          setShowConfirmClose(false);
+                        }}
+                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
+                      >
+                        Discard
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </>
       )}
@@ -223,16 +320,13 @@ export default function ContactPage() {
       {/* ========== SUCCESS MODAL ========== */}
       {showSuccess && (
         <>
-          {/* Blur Background - Clickable to Close */}
           <div 
             className="fixed inset-0 backdrop-blur-sm z-40 cursor-pointer"
             onClick={() => setShowSuccess(false)}
           />
           
-          {/* Success Modal */}
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-4">
             <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-lg pointer-events-auto text-center">
-              {/* Checkmark Icon */}
               <div className="mb-4 flex justify-center">
                 <div className="w-16 h-16 bg-swapcircle-primary rounded-full flex items-center justify-center">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -241,7 +335,6 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Success Message */}
               <h3 className="text-2xl font-serif text-black mb-3">Submitted!</h3>
               <p className="text-gray-700 text-sm leading-relaxed">
                 Thanks for reaching out. We've received your message and will get back to you soon. A confirmation email has been sent to <span className="font-semibold">{successEmail}</span>.
