@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { userAPI } from '@/services/api';
+import { useAuth } from '@/contexts/AuthContext';
+import Toast from './Toast';
 
 export default function ListingCard({
   id,
@@ -11,17 +14,78 @@ export default function ListingCard({
   condition,
   timestamp,
   status,
-  showSwappedStatus = false, // If true, show swapped status instead of condition
+  showSwappedStatus = false,
 }) {
+  const { user, isAuthenticated } = useAuth();
   const [isFavorited, setIsFavorited] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
 
-  const handleFavorite = (e) => {
+  // Check if item is in user's favorites on mount
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!isAuthenticated || !user) return;
+      
+      try {
+        const response = await userAPI.getFavorites(user.id);
+        const favoriteIds = response.favorites || [];
+        setIsFavorited(favoriteIds.includes(id));
+      } catch (error) {
+        console.error('Error checking favorite status:', error);
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [isAuthenticated, user, id]);
+
+  const handleFavorite = async (e) => {
+    e.preventDefault();
     e.stopPropagation();
-    setIsFavorited(!isFavorited);
+
+    if (!isAuthenticated || !user) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (isUpdating) {
+      return;
+    }
+
+    setIsUpdating(true);
+    const newFavoriteState = !isFavorited;
+    setIsFavorited(newFavoriteState);
+
+    try {
+      if (newFavoriteState) {
+        await userAPI.addFavorite(user.id, id);
+        setToastMessage('Added to favorites');
+        setToastType('favorite');
+        setShowToast(true);
+      } else {
+        await userAPI.removeFavorite(user.id, id);
+        setToastMessage('Removed from favorites');
+        setToastType('favorite');
+        setShowToast(true);
+      }
+    } catch (error) {
+      console.error('Error updating favorite:', error);
+      setIsFavorited(!newFavoriteState);
+      setToastMessage('Failed to update favorite');
+      setToastType('error');
+      setShowToast(true);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleCardClick = () => {
+    window.location.href = `/product/${id}`;
   };
 
   return (
-    <a href={`/product/${id}`} className="group cursor-pointer">
+    <div className="group cursor-pointer" onClick={handleCardClick}>
       <div className="relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt">
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
@@ -71,8 +135,9 @@ export default function ListingCard({
 
         {/* Heart icon */}
           <button
+            type="button"
             onClick={handleFavorite}
-            className="absolute top-2 right-2 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors"
+            className="absolute top-2 right-2 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors z-10"
             aria-label="Favorite"
           >
             <svg
@@ -114,7 +179,13 @@ export default function ListingCard({
           </div>
         </div>
       </div>
-    </a>
+      <Toast 
+        message={toastMessage}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+        type={toastType}
+      />
+    </div>
   );
 }
 

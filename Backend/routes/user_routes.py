@@ -37,7 +37,8 @@ async def get_user_by_username(username: str):
         whatsapp_number=user.get("whatsapp_number"),
         facebook_url=user.get("facebook_url"),
         twitter_handle=user.get("twitter_handle"),
-        linkedin_url=user.get("linkedin_url")
+        linkedin_url=user.get("linkedin_url"),
+        favorites=user.get("favorites", [])
     )
 
 
@@ -64,7 +65,8 @@ async def get_user(user_id: str):
         whatsapp_number=user.get("whatsapp_number"),
         facebook_url=user.get("facebook_url"),
         twitter_handle=user.get("twitter_handle"),
-        linkedin_url=user.get("linkedin_url")
+        linkedin_url=user.get("linkedin_url"),
+        favorites=user.get("favorites", [])
     )
 
 
@@ -265,7 +267,8 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
             whatsapp_number=updated_user.get("whatsapp_number"),
             facebook_url=updated_user.get("facebook_url"),
             twitter_handle=updated_user.get("twitter_handle"),
-            linkedin_url=updated_user.get("linkedin_url")
+            linkedin_url=updated_user.get("linkedin_url"),
+            favorites=updated_user.get("favorites", [])
         )
     except HTTPException:
         raise
@@ -274,3 +277,129 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to upload profile picture: {str(e)}"
         )
+
+
+@router.post("/{user_id}/favorites/{item_id}")
+async def add_favorite(user_id: str, item_id: str, request: Request):
+    """Add item to user's favorites (requires authentication)"""
+    # Extract token from Authorization header
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    # Verify token and extract user ID
+    if not auth_service.verify_access_token(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    # Extract user_id from token format: user_id|signature
+    try:
+        auth_user_id, _ = token.split("|", 1)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format"
+        )
+    
+    # Check if user is adding to their own favorites
+    if auth_user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to modify this user's favorites"
+        )
+    
+    updated_user = await user_service.add_favorite(user_id, item_id)
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return {"message": "Item added to favorites", "favorites": updated_user.get("favorites", [])}
+
+
+@router.delete("/{user_id}/favorites/{item_id}")
+async def remove_favorite(user_id: str, item_id: str, request: Request):
+    """Remove item from user's favorites (requires authentication)"""
+    # Extract token from Authorization header
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    # Verify token and extract user ID
+    if not auth_service.verify_access_token(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    # Extract user_id from token format: user_id|signature
+    try:
+        auth_user_id, _ = token.split("|", 1)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format"
+        )
+    
+    # Check if user is updating their own favorites
+    if auth_user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to modify this user's favorites"
+        )
+    
+    updated_user = await user_service.remove_favorite(user_id, item_id)
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return {"message": "Item removed from favorites", "favorites": updated_user.get("favorites", [])}
+
+
+@router.get("/{user_id}/favorites")
+async def get_favorites(user_id: str, request: Request):
+    """Get user's favorite item IDs (requires authentication)"""
+    # Extract token from Authorization header
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    # Verify token and extract user ID
+    if not auth_service.verify_access_token(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    # Extract user_id from token format: user_id|signature
+    try:
+        auth_user_id, _ = token.split("|", 1)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format"
+        )
+    
+    # Check if user is accessing their own favorites
+    if auth_user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view this user's favorites"
+        )
+    
+    favorites = await user_service.get_user_favorites(user_id)
+    return {"favorites": favorites}

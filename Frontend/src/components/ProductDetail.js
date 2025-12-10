@@ -8,6 +8,7 @@ import SwapSuccessModal from './SwapSuccessModal';
 import AuthModal from './AuthModal';
 import { userAPI, itemsAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
+import Toast from './Toast';
 
 export default function ProductDetail({ product }) {
   const router = useRouter();
@@ -401,6 +402,13 @@ export default function ProductDetail({ product }) {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         mode={authMode}
+      />
+
+      <Toast 
+        message={toastMessage}
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+        type={toastType}
       />
     </div>
   );

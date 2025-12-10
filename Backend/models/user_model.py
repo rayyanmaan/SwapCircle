@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 
 
 def user_document(
@@ -33,6 +33,7 @@ def user_document(
         "twitter_handle": twitter_handle,
         "linkedin_url": linkedin_url,
         "bio": bio,
+        "favorites": [],
     }
 
 
@@ -71,6 +72,7 @@ class UserOut(BaseModel):
     facebook_url: Optional[str] = None
     twitter_handle: Optional[str] = None
     linkedin_url: Optional[str] = None
+    favorites: List[str] = []  # List of item IDs
 
 
 class Login(BaseModel):
