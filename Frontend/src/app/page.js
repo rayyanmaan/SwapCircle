@@ -114,7 +114,12 @@ export default function Home() {
           </div>
         </section>
 
-        <ValueProposition />
+        {/* How It Works Section */}
+        <section id="how-it-works">
+          <ValueProposition />
+        </section>
+
+        {/* Footer */}
         <Footer />
       </main>
     </GuestRoute>

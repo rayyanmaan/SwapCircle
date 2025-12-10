@@ -18,6 +18,8 @@ from routes.auth_routes import router as auth_router
 from routes.user_routes import router as users_router
 from routes.swap_routes import router as swaps_router
 from routes.notification_routes import router as notifications_router
+from routes.contact_routes import router as contact_router
+
 
 
 @asynccontextmanager
@@ -152,9 +154,10 @@ from config import settings
 allowed_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
 allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",")]
 
+# CORS - allow frontend dev origin
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,0 +1,204 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Instagram, MessageCircle } from "lucide-react";
+import ClothingCard from "../components/clothing/ClothingCard";
+
+export default function PublicProfilePage() {
+  const navigate = useNavigate();
+  const urlParams = new URLSearchParams(window.location.search);
+  const userEmail = urlParams.get('email');
+
+  const { data: profileUser, isLoading: userLoading } = useQuery({
+    queryKey: ['public-profile', userEmail],
+    queryFn: async () => {
+      const users = await base44.entities.User.filter({ email: userEmail });
+      return users[0];
+    },
+    enabled: !!userEmail,
+  });
+
+  const { data: userListings, isLoading: listingsLoading } = useQuery({
+    queryKey: ['user-listings', userEmail],
+    queryFn: () => base44.entities.ClothingItem.filter({ created_by: userEmail }, '-created_date'),
+    enabled: !!userEmail,
+    initialData: [],
+  });
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate(createPageUrl("Browse"));
+    }
+  };
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black" />
+      </div>
+    );
+  }
+
+  if (!profileUser) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-black mb-4">User not found</h2>
+          <Link to={createPageUrl("Browse")}>
+            <Button>Browse Items</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-8"
+        >
+          <Button
+            variant="ghost"
+            onClick={handleBack}
+            className="group"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-1" />
+            Back
+          </Button>
+        </motion.div>
+
+        {/* Profile Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mb-8"
+        >
+          <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
+            {/* Avatar */}
+            <div>
+              {profileUser.profile_picture ? (
+                <img
+                  src={profileUser.profile_picture}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-black flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
+                  {profileUser.full_name?.charAt(0) || profileUser.email?.charAt(0)}
+                </div>
+              )}
+            </div>
+
+            {/* User Info */}
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-black mb-2">{profileUser.full_name || "User"}</h1>
+              <p className="text-gray-600 mb-4">{profileUser.campus_location || "Unknown location"}</p>
+
+              {/* Contact Info */}
+              {(profileUser.instagram_handle || profileUser.telegram_handle || profileUser.whatsapp_number) && (
+                <div className="flex items-center gap-4 flex-wrap mb-4">
+                  {profileUser.instagram_handle && (
+                    <a
+                      href={`https://instagram.com/${profileUser.instagram_handle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600 transition-colors"
+                    >
+                      <Instagram className="w-4 h-4" />
+                      @{profileUser.instagram_handle}
+                    </a>
+                  )}
+                  {profileUser.telegram_handle && (
+                    <a
+                      href={`https://t.me/${profileUser.telegram_handle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.781-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.248-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.016.093.036.305.02.469z"/>
+                      </svg>
+                      @{profileUser.telegram_handle}
+                    </a>
+                  )}
+                  {profileUser.whatsapp_number && (
+                    <a
+                      href={`https://wa.me/${profileUser.whatsapp_number}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      WhatsApp
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Stats */}
+              <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <div className="text-3xl font-bold text-black">{userListings.length}</div>
+                  <div className="text-sm text-gray-600">Listings</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-black">{profileUser.total_swaps || 0}</div>
+                  <div className="text-sm text-gray-600">Swaps</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* User Listings */}
+        <div>
+          <h2 className="text-2xl font-semibold text-black mb-6">
+            {profileUser.full_name?.split(' ')[0] || 'User'}'s Listings
+          </h2>
+          
+          {listingsLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-gray-200 rounded-2xl h-96 mb-4" />
+                  <div className="bg-gray-200 rounded h-4 w-3/4 mb-2" />
+                  <div className="bg-gray-200 rounded h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : userListings.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {userListings.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: idx * 0.05 }}
+                >
+                  <ClothingCard item={item} />
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20">
+              <div className="text-6xl mb-4">📦</div>
+              <h3 className="text-2xl font-semibold text-black mb-2">No listings yet</h3>
+              <p className="text-gray-600">This user hasn't listed any items</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,598 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlusCircle, Upload, Bell, Check, X, Edit2, Instagram, Loader2, MessageCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import ClothingCard from "../components/clothing/ClothingCard";
+
+export default function ProfilePage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("listings");
+  const [uploadingPicture, setUploadingPicture] = useState(false);
+  const [editingContact, setEditingContact] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [savingName, setSavingName] = useState(false);
+  const [savingContact, setSavingContact] = useState(false);
+  const [fullName, setFullName] = useState("");
+  const [instagramHandle, setInstagramHandle] = useState("");
+  const [telegramHandle, setTelegramHandle] = useState("");
+  const [whatsappNumber, setWhatsappNumber] = useState("");
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      console.log('Loaded user:', currentUser);
+      setUser(currentUser);
+      setFullName(currentUser.full_name || "");
+      setInstagramHandle(currentUser.instagram_handle || "");
+      setTelegramHandle(currentUser.telegram_handle || "");
+      setWhatsappNumber(currentUser.whatsapp_number || "");
+    } catch (error) {
+      console.error('Error loading user:', error);
+      navigate(createPageUrl("Login"));
+    }
+  };
+
+  const { data: myListings, isLoading: listingsLoading } = useQuery({
+    queryKey: ['my-listings', user?.email],
+    queryFn: () => base44.entities.ClothingItem.filter({ created_by: user?.email }, '-created_date'),
+    enabled: !!user,
+    initialData: [],
+  });
+
+  const { data: swapRequests, isLoading: requestsLoading, refetch: refetchRequests } = useQuery({
+    queryKey: ['swap-requests', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const requests = await base44.entities.SwapRequest.filter({ 
+        seller_email: user.email, 
+        status: 'pending' 
+      }, '-created_date');
+      return requests;
+    },
+    enabled: !!user?.email,
+    initialData: [],
+    refetchInterval: 5000,
+  });
+
+  const { data: favoriteItems, isLoading: favoritesLoading } = useQuery({
+    queryKey: ['favorite-items', user?.favorites],
+    queryFn: async () => {
+      if (!user?.favorites || user.favorites.length === 0) return [];
+      const items = await base44.entities.ClothingItem.list();
+      return items.filter(item => user.favorites.includes(item.id));
+    },
+    enabled: !!user && !!user.favorites,
+    initialData: [],
+  });
+
+  const handleProfilePictureUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    console.log('Uploading profile picture:', file.name, file.size, file.type);
+    
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File is too large. Please upload an image smaller than 5MB.");
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert("Please upload an image file.");
+      return;
+    }
+
+    setUploadingPicture(true);
+    try {
+      console.log('Starting upload...');
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      console.log('Upload successful, URL:', file_url);
+      
+      await base44.auth.updateMe({ profile_picture: file_url });
+      console.log('Profile updated with picture URL');
+      
+      const updatedUser = await base44.auth.me();
+      setUser(updatedUser);
+      console.log('User reloaded:', updatedUser);
+      
+      alert("Profile picture updated successfully!");
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      alert(`Error uploading profile picture: ${error.message || 'Unknown error'}`);
+    } finally {
+      setUploadingPicture(false);
+    }
+  };
+
+  const handleSaveName = async () => {
+    if (!fullName.trim()) {
+      alert("Name cannot be empty");
+      return;
+    }
+
+    setSavingName(true);
+    console.log('Saving name:', fullName);
+    
+    try {
+      await base44.auth.updateMe({ full_name: fullName });
+      console.log('Name update successful');
+      
+      const updatedUser = await base44.auth.me();
+      setUser(updatedUser);
+      setFullName(updatedUser.full_name || "");
+      console.log('User reloaded after name update:', updatedUser);
+      
+      setEditingName(false);
+      alert("Name updated successfully!");
+    } catch (error) {
+      console.error("Error updating name:", error);
+      alert(`Error updating name: ${error.message || 'Unknown error'}`);
+    } finally {
+      setSavingName(false);
+    }
+  };
+
+  const handleSaveContact = async () => {
+    setSavingContact(true);
+    console.log('Saving contact info:', { instagramHandle, telegramHandle, whatsappNumber });
+    
+    try {
+      await base44.auth.updateMe({
+        instagram_handle: instagramHandle,
+        telegram_handle: telegramHandle,
+        whatsapp_number: whatsappNumber
+      });
+      console.log('Contact info update successful');
+      
+      const updatedUser = await base44.auth.me();
+      setUser(updatedUser);
+      setInstagramHandle(updatedUser.instagram_handle || "");
+      setTelegramHandle(updatedUser.telegram_handle || "");
+      setWhatsappNumber(updatedUser.whatsapp_number || "");
+      console.log('User reloaded after contact update:', updatedUser);
+      
+      setEditingContact(false);
+      alert("Contact info updated successfully!");
+    } catch (error) {
+      console.error("Error updating contact info:", error);
+      alert(`Error updating contact: ${error.message || 'Unknown error'}`);
+    } finally {
+      setSavingContact(false);
+    }
+  };
+
+  const acceptSwapMutation = useMutation({
+    mutationFn: async ({ request }) => {
+      await base44.entities.SwapRequest.update(request.id, { status: 'accepted' });
+      
+      await base44.entities.ClothingItem.update(request.item_id, { 
+        status: 'unavailable',
+        locked_by: request.buyer_email
+      });
+      
+      const buyers = await base44.entities.User.filter({ email: request.buyer_email });
+      if (buyers[0]) {
+        await base44.entities.User.update(buyers[0].id, {
+          credits: (buyers[0].credits || 0) - request.item_credits,
+          total_swaps: (buyers[0].total_swaps || 0) + 1
+        });
+      }
+      
+      await base44.auth.updateMe({
+        total_swaps: (user.total_swaps || 0) + 1
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['swap-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['my-listings'] });
+      refetchRequests();
+      loadUser();
+    },
+  });
+
+  const denySwapMutation = useMutation({
+    mutationFn: async (requestId) => {
+      await base44.entities.SwapRequest.update(requestId, { status: 'denied' });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['swap-requests'] });
+      refetchRequests();
+    },
+  });
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Notifications */}
+        {swapRequests && swapRequests.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Bell className="w-5 h-5 text-blue-600" />
+              <h3 className="font-semibold text-black">
+                New Swap Requests ({swapRequests.length})
+              </h3>
+            </div>
+            <div className="space-y-3">
+              {swapRequests.map((request) => (
+                <div key={request.id} className="bg-white rounded-lg p-4 flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="font-medium text-black">
+                      <span className="font-semibold">{request.buyer_name}</span> wants your item
+                    </p>
+                    <p className="text-sm text-gray-600">"{request.item_title}" for {request.item_credits} credits</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => acceptSwapMutation.mutate({ request })}
+                      disabled={acceptSwapMutation.isPending}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Check className="w-4 h-4 mr-1" />
+                      Accept
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => denySwapMutation.mutate(request.id)}
+                      disabled={denySwapMutation.isPending}
+                      className="border-red-200 text-red-600 hover:bg-red-50"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Deny
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Profile Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 mb-8"
+        >
+          <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
+            {/* Avatar */}
+            <div className="relative group">
+              {user.profile_picture ? (
+                <img
+                  src={user.profile_picture}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover border-2 border-gray-200"
+                />
+              ) : (
+                <div className="w-24 h-24 rounded-full bg-black flex items-center justify-center text-white text-3xl font-bold flex-shrink-0">
+                  {user.full_name?.charAt(0) || user.email?.charAt(0)}
+                </div>
+              )}
+              
+              <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePictureUpload}
+                  disabled={uploadingPicture}
+                  className="hidden"
+                />
+                {uploadingPicture ? (
+                  <Loader2 className="w-6 h-6 text-white animate-spin" />
+                ) : (
+                  <Upload className="w-6 h-6 text-white" />
+                )}
+              </label>
+            </div>
+
+            {/* User Info */}
+            <div className="flex-1">
+              {editingName ? (
+                <div className="flex items-center gap-2 mb-4">
+                  <Input
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="max-w-sm"
+                    placeholder="Your name"
+                    disabled={savingName}
+                  />
+                  <Button 
+                    size="sm" 
+                    onClick={handleSaveName} 
+                    disabled={savingName}
+                    className="bg-black text-white"
+                  >
+                    {savingName ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      setEditingName(false);
+                      setFullName(user.full_name || "");
+                    }}
+                    disabled={savingName}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 mb-2">
+                  <h1 className="text-3xl font-bold text-black">{user.full_name || "User"}</h1>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setEditingName(true)}
+                    className="text-gray-500 hover:text-black"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              <p className="text-gray-600 mb-4">{user.email}</p>
+
+              {/* Contact Info */}
+              <div className="mb-4 space-y-2">
+                {editingContact ? (
+                  <div className="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <div>
+                      <Label className="text-xs text-gray-600 mb-1">Instagram Handle</Label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">@</span>
+                        <Input
+                          value={instagramHandle}
+                          onChange={(e) => setInstagramHandle(e.target.value)}
+                          placeholder="username"
+                          className="h-9 text-sm"
+                          disabled={savingContact}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-600 mb-1">Telegram Handle</Label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">@</span>
+                        <Input
+                          value={telegramHandle}
+                          onChange={(e) => setTelegramHandle(e.target.value)}
+                          placeholder="username"
+                          className="h-9 text-sm"
+                          disabled={savingContact}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-600 mb-1">WhatsApp Number</Label>
+                      <Input
+                        value={whatsappNumber}
+                        onChange={(e) => setWhatsappNumber(e.target.value)}
+                        placeholder="923001234567 (with country code)"
+                        className="h-9 text-sm"
+                        disabled={savingContact}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Include country code without + (e.g., 923001234567)</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        onClick={handleSaveContact} 
+                        disabled={savingContact}
+                        className="bg-black hover:bg-gray-800 text-white"
+                      >
+                        {savingContact ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => {
+                          setEditingContact(false);
+                          setInstagramHandle(user.instagram_handle || "");
+                          setTelegramHandle(user.telegram_handle || "");
+                          setWhatsappNumber(user.whatsapp_number || "");
+                        }}
+                        disabled={savingContact}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4 flex-wrap">
+                    {user.instagram_handle && (
+                      <a
+                        href={`https://instagram.com/${user.instagram_handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-pink-600 transition-colors"
+                      >
+                        <Instagram className="w-4 h-4" />
+                        @{user.instagram_handle}
+                      </a>
+                    )}
+                    {user.telegram_handle && (
+                      <a
+                        href={`https://t.me/${user.telegram_handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.693-1.653-1.124-2.678-1.8-1.185-.781-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.248-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.009-1.252-.242-1.865-.442-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.121.099.154.232.17.325.016.093.036.305.02.469z"/>
+                        </svg>
+                        @{user.telegram_handle}
+                      </a>
+                    )}
+                    {user.whatsapp_number && (
+                      <a
+                        href={`https://wa.me/${user.whatsapp_number}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-600 transition-colors"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        WhatsApp
+                      </a>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setEditingContact(true)}
+                      className="text-xs text-gray-500 hover:text-black"
+                    >
+                      <Edit2 className="w-3 h-3 mr-1" />
+                      {user.instagram_handle || user.telegram_handle || user.whatsapp_number ? 'Edit' : 'Add contact info'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-8">
+                <div>
+                  <div className="text-3xl font-bold text-black">{user.credits || 0}</div>
+                  <div className="text-sm text-gray-600">Credits</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-black">{myListings.length}</div>
+                  <div className="text-sm text-gray-600">Listed</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-black">{user.total_swaps || 0}</div>
+                  <div className="text-sm text-gray-600">Swapped</div>
+                </div>
+              </div>
+            </div>
+
+            {/* List Item Button */}
+            <Link to={createPageUrl("Upload")}>
+              <Button className="bg-black hover:bg-gray-800 text-white rounded-full px-6">
+                <PlusCircle className="w-4 h-4 mr-2" />
+                List Item
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+          <TabsList className="bg-white border border-gray-100 p-1 rounded-full">
+            <TabsTrigger value="listings" className="rounded-full">
+              My Listings
+            </TabsTrigger>
+            <TabsTrigger value="favorites" className="rounded-full">
+              Favorites
+            </TabsTrigger>
+            <TabsTrigger value="history" className="rounded-full">
+              Swap History
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Content */}
+        {activeTab === "listings" && (
+          <div>
+            {listingsLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-200 rounded-2xl h-96 mb-4" />
+                    <div className="bg-gray-200 rounded h-4 w-3/4 mb-2" />
+                    <div className="bg-gray-200 rounded h-4 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : myListings.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {myListings.map((item) => (
+                  <div key={item.id} className="relative">
+                    <ClothingCard item={item} />
+                    {item.status === 'unavailable' && (
+                      <Badge className="absolute top-3 left-3 bg-red-500 text-white border-0">
+                        Not Available
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <div className="text-6xl mb-4">📦</div>
+                <h3 className="text-2xl font-semibold text-black mb-2">No listings yet</h3>
+                <p className="text-gray-600 mb-6">Start listing items to earn credits</p>
+                <Link to={createPageUrl("Upload")}>
+                  <Button className="bg-black hover:bg-gray-800 text-white rounded-full">
+                    List Your First Item
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "favorites" && (
+          <div>
+            {favoritesLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="bg-gray-200 rounded-2xl h-96 mb-4" />
+                  </div>
+                ))}
+              </div>
+            ) : favoriteItems.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {favoriteItems.map((item) => (
+                  <ClothingCard key={item.id} item={item} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <div className="text-6xl mb-4">❤️</div>
+                <h3 className="text-2xl font-semibold text-black mb-2">No favorites yet</h3>
+                <p className="text-gray-600 mb-6">Browse items and save your favorites</p>
+                <Link to={createPageUrl("Browse")}>
+                  <Button className="bg-black hover:bg-gray-800 text-white rounded-full">
+                    Browse Items
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "history" && (
+          <div className="text-center py-20">
+            <div className="text-6xl mb-4">🔄</div>
+            <h3 className="text-2xl font-semibold text-black mb-2">No swap history</h3>
+            <p className="text-gray-600">Your completed swaps will appear here</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,179 @@
+
+import React, { useEffect, useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import ClothingCard from "../components/clothing/ClothingCard";
+
+export default function HomePage() {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+    } catch (error) {
+      console.log("User not logged in");
+    }
+  };
+
+  const { data: items, isLoading } = useQuery({
+    queryKey: ['latest-items'],
+    queryFn: () => base44.entities.ClothingItem.filter({ status: 'available' }, '-created_date', 8),
+    initialData: [],
+  });
+
+  return (
+    <div className="min-h-screen bg-[#FAFAF9]">
+      {/* Hero Section */}
+      <section className="relative bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <h1 className="font-serif text-6xl md:text-7xl lg:text-8xl italic font-normal text-black mb-6 leading-[1.1]">
+              The best way to swap<br />clothes on campus.
+            </h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed"
+            >
+              Exchange your wardrobe with other students. No money, just credits.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+            >
+              <Link to={createPageUrl("Browse")}>
+                <Button size="lg" className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-lg px-8 h-14 text-base font-medium transition-all hover:scale-105">
+                  Swap now
+                </Button>
+              </Link>
+              <Link to={user ? createPageUrl("Upload") : createPageUrl("Register")}>
+                <Button size="lg" variant="outline" className="rounded-lg px-8 h-14 text-base border-gray-200 hover:border-black hover:bg-gray-50 transition-all">
+                  List an item
+                </Button>
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="how-it-works" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="font-serif text-5xl md:text-6xl italic font-normal text-black mb-16 text-center"
+          >
+            How it works
+          </motion.h2>
+
+          <div className="grid md:grid-cols-3 gap-12">
+            {[
+              {
+                number: "01",
+                title: "List your clothes",
+                description: "Upload photos of items you no longer wear. Each listing earns you one credit."
+              },
+              {
+                number: "02",
+                title: "Browse and discover",
+                description: "Find pieces from other students on your campus. Filter by size, condition, and brand."
+              },
+              {
+                number: "03",
+                title: "Swap with credits",
+                description: "Use your credits to claim items. Arrange pickup on campus and refresh your wardrobe."
+              }
+            ].map((step, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                className="text-left"
+              >
+                <div className="text-sm font-medium text-gray-400 mb-6">{step.number}</div>
+                <h3 className="text-2xl font-medium text-black mb-4">{step.title}</h3>
+                <p className="text-gray-600 leading-relaxed text-lg">{step.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Swaps */}
+      <section className="py-24 bg-[#FAFAF9]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-end mb-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <h2 className="font-serif text-4xl md:text-5xl italic font-normal text-black mb-2">
+                Latest swaps
+              </h2>
+              <p className="text-gray-600">Fresh items from your campus</p>
+            </motion.div>
+            <Link to={createPageUrl("Browse")}>
+              <Button variant="ghost" className="group hidden md:flex">
+                View all
+                <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Button>
+            </Link>
+          </div>
+
+          {isLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="bg-gray-200 rounded-xl h-96 mb-4" />
+                  <div className="bg-gray-200 rounded h-4 w-3/4 mb-2" />
+                  <div className="bg-gray-200 rounded h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {items.map((item, idx) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: idx * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <ClothingCard item={item} />
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
