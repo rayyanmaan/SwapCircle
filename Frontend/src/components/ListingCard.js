@@ -90,7 +90,7 @@ export default function ListingCard({
   };
 
   return (
-    <div className="group cursor-pointer" onClick={handleCardClick}>
+    <div className="group cursor-pointer flex flex-col h-full" onClick={handleCardClick}>
       <div className="relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt">
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
@@ -129,13 +129,6 @@ export default function ListingCard({
           </div>
         ) : null}
 
-        {/* Location badge */}
-        {location && (
-          <div className="absolute top-2 left-2 bottom-auto mt-9 bg-slate-600/90 backdrop-blur-sm px-2 py-1 rounded-full">
-            <span className="text-xs font-medium text-white">{location}</span>
-          </div>
-        )}
-
         {/* Status badge (Pending) - positioned below swapped/condition badge or top-left if no badge */}
         {status && status === "pending" && (
           <div className={`absolute ${(showSwappedStatus && status === "swapped") || condition ? 'top-10 left-2' : 'top-2 left-2'} backdrop-blur-sm px-2 py-1 rounded-full bg-amber-100`}>
@@ -167,15 +160,22 @@ export default function ListingCard({
       </div>
 
       {/* Product Details */}
-      <div className="mt-3">
-        <h3 className="heading-primary font-semibold text-sm mb-1 line-clamp-2 transition-colors">
-          {title}
-        </h3>
-        <div className="flex items-center justify-between">
-          <span className="text-swapcircle-secondary text-sm">{size}</span>
-          <div className="flex items-center gap-1">
+      <div className="mt-3 flex-1 flex flex-col gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="heading-primary font-semibold text-sm truncate transition-colors">
+            {title}
+          </h3>
+          <div className="shrink-0">
+            <div className="px-2.5 py-1 rounded-md bg-swapcircle-alt text-swapcircle-primary text-sm font-semibold leading-none">
+              {credits}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 text-swapcircle-secondary text-sm">
+          <span className="flex items-center gap-1">
             <svg
-              className="w-4 h-4 icon-credit"
+              className="w-4 h-4 text-swapcircle-secondary"
               fill="none"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -183,12 +183,28 @@ export default function ListingCard({
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path d="M12 8c-1.657 0-3 .895-3-6.378 0 1.364.717 2.617 1.891 3.291L12 8l.109-.087C13.283 7.237 14 5.986 14 4.622 14 1.895 12.657 0 11 0z M14 0c-1.657 0-3 .895-3 6.378 0 1.364.717 2.617 1.891 3.291L14 8l.109-.087C15.283 7.237 16 5.986 16 4.622 16 1.895 14.657 0 13 0z" />
+              <path d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <span className="text-swapcircle-primary text-sm font-medium">
-              {credits}
+            <span>{size}</span>
+          </span>
+
+          {location && (
+            <span className="flex items-center gap-1">
+              <svg
+                className="w-4 h-4 text-swapcircle-secondary"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M12 11a3 3 0 100-6 3 3 0 000 6z" />
+                <path d="M12 22c4-4.5 7-8.5 7-12a7 7 0 10-14 0c0 3.5 3 7.5 7 12z" />
+              </svg>
+              <span>{location}</span>
             </span>
-          </div>
+          )}
         </div>
       </div>
       <Toast 

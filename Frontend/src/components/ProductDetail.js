@@ -285,8 +285,20 @@ export default function ProductDetail({ product }) {
                 Size: {productData.size}
               </span>
               {productData.location && (
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-slate-600 text-white">
-                  📍 {productData.location}
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-slate-700 text-white flex items-center gap-1">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path d="M12 11a3 3 0 100-6 3 3 0 000 6z" />
+                    <path d="M12 22c4-4.5 7-8.5 7-12a7 7 0 10-14 0c0 3.5 3 7.5 7 12z" />
+                  </svg>
+                  <span>{productData.location}</span>
                 </span>
               )}
             </div>
