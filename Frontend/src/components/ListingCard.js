@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { userAPI } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import Toast from './Toast';
+import AuthModal from './AuthModal';
 
 export default function ListingCard({
   id,
@@ -22,6 +23,8 @@ export default function ListingCard({
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
 
   // Check if item is in user's favorites on mount
   useEffect(() => {
@@ -45,7 +48,8 @@ export default function ListingCard({
     e.stopPropagation();
 
     if (!isAuthenticated || !user) {
-      window.location.href = '/login';
+      setAuthMode('login');
+      setShowAuthModal(true);
       return;
     }
 
@@ -184,6 +188,11 @@ export default function ListingCard({
         isVisible={showToast}
         onClose={() => setShowToast(false)}
         type={toastType}
+      />
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        mode={authMode}
       />
     </div>
   );
