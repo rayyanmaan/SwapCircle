@@ -141,7 +141,7 @@ export default function Footer() {
           />
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
             <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-lg pointer-events-auto">
-              <h2 className="text-2xl font-bold mb-4 text-swapcircle-blue">
+              <h2 className="text-2xl font-serif font-bold mb-3 text-swapcircle-blue">
                 Shipping & Returns
               </h2>
               <p className="text-swapcircle-secondary mb-6 leading-relaxed">
