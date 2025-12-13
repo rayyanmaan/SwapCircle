@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import Logo from './Logo';
 
 export default function Footer() {
   const [showShippingModal, setShowShippingModal] = useState(false);
@@ -39,14 +39,8 @@ export default function Footer() {
             {/* Left Side - Brand */}
             <div className="mb-8 md:mb-0 md:flex-shrink-0">
               <div className="flex items-center gap-3 mb-4">
-                <Image 
-                  src="/logo.svg" 
-                  alt="SwapCircle" 
-                  width={32} 
-                  height={32}
-                  className="w-8 h-8"
-                />
-                <h3 className="text-2xl font-serif italic text-black">
+                <Logo showText={false} />
+                <h3 className="text-2xl font-serif italic font-bold text-black">
                   SwapCircle
                 </h3>
               </div>

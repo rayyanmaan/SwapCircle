@@ -1,3 +1,10 @@
+import { EB_Garamond } from 'next/font/google';
+
+const ebGaramond = EB_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-garamond',
+});
 import { Geist, Geist_Mono, Dancing_Script } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -28,7 +35,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={ebGaramond.variable}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${dancingScript.variable} antialiased`}
       >
