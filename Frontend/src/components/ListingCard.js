@@ -172,24 +172,11 @@ export default function ListingCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 text-swapcircle-secondary text-sm">
-          <span className="flex items-center gap-1">
-            <svg
-              className="w-4 h-4 text-swapcircle-secondary"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <span>{size}</span>
-          </span>
+        <div className="flex items-center justify-between text-swapcircle-secondary text-sm">
+          <span className="truncate">{size}</span>
 
           {location && (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 ml-3">
               <svg
                 className="w-4 h-4 text-swapcircle-secondary"
                 fill="none"
@@ -202,7 +189,7 @@ export default function ListingCard({
                 <path d="M12 11a3 3 0 100-6 3 3 0 000 6z" />
                 <path d="M12 22c4-4.5 7-8.5 7-12a7 7 0 10-14 0c0 3.5 3 7.5 7 12z" />
               </svg>
-              <span>{location}</span>
+              <span className="truncate">{location}</span>
             </span>
           )}
         </div>
