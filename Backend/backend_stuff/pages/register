@@ -1,0 +1,152 @@
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useNavigate, Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowRight } from "lucide-react";
+
+export default function RegisterPage() {
+  const navigate = useNavigate();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [campusLocation, setCampusLocation] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      await base44.auth.signUp({ 
+        email, 
+        password, 
+        full_name: fullName 
+      });
+      
+      await base44.auth.updateMe({ 
+        campus_location: campusLocation,
+        credits: 0
+      });
+      
+      navigate(createPageUrl("Home"));
+    } catch (error) {
+      alert("Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#FAFAF9] flex items-center justify-center px-4 py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md"
+      >
+        <div className="text-center mb-8">
+          <h1 className="font-serif text-5xl italic font-normal text-black mb-3">
+            Join SwapCircle
+          </h1>
+          <p className="text-gray-600">Start swapping clothes sustainably</p>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
+                Full Name
+              </Label>
+              <Input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Jane Doe"
+                required
+                className="mt-2 h-12 rounded-lg border-gray-200"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                University Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your.email@university.edu"
+                required
+                className="mt-2 h-12 rounded-lg border-gray-200"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="mt-2 h-12 rounded-lg border-gray-200"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                Campus Location
+              </Label>
+              <Select value={campusLocation} onValueChange={setCampusLocation} required>
+                <SelectTrigger className="mt-2 h-12 rounded-lg border-gray-200">
+                  <SelectValue placeholder="Select your campus" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="San Francisco">San Francisco</SelectItem>
+                  <SelectItem value="Berlin">Berlin</SelectItem>
+                  <SelectItem value="Buenos Aires">Buenos Aires</SelectItem>
+                  <SelectItem value="Hyderabad">Hyderabad</SelectItem>
+                  <SelectItem value="Seoul">Seoul</SelectItem>
+                  <SelectItem value="Taipei">Taipei</SelectItem>
+                  <SelectItem value="Tokyo">Tokyo</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full h-12 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-lg font-medium group transition-all hover:scale-[1.02]"
+            >
+              {loading ? "Creating account..." : "Create account"}
+              <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link
+                to={createPageUrl("Login")}
+                className="font-medium text-black hover:underline"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}

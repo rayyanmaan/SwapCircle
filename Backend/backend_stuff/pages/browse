@@ -1,0 +1,167 @@
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import ClothingCard from "../components/clothing/ClothingCard";
+
+const categories = ["all", "tops", "bottoms", "dresses", "outerwear", "shoes", "accessories"];
+const locations = ["all", "San Francisco", "Berlin", "Buenos Aires", "Hyderabad", "Seoul", "Taipei", "Tokyo", "Other"];
+const statuses = ["all", "available", "unavailable"];
+
+export default function BrowsePage() {
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedLocation, setSelectedLocation] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
+  const { data: items, isLoading } = useQuery({
+    queryKey: ['browse-items'],
+    queryFn: () => base44.entities.ClothingItem.list('-created_date'),
+    initialData: [],
+  });
+
+  const filteredItems = items.filter(item => {
+    const categoryMatch = selectedCategory === "all" || item.category === selectedCategory;
+    const locationMatch = selectedLocation === "all" || item.location === selectedLocation;
+    const statusMatch = selectedStatus === "all" || item.status === selectedStatus;
+    return categoryMatch && locationMatch && statusMatch;
+  });
+
+  return (
+    <div className="min-h-screen bg-white py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-12"
+        >
+          <h1 className="font-serif text-5xl md:text-6xl italic font-normal text-black mb-3">
+            Browse all items
+          </h1>
+          <p className="text-lg text-gray-600">
+            Discover unique pieces from students on your campus
+          </p>
+        </motion.div>
+
+        {/* Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6 mb-12 bg-gray-50 rounded-xl p-6 border border-gray-100"
+        >
+          {/* Category Filter */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-semibold text-gray-700">Category:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  variant="outline"
+                  className={`rounded-lg transition-all ${
+                    selectedCategory === category
+                      ? "bg-black text-white border-black hover:bg-gray-800 hover:text-white"
+                      : "border-gray-200 hover:border-black hover:bg-white"
+                  }`}
+                >
+                  {category === "all" ? "All items" : category.charAt(0).toUpperCase() + category.slice(1)}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Location Filter */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-semibold text-gray-700">Location:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {locations.map((location) => (
+                <Button
+                  key={location}
+                  onClick={() => setSelectedLocation(location)}
+                  variant="outline"
+                  className={`rounded-lg transition-all ${
+                    selectedLocation === location
+                      ? "bg-black text-white border-black hover:bg-gray-800 hover:text-white"
+                      : "border-gray-200 hover:border-black hover:bg-white"
+                  }`}
+                >
+                  {location === "all" ? "All locations" : location}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Availability Filter */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Filter className="w-4 h-4 text-gray-500" />
+              <span className="text-sm font-semibold text-gray-700">Availability:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {statuses.map((status) => (
+                <Button
+                  key={status}
+                  onClick={() => setSelectedStatus(status)}
+                  variant="outline"
+                  className={`rounded-lg transition-all ${
+                    selectedStatus === status
+                      ? "bg-black text-white border-black hover:bg-gray-800 hover:text-white"
+                      : "border-gray-200 hover:border-black hover:bg-white"
+                  }`}
+                >
+                  {status === "all" ? "All items" : status === "available" ? "Available" : "Not Available"}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Results */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-gray-200 rounded-xl h-96 mb-4" />
+                <div className="bg-gray-200 rounded h-4 w-3/4 mb-2" />
+                <div className="bg-gray-200 rounded h-4 w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : filteredItems.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredItems.map((item, idx) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: idx * 0.03, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <ClothingCard item={item} />
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="text-center py-20 bg-gray-50 rounded-xl border border-gray-100"
+          >
+            <div className="text-6xl mb-4">👕</div>
+            <h3 className="text-2xl font-medium text-black mb-2">No items found</h3>
+            <p className="text-gray-600">Try adjusting your filters to see more results</p>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}

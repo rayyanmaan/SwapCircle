@@ -1,0 +1,294 @@
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Upload, X, Camera } from "lucide-react";
+
+export default function UploadPage() {
+  const navigate = useNavigate();
+  const [images, setImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    category: "",
+    size: "",
+    condition: "",
+    is_branded: false,
+    brand: "",
+    credits: 1,
+    location: ""
+  });
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    const uploadedUrls = [];
+
+    for (const file of files) {
+      try {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        uploadedUrls.push(file_url);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
+
+    setImages([...images, ...uploadedUrls]);
+  };
+
+  const removeImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setUploading(true);
+
+    try {
+      await base44.entities.ClothingItem.create({
+        ...formData,
+        images,
+        status: "available"
+      });
+
+      // Award 1 credit to the user
+      const user = await base44.auth.me();
+      await base44.auth.updateMe({ 
+        credits: (user.credits || 0) + 1,
+        total_listings: (user.total_listings || 0) + 1
+      });
+
+      navigate(createPageUrl("Profile"));
+    } catch (error) {
+      alert("Error creating listing. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="font-serif text-5xl md:text-6xl italic font-normal text-black mb-3">
+            List your item
+          </h1>
+          <p className="text-lg text-gray-600 mb-8">
+            Upload photos and details to earn credits
+          </p>
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Image Upload */}
+            <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-8 hover:border-gray-300 transition-colors">
+              <input
+                type="file"
+                id="imageUpload"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <label
+                htmlFor="imageUpload"
+                className="cursor-pointer flex flex-col items-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                  <Camera className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-black mb-2">Upload Photos</h3>
+                <p className="text-sm text-gray-600">Click to browse or drag and drop</p>
+              </label>
+            </div>
+
+            {/* Image Previews */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {images.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={url}
+                      alt={`Upload ${index + 1}`}
+                      className="w-full h-32 object-cover rounded-xl"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 w-8 h-8 bg-black/80 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Form Fields */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 space-y-6">
+              <div>
+                <Label htmlFor="title">Item Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="e.g., Vintage Denim Jacket"
+                  required
+                  className="mt-2 h-12 rounded-xl"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="description">Description *</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Describe the condition, style, and any details..."
+                  required
+                  className="mt-2 rounded-xl min-h-[120px]"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="category">Category *</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                    required
+                  >
+                    <SelectTrigger className="mt-2 h-12 rounded-xl">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tops">Tops</SelectItem>
+                      <SelectItem value="bottoms">Bottoms</SelectItem>
+                      <SelectItem value="dresses">Dresses</SelectItem>
+                      <SelectItem value="outerwear">Outerwear</SelectItem>
+                      <SelectItem value="shoes">Shoes</SelectItem>
+                      <SelectItem value="accessories">Accessories</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="size">Size *</Label>
+                  <Input
+                    id="size"
+                    value={formData.size}
+                    onChange={(e) => setFormData({ ...formData, size: e.target.value })}
+                    placeholder="e.g., M, 8, One size"
+                    required
+                    className="mt-2 h-12 rounded-xl"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="condition">Condition *</Label>
+                  <Select
+                    value={formData.condition}
+                    onValueChange={(value) => setFormData({ ...formData, condition: value })}
+                    required
+                  >
+                    <SelectTrigger className="mt-2 h-12 rounded-xl">
+                      <SelectValue placeholder="Select condition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="like_new">Like New</SelectItem>
+                      <SelectItem value="gently_used">Gently Used</SelectItem>
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="fair">Fair</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="location">Location *</Label>
+                  <Select
+                    value={formData.location}
+                    onValueChange={(value) => setFormData({ ...formData, location: value })}
+                    required
+                  >
+                    <SelectTrigger className="mt-2 h-12 rounded-xl">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="San Francisco">San Francisco</SelectItem>
+                      <SelectItem value="Berlin">Berlin</SelectItem>
+                      <SelectItem value="Buenos Aires">Buenos Aires</SelectItem>
+                      <SelectItem value="Hyderabad">Hyderabad</SelectItem>
+                      <SelectItem value="Seoul">Seoul</SelectItem>
+                      <SelectItem value="Taipei">Taipei</SelectItem>
+                      <SelectItem value="Tokyo">Tokyo</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="brand">Brand (optional)</Label>
+                <Input
+                  id="brand"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value, is_branded: e.target.value.length > 0 })}
+                  placeholder="e.g., Nike, Zara, H&M"
+                  className="mt-2 h-12 rounded-xl"
+                />
+              </div>
+
+              <div>
+                <Label>Credits *</Label>
+                <div className="flex gap-3 mt-2">
+                  {[1, 2].map((credit) => (
+                    <button
+                      key={credit}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, credits: credit })}
+                      className={`flex-1 h-12 rounded-xl border-2 font-medium transition-all ${
+                        formData.credits === credit
+                          ? "bg-black text-white border-black"
+                          : "bg-white text-black border-gray-200 hover:border-black"
+                      }`}
+                    >
+                      {credit} Credit{credit > 1 ? 's' : ''}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate(createPageUrl("Profile"))}
+                className="flex-1 h-14 rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={uploading || images.length === 0}
+                className="flex-1 h-14 bg-black hover:bg-gray-800 text-white rounded-xl"
+              >
+                {uploading ? "Creating listing..." : "List Item"}
+              </Button>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    </div>
+  );
+}

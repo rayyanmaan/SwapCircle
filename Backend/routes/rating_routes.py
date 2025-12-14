@@ -8,46 +8,13 @@ from models.rating_model import RatingCreate, RatingOut, UserRatingStats
 router = APIRouter(prefix="/ratings", tags=["Ratings"])
 
 
-def get_current_user_id(request: Request) -> str:
-    """Extract and validate user ID from authorization header."""
-    auth_header = request.headers.get("authorization", "")
-    if not auth_header:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization header required"
-        )
-    
-    parts = auth_header.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header"
-        )
-    
-    token = parts[1]
-    if not auth_service.verify_access_token(token):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
-        )
-    
-    try:
-        user_id, _ = token.split("|", 1)
-        return user_id
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token format"
-        )
-
-
 @router.post("/{rated_user_id}", response_model=RatingOut, status_code=status.HTTP_200_OK)
 async def give_rating(rated_user_id: str, request: Request, rating: RatingCreate):
     """Give or update a rating for a user.
     
     Requires authentication. Users cannot rate themselves.
     """
-    rater_user_id = get_current_user_id(request)
+    rater_user_id = auth_service.get_user_id_from_request(request)
     
     # Prevent self-rating
     if rater_user_id == rated_user_id:
@@ -83,13 +50,13 @@ async def give_rating(rated_user_id: str, request: Request, rating: RatingCreate
         )
 
 
-@router.get("/{rated_user_id}", response_model=Optional[RatingOut])
+@router.get("/{rated_user_id}/my-rating", response_model=Optional[RatingOut])
 async def get_my_rating(rated_user_id: str, request: Request):
     """Get the current user's rating for a specific user.
     
     Requires authentication. Returns null if user hasn't rated this user yet.
     """
-    rater_user_id = get_current_user_id(request)
+    rater_user_id = auth_service.get_user_id_from_request(request)
     
     rating_doc = await rating_service.get_rating(
         rater_user_id=rater_user_id,

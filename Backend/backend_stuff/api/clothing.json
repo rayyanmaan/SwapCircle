@@ -1,0 +1,33 @@
+# Python Example: Reading Entities
+# Filterable fields: title, description, category, size, condition, brand, is_branded, credits, images, location, status, locked_by, locked_until, seller_id, views, favorites
+import requests
+
+def make_api_request(api_path, method='GET', data=None):
+    url = f'https://app.base44.com/api/{api_path}'
+    headers = {
+        'api_key': 'ecc88bc2288e493dae92fb53ab10c7c3',
+        'Content-Type': 'application/json'
+    }
+    if method.upper() == 'GET':
+        response = requests.request(method, url, headers=headers, params=data)
+    else:
+        response = requests.request(method, url, headers=headers, json=data)
+    response.raise_for_status()
+    return response.json()
+
+entities = make_api_request(f'apps/69107368bde077132eb31b1e/entities/ClothingItem')
+print(entities)
+
+# Python Example: Updating an Entity
+# Filterable fields: title, description, category, size, condition, brand, is_branded, credits, images, location, status, locked_by, locked_until, seller_id, views, favorites
+def update_entity(entity_id, update_data):
+    response = requests.put(
+        f'https://app.base44.com/api/apps/69107368bde077132eb31b1e/entities/ClothingItem/{entity_id}',
+        headers={
+            'api_key': 'ecc88bc2288e493dae92fb53ab10c7c3',
+            'Content-Type': 'application/json'
+        },
+        json=update_data
+    )
+    response.raise_for_status()
+    return response.json()

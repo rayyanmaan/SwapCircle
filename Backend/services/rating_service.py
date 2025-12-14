@@ -116,7 +116,9 @@ async def get_user_ratings(rated_user_id: str) -> List[Dict[str, Any]]:
 
 
 async def get_user_rating_stats(rated_user_id: str) -> Dict[str, Any]:
-    """Calculate and return rating statistics for a user.
+    """Calculate and return rating statistics for a user using MongoDB aggregation.
+    
+    Uses aggregation pipeline for scalability - doesn't load all ratings into memory.
     
     Args:
         rated_user_id: ID of the user whose stats to calculate
@@ -127,28 +129,56 @@ async def get_user_rating_stats(rated_user_id: str) -> Dict[str, Any]:
     db = get_db()
     ratings_collection = db["ratings"]
     
-    # Get all ratings for this user
-    cursor = ratings_collection.find({"rated_user_id": rated_user_id})
-    ratings = await cursor.to_list(length=None)
+    # Use MongoDB aggregation pipeline for efficient calculation
+    pipeline = [
+        {"$match": {"rated_user_id": rated_user_id}},
+        {
+            "$group": {
+                "_id": None,
+                "total_ratings": {"$sum": 1},
+                "total_stars": {"$sum": "$stars"},
+                "avg_rating": {"$avg": "$stars"},
+                "breakdown": {
+                    "$push": "$stars"
+                }
+            }
+        }
+    ]
     
-    if not ratings:
+    cursor = ratings_collection.aggregate(pipeline)
+    result = await cursor.to_list(length=1)
+    
+    if not result or result[0].get("total_ratings", 0) == 0:
         return {
             "average_rating": 0.0,
             "total_ratings": 0,
             "rating_breakdown": {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         }
     
-    # Calculate statistics
-    total_ratings = len(ratings)
-    total_stars = sum(rating.get("stars", 0) for rating in ratings)
-    average_rating = round(total_stars / total_ratings, 2) if total_ratings > 0 else 0.0
+    stats = result[0]
+    total_ratings = stats["total_ratings"]
+    average_rating = round(stats["avg_rating"], 2)
     
-    # Calculate breakdown
+    # Calculate breakdown using a second aggregation stage for efficiency
+    breakdown_pipeline = [
+        {"$match": {"rated_user_id": rated_user_id}},
+        {
+            "$group": {
+                "_id": "$stars",
+                "count": {"$sum": 1}
+            }
+        }
+    ]
+    
+    breakdown_cursor = ratings_collection.aggregate(breakdown_pipeline)
+    breakdown_results = await breakdown_cursor.to_list(length=None)
+    
+    # Initialize breakdown with zeros
     breakdown = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
-    for rating in ratings:
-        stars = rating.get("stars", 0)
+    for item in breakdown_results:
+        stars = item["_id"]
         if 1 <= stars <= 5:
-            breakdown[stars] = breakdown.get(stars, 0) + 1
+            breakdown[stars] = item["count"]
     
     return {
         "average_rating": average_rating,
