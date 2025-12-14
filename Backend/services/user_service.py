@@ -4,6 +4,8 @@ Stores users in MongoDB `users` collection with support for async operations.
 """
 from typing import Dict, Any, List, Optional
 from bson import ObjectId
+from bson.errors import InvalidId
+from pymongo import ReturnDocument
 from database.connection import get_db
 
 
@@ -137,15 +139,15 @@ async def add_favorite(user_id: str, item_id: str) -> Optional[Dict[str, Any]]:
         result = await users_collection.find_one_and_update(
             {"_id": user_oid},
             {"$addToSet": {"favorites": item_id}},
-            return_document=True
+            return_document=ReturnDocument.AFTER
         )
         return _convert_id(result)
-    except Exception:
+    except InvalidId:
         # Fallback for string IDs
         result = await users_collection.find_one_and_update(
             {"id": user_id},
             {"$addToSet": {"favorites": item_id}},
-            return_document=True
+            return_document=ReturnDocument.AFTER
         )
         return _convert_id(result)
 
@@ -159,15 +161,15 @@ async def remove_favorite(user_id: str, item_id: str) -> Optional[Dict[str, Any]
         result = await users_collection.find_one_and_update(
             {"_id": user_oid},
             {"$pull": {"favorites": item_id}},
-            return_document=True
+            return_document=ReturnDocument.AFTER
         )
         return _convert_id(result)
-    except Exception:
+    except InvalidId:
         # Fallback for string IDs
         result = await users_collection.find_one_and_update(
             {"id": user_id},
             {"$pull": {"favorites": item_id}},
-            return_document=True
+            return_document=ReturnDocument.AFTER
         )
         return _convert_id(result)
 
