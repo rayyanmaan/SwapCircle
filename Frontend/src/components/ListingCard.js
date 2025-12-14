@@ -73,21 +73,26 @@ export default function ListingCard({
             These should be centered over the image and stacked with a
             small gap when both are present (rare). */}
         {(isPending || isUnavailable) && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-            <div className="flex flex-col items-center gap-2">
-              {isUnavailable && (
-                <div className="backdrop-blur-sm px-3 py-1 rounded-full bg-gray-100/80">
-                  <span className="text-xs font-medium text-gray-700">Unavailable</span>
-                </div>
-              )}
+          <>
+            {/* Dark overlay sits under badges so badges remain fully opaque */}
+            <div className="absolute inset-0 unavailable-overlay pointer-events-none" aria-hidden="true"></div>
 
-              {isPending && (
-                <div className="backdrop-blur-sm px-3 py-1 rounded-full bg-amber-100">
-                  <span className="text-xs font-medium text-amber-800">Pending</span>
-                </div>
-              )}
+            <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+              <div className="flex flex-col items-center gap-2">
+                {isUnavailable && (
+                  <div className="backdrop-blur-sm px-3 py-1 rounded-full bg-gray-100/80">
+                    <span className="text-xs font-medium text-gray-700">Unavailable</span>
+                  </div>
+                )}
+
+                {isPending && (
+                  <div className="backdrop-blur-sm px-3 py-1 rounded-full bg-amber-100">
+                    <span className="text-xs font-medium text-amber-800">Pending</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Heart icon */}

@@ -427,9 +427,19 @@ h1, h2, h3, h4, h5, h6 {
 /* Availability Visual Indicator */
 .listing-unavailable {
   transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
-  /* stronger fade to visually de-emphasize unavailable/pending items */
-  opacity: 0.5;
-  filter: grayscale(80%);
+  /* No longer directly fade the whole element; an overlay will provide
+     a darker mask underneath badges so labels remain fully opaque. */
+  /* keep a small visual indication in case overlay fails */
+  opacity: 0.95;
+}
+
+/* Dark overlay used for Pending / Unavailable states; sits *under* labels */
+.unavailable-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); /* darker fade, closer to black */
+  z-index: 5;
+  mix-blend-mode: normal;
 }
 
 /* Swap History Tabs (dialer-inspired look) */

@@ -2026,6 +2026,7 @@
                         <div class="condition-badge">${item.condition}</div>
                         <button class="favorite-btn" onclick="event.stopPropagation()">♡</button>
                         ${ (isUnavailable || item.status === 'pending') ? `
+                            <div class="unavailable-overlay" aria-hidden="true"></div>
                             <div class="status-overlay">
                                 <div class="status-stack">
                                     ${isUnavailable ? '<div class="badge unavailable">Unavailable</div>' : ''}

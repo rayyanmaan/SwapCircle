@@ -12,6 +12,8 @@ describe('ListingCard status display', () => {
     expect(screen.getByText('Pending')).toBeInTheDocument()
     // Unavailable badge should not be present for pending
     expect(screen.queryByText('Unavailable')).toBeNull()
+    // there should be an overlay element under the badge
+    expect(document.querySelector('.unavailable-overlay')).toBeTruthy()
   })
 
   test('swapped items are faded and show Unavailable badge', () => {
@@ -19,5 +21,7 @@ describe('ListingCard status display', () => {
     const link = screen.getByRole('link')
     expect(link.className).toContain('listing-unavailable')
     expect(screen.getByText('Unavailable')).toBeInTheDocument()
+    // overlay should be present for unavailable items as well
+    expect(document.querySelector('.unavailable-overlay')).toBeTruthy()
   })
 })
