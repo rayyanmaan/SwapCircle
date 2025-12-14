@@ -700,4 +700,37 @@ export const notificationsAPI = {
   },
 };
 
+/**
+ * Ratings API
+ */
+export const ratingAPI = {
+  /**
+   * Give or update a rating for a user (1-5 stars)
+   */
+  async giveRating(ratedUserId, stars) {
+    return apiRequest(`/ratings/${ratedUserId}`, {
+      method: 'POST',
+      body: { stars },
+    });
+  },
+
+  /**
+   * Get the current user's rating for a specific user
+   */
+  async getMyRating(ratedUserId) {
+    return apiRequest(`/ratings/${ratedUserId}`, {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Get rating statistics for a user (public)
+   */
+  async getRatingStats(ratedUserId) {
+    return apiRequest(`/ratings/${ratedUserId}/stats`, {
+      method: 'GET',
+    });
+  },
+};
+
 export default apiRequest;

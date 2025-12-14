@@ -7,8 +7,10 @@ import ListingCard from './ListingCard';
 import SwapRequests from './SwapRequests';
 import SwapHistory from './SwapHistory';
 import { useAuth } from '@/contexts/AuthContext';
-import { itemsAPI, userAPI } from '@/services/api';
+import { itemsAPI, userAPI, ratingAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
+import RatingDisplay from './RatingDisplay';
+import StarRating from './StarRating';
 
 export default function Profile({ username: usernameProp }) {
   const { user: authUser, isAuthenticated } = useAuth();
@@ -38,6 +40,7 @@ export default function Profile({ username: usernameProp }) {
   const [swapHistory, setSwapHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [ratingStats, setRatingStats] = useState({ average_rating: null, total_ratings: 0 });
 
   // Determine if viewing own profile
   const isOwnProfile = !username && isAuthenticated && authUser;
@@ -77,6 +80,12 @@ export default function Profile({ username: usernameProp }) {
           facebook_url: userData.facebook_url || '',
           twitter_handle: userData.twitter_handle || '',
           linkedin_url: userData.linkedin_url || '',
+        });
+
+        // Set rating stats from userData (already included from backend)
+        setRatingStats({
+          average_rating: userData.average_rating || null,
+          total_ratings: userData.total_ratings || 0
         });
 
         // Fetch user's items
@@ -262,9 +271,28 @@ export default function Profile({ username: usernameProp }) {
                   {user.name}
                 </h1>
               </div>
-              <p className="text-swapcircle-secondary mb-1">@{user.username}</p>
+              <div className="flex items-center gap-3 mb-1">
+                <p className="text-swapcircle-secondary">@{user.username}</p>
+                <RatingDisplay 
+                  averageRating={ratingStats.average_rating} 
+                  totalRatings={ratingStats.total_ratings} 
+                />
+              </div>
               {isOwnProfile && (
                 <p className="text-swapcircle-secondary mb-3">{user.email}</p>
+              )}
+              {!isOwnProfile && isAuthenticated && (
+                <div className="mb-3">
+                  <StarRating 
+                    ratedUserId={user.id}
+                    onRatingChange={(stars) => {
+                      // Refresh rating stats after rating
+                      ratingAPI.getRatingStats(user.id).then(stats => {
+                        setRatingStats(stats);
+                      }).catch(err => console.error('Error fetching rating stats:', err));
+                    }}
+                  />
+                </div>
               )}
               
               {/* Bio */}

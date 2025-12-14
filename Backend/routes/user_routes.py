@@ -23,6 +23,11 @@ async def get_user_by_username(username: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
+    
+    # Get rating stats
+    from services import rating_service
+    rating_stats = await rating_service.get_user_rating_stats(user.get("id"))
+    
     # Return public fields only
     return UserOut(
         id=user.get("id"),
@@ -37,7 +42,9 @@ async def get_user_by_username(username: str):
         whatsapp_number=user.get("whatsapp_number"),
         facebook_url=user.get("facebook_url"),
         twitter_handle=user.get("twitter_handle"),
-        linkedin_url=user.get("linkedin_url")
+        linkedin_url=user.get("linkedin_url"),
+        average_rating=rating_stats.get("average_rating"),
+        total_ratings=rating_stats.get("total_ratings", 0)
     )
 
 
@@ -50,6 +57,11 @@ async def get_user(user_id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
+    
+    # Get rating stats
+    from services import rating_service
+    rating_stats = await rating_service.get_user_rating_stats(user_id)
+    
     # Return public fields only
     return UserOut(
         id=user.get("id"),
@@ -64,7 +76,9 @@ async def get_user(user_id: str):
         whatsapp_number=user.get("whatsapp_number"),
         facebook_url=user.get("facebook_url"),
         twitter_handle=user.get("twitter_handle"),
-        linkedin_url=user.get("linkedin_url")
+        linkedin_url=user.get("linkedin_url"),
+        average_rating=rating_stats.get("average_rating"),
+        total_ratings=rating_stats.get("total_ratings", 0)
     )
 
 
@@ -165,6 +179,10 @@ async def patch_user(user_id: str, request: Request):
                 detail="Failed to update user"
             )
         
+        # Get rating stats
+        from services import rating_service
+        rating_stats = await rating_service.get_user_rating_stats(user_id)
+        
         return UserOut(
             id=updated_user.get("id"),
             email=updated_user.get("email"),
@@ -178,7 +196,9 @@ async def patch_user(user_id: str, request: Request):
             whatsapp_number=updated_user.get("whatsapp_number"),
             facebook_url=updated_user.get("facebook_url"),
             twitter_handle=updated_user.get("twitter_handle"),
-            linkedin_url=updated_user.get("linkedin_url")
+            linkedin_url=updated_user.get("linkedin_url"),
+            average_rating=rating_stats.get("average_rating"),
+            total_ratings=rating_stats.get("total_ratings", 0)
         )
     except Exception as e:
         raise HTTPException(
@@ -252,6 +272,10 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
                 detail="Failed to update profile picture"
             )
         
+        # Get rating stats
+        from services import rating_service
+        rating_stats = await rating_service.get_user_rating_stats(user_id)
+        
         return UserOut(
             id=updated_user.get("id"),
             email=updated_user.get("email"),
@@ -265,7 +289,9 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
             whatsapp_number=updated_user.get("whatsapp_number"),
             facebook_url=updated_user.get("facebook_url"),
             twitter_handle=updated_user.get("twitter_handle"),
-            linkedin_url=updated_user.get("linkedin_url")
+            linkedin_url=updated_user.get("linkedin_url"),
+            average_rating=rating_stats.get("average_rating"),
+            total_ratings=rating_stats.get("total_ratings", 0)
         )
     except HTTPException:
         raise

@@ -6,8 +6,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
 import AuthModal from './AuthModal';
-import { userAPI, itemsAPI } from '@/services/api';
+import { userAPI, itemsAPI, ratingAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
+import RatingDisplay from './RatingDisplay';
 
 export default function ProductDetail({ product }) {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function ProductDetail({ product }) {
   const [authMode, setAuthMode] = useState('login');
   const [seller, setSeller] = useState(null);
   const [userCredits, setUserCredits] = useState(0);
+  const [sellerRatingStats, setSellerRatingStats] = useState({ average_rating: null, total_ratings: 0 });
 
   // Transform backend product data to component format
   const transformProduct = (productData) => {
@@ -62,6 +64,18 @@ export default function ProductDetail({ product }) {
             credits: sellerData.credits || 0,
             lockDuration: '48 hours',
           });
+
+          // Fetch seller rating stats
+          try {
+            const stats = await ratingAPI.getRatingStats(productData.owner_id);
+            setSellerRatingStats({
+              average_rating: stats.average_rating,
+              total_ratings: stats.total_ratings || 0
+            });
+          } catch (err) {
+            console.error('Error fetching seller rating stats:', err);
+            setSellerRatingStats({ average_rating: null, total_ratings: 0 });
+          }
         } catch (err) {
           console.error('Error fetching seller:', err);
           setSeller({
@@ -71,6 +85,7 @@ export default function ProductDetail({ product }) {
             credits: 0,
             lockDuration: '48 hours',
           });
+          setSellerRatingStats({ average_rating: null, total_ratings: 0 });
         }
       }
     };
@@ -325,16 +340,22 @@ export default function ProductDetail({ product }) {
                     <span className="text-white text-2xl font-bold">{seller.avatar}</span>
                   </div>
                   <div className="flex-1">
-                    {seller.username ? (
-                      <a
-                        href={`/profile/${seller.username}`}
-                        className="heading-primary text-lg font-semibold hover:text-swapcircle-primary hover:underline block"
-                      >
-                        {seller.name}
-                      </a>
-                    ) : (
-                      <p className="heading-primary text-lg font-semibold">{seller.name}</p>
-                    )}
+                    <div className="flex items-center gap-2 mb-1">
+                      {seller.username ? (
+                        <a
+                          href={`/profile/${seller.username}`}
+                          className="heading-primary text-lg font-semibold hover:text-swapcircle-primary hover:underline block"
+                        >
+                          {seller.name}
+                        </a>
+                      ) : (
+                        <p className="heading-primary text-lg font-semibold">{seller.name}</p>
+                      )}
+                      <RatingDisplay 
+                        averageRating={sellerRatingStats.average_rating} 
+                        totalRatings={sellerRatingStats.total_ratings} 
+                      />
+                    </div>
                     <p className="text-swapcircle-secondary text-sm">
                       {seller.credits} credits • {seller.lockDuration} lock
                     </p>
