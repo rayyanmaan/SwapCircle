@@ -1,26 +1,25 @@
 'use client';
-
 export default function Logo({ className = '', showText = true }) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      {/* Two overlapping circles matching SwapSuccessModal design */}
+      {/* Two overlapping circles */}
       <div className="relative flex items-center">
-        {/* Left Circle (Blue) */}
+        {/* Left Circle (Primary Blue - #0046B0) */}
         <div
-          className="relative w-9 h-9 rounded-full border-4 border-swapcircle-primary -mr-2 z-10"
+          className="relative w-7 h-7 rounded-full border-3 border-swapcircle-primary -mr-2 z-10"
         />
         
-        {/* Right Circle (Black) */}
+        {/* Right Circle (Almost Black - #0F0F0F) */}
         <div
-          className="relative w-9 h-9 rounded-full border-4 -ml-2 z-0"
-          style={{ borderColor: '#000000' }}
+          className="relative w-7 h-7 rounded-full border-3 -ml-2 z-0"
+          style={{ borderColor: '#0F0F0F' }}
         />
       </div>
-      {/* SwapCircle text */}
+      
+      {/* SwapCircle text - EB Garamond Italic */}
       {showText && (
         <span 
-          className="text-xl font-semibold"
-          style={{ color: '#000000' }}
+          className="text-xl font-serif italic font-bold text-black"
         >
           SwapCircle
         </span>
@@ -28,4 +27,3 @@ export default function Logo({ className = '', showText = true }) {
     </div>
   );
 }
-

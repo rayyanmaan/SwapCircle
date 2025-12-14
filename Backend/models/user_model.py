@@ -73,6 +73,8 @@ class UserOut(BaseModel):
     twitter_handle: Optional[str] = None
     linkedin_url: Optional[str] = None
     favorites: List[str] = []  # List of item IDs
+    average_rating: Optional[float] = None
+    total_ratings: int = 0
 
 
 class Login(BaseModel):

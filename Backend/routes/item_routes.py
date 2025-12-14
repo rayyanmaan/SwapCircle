@@ -17,6 +17,7 @@ meaningful comments, consistent error messages, and helpful documentation.
 """
 
 from typing import List, Optional
+from datetime import datetime, timedelta
 from uuid import uuid4
 import json
 import re
@@ -90,13 +91,13 @@ async def create_item(
                     detail={
                         "message": "Validation error",
                         "errors": errors,
-                        "received_data": body
-                    }
+                        "received_data": body,
+                    },
                 )
             except Exception as e:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Invalid item payload: {str(e)}. Received: {body}"
+                    detail=f"Invalid item payload: {str(e)}. Received: {body}",
                 )
     elif ctype.startswith("multipart/form-data"):
         # For multipart, try to get 'item' from form data as JSON string
@@ -106,14 +107,14 @@ async def create_item(
             if not item_str:
                 raise HTTPException(
                     status_code=400,
-                    detail="Missing 'item' field in form data. Expected JSON string in 'item' field."
+                    detail="Missing 'item' field in form data. Expected JSON string in 'item' field.",
                 )
             try:
                 item_dict = json.loads(item_str)
             except json.JSONDecodeError as e:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Failed to parse 'item' field as JSON: {str(e)}. Received: {item_str[:100]}"
+                    detail=f"Failed to parse 'item' field as JSON: {str(e)}. Received: {item_str[:100]}",
                 )
             try:
                 item = ItemCreate(**item_dict)
@@ -129,15 +130,15 @@ async def create_item(
                     detail={
                         "message": "Validation error",
                         "errors": errors,
-                        "received_data": item_dict
-                    }
+                        "received_data": item_dict,
+                    },
                 )
         except HTTPException:
             raise
         except Exception as e:
             raise HTTPException(
                 status_code=400,
-                detail=f"Error processing multipart form data: {str(e)}"
+                detail=f"Error processing multipart form data: {str(e)}",
             )
     else:
         # If content-type is not JSON or multipart, try to parse as JSON anyway
@@ -157,17 +158,17 @@ async def create_item(
                         detail={
                             "message": "Validation error",
                             "errors": errors,
-                            "received_data": body
-                        }
+                            "received_data": body,
+                        },
                     )
         except Exception:
             # If JSON parsing fails, we'll handle it below
             pass
-    
+
     if item is None:
         raise HTTPException(
             status_code=400,
-            detail="Item payload required. Expected JSON body with 'title' (required) and 'description' (optional) fields."
+            detail="Item payload required. Expected JSON body with 'title' (required) and 'description' (optional) fields.",
         )
 
     # Require authentication and set owner_id from token
@@ -188,7 +189,7 @@ async def create_item(
             # Wrap other exceptions (like Firebase errors) in HTTPException
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to upload image: {str(e)}"
+                detail=f"Failed to upload image: {str(e)}",
             )
 
     stored = {
@@ -218,10 +219,13 @@ async def create_item(
             transaction_type=TRANSACTION_TYPE_ITEM_UPLOAD,
             description=f"Credits awarded for uploading item: {item.title}",
         )
-        print(f"Successfully awarded 1 credit to user {owner_id}. New balance: {new_balance}")
+        print(
+            f"Successfully awarded 1 credit to user {owner_id}. New balance: {new_balance}"
+        )
     except Exception as e:
         # Log the error but don't fail the item creation
         import traceback
+
         print(f"ERROR: Failed to award credits to user {owner_id}: {str(e)}")
         print(traceback.format_exc())
     return ItemOut(**stored)
@@ -247,7 +251,9 @@ async def list_items(owner_id: str = None, status: str = None):
     # Update status based on pending swap requests
     for item in rows:
         if item.get("status") == "available":
-            pending_requests = await swap_service.get_pending_requests_for_item(item.get("id"))
+            pending_requests = await swap_service.get_pending_requests_for_item(
+                item.get("id")
+            )
             if pending_requests:
                 item["status"] = "pending"
 
@@ -257,7 +263,7 @@ async def list_items(owner_id: str = None, status: str = None):
 @router.get("/swap-requests", status_code=status.HTTP_200_OK)
 async def get_swap_requests(request: Request):
     """Get swap requests for the authenticated user.
-    Returns pending requests for items owned by the user (as owner) 
+    Returns pending requests for items owned by the user (as owner)
     and all requests made by the user (as requester).
     """
     # Require authentication
@@ -274,46 +280,64 @@ async def get_swap_requests(request: Request):
         user_id, _ = token.split("|", 1)
     except Exception:
         raise HTTPException(status_code=401, detail="invalid token")
-    
+
     # Get requests as owner (pending requests for items I own)
     owner_requests = await swap_service.get_pending_requests_for_owner(user_id)
-    
+
     # Get requests as requester (requests I made)
     requester_requests = await swap_service.get_requests_for_requester(user_id)
-    
+
     # Enrich requests with item and user information
     from services.user_service import get_user_by_id
-    
+
     enriched_owner_requests = []
     for req in owner_requests:
         item = await storage_service.get_item(req.get("item_id"))
         requester = await get_user_by_id(req.get("requester_id"))
-        enriched_owner_requests.append({
-            **req,
-            "item": {
-                "id": item.get("id") if item else None,
-                "title": item.get("title") if item else "Unknown",
-                "images": item.get("images", []) if item else [],
-            } if item else None,
-            "requester": {
-                "id": requester.get("id") if requester else None,
-                "username": requester.get("username") if requester else "Unknown",
-                "full_name": requester.get("full_name") if requester else None,
-            } if requester else None,
-        })
-    
+        enriched_owner_requests.append(
+            {
+                **req,
+                "item": (
+                    {
+                        "id": item.get("id") if item else None,
+                        "title": item.get("title") if item else "Unknown",
+                        "images": item.get("images", []) if item else [],
+                    }
+                    if item
+                    else None
+                ),
+                "requester": (
+                    {
+                        "id": requester.get("id") if requester else None,
+                        "username": (
+                            requester.get("username") if requester else "Unknown"
+                        ),
+                        "full_name": requester.get("full_name") if requester else None,
+                    }
+                    if requester
+                    else None
+                ),
+            }
+        )
+
     enriched_requester_requests = []
     for req in requester_requests:
         item = await storage_service.get_item(req.get("item_id"))
-        enriched_requester_requests.append({
-            **req,
-            "item": {
-                "id": item.get("id") if item else None,
-                "title": item.get("title") if item else "Unknown",
-                "images": item.get("images", []) if item else [],
-            } if item else None,
-        })
-    
+        enriched_requester_requests.append(
+            {
+                **req,
+                "item": (
+                    {
+                        "id": item.get("id") if item else None,
+                        "title": item.get("title") if item else "Unknown",
+                        "images": item.get("images", []) if item else [],
+                    }
+                    if item
+                    else None
+                ),
+            }
+        )
+
     return {
         "as_owner": enriched_owner_requests,  # Requests for my items (I need to approve/reject)
         "as_requester": enriched_requester_requests,  # Requests I made
@@ -337,38 +361,52 @@ async def get_swap_history(request: Request):
         user_id, _ = token.split("|", 1)
     except Exception:
         raise HTTPException(status_code=401, detail="invalid token")
-    
+
     # Get approved swaps where user is owner or requester
     approved_swaps = await swap_service.get_approved_swaps_for_user(user_id)
-    
+
     # Enrich swaps with item and user information
     from services.user_service import get_user_by_id
-    
+
     enriched_swaps = []
     for swap in approved_swaps:
         item = await storage_service.get_item(swap.get("item_id"))
         requester = await get_user_by_id(swap.get("requester_id"))
         item_owner = await get_user_by_id(item.get("owner_id")) if item else None
-        
+
         # Determine if user is the seller (owner) or buyer (requester)
         is_seller = item and item.get("owner_id") == user_id
         other_user = item_owner if not is_seller else requester
-        
-        enriched_swaps.append({
-            **swap,
-            "item": {
-                "id": item.get("id") if item else None,
-                "title": item.get("title") if item else "Unknown",
-                "images": item.get("images", []) if item else [],
-            } if item else None,
-            "other_user": {
-                "id": other_user.get("id") if other_user else None,
-                "username": other_user.get("username") if other_user else "Unknown",
-                "full_name": other_user.get("full_name") if other_user else None,
-            } if other_user else None,
-            "is_seller": is_seller,
-        })
-    
+
+        enriched_swaps.append(
+            {
+                **swap,
+                "item": (
+                    {
+                        "id": item.get("id") if item else None,
+                        "title": item.get("title") if item else "Unknown",
+                        "images": item.get("images", []) if item else [],
+                    }
+                    if item
+                    else None
+                ),
+                "other_user": (
+                    {
+                        "id": other_user.get("id") if other_user else None,
+                        "username": (
+                            other_user.get("username") if other_user else "Unknown"
+                        ),
+                        "full_name": (
+                            other_user.get("full_name") if other_user else None
+                        ),
+                    }
+                    if other_user
+                    else None
+                ),
+                "is_seller": is_seller,
+            }
+        )
+
     return enriched_swaps
 
 
@@ -443,7 +481,7 @@ async def update_item(
     # If item has an owner, only allow owner to modify
     if it.get("owner_id") and it.get("owner_id") != token_user_id:
         raise HTTPException(status_code=403, detail="forbidden")
-    
+
     # Support JSON bodies and multipart/form-data with JSON in 'item' form field.
     # We parse manually to avoid FastAPI trying to parse Body() from multipart data.
     patch_data = patch
@@ -465,13 +503,13 @@ async def update_item(
                     except json.JSONDecodeError as e:
                         raise HTTPException(
                             status_code=400,
-                            detail=f"Failed to parse 'item' field as JSON: {str(e)}"
+                            detail=f"Failed to parse 'item' field as JSON: {str(e)}",
                         )
                 # If no 'item' field in multipart and patch is None, that's an error
                 elif patch is None:
                     raise HTTPException(
                         status_code=400,
-                        detail="Missing 'item' field in form data for multipart request"
+                        detail="Missing 'item' field in form data for multipart request",
                     )
             except HTTPException:
                 raise
@@ -480,7 +518,7 @@ async def update_item(
                 if patch is None:
                     raise HTTPException(
                         status_code=400,
-                        detail=f"Error processing multipart form data: {str(e)}"
+                        detail=f"Error processing multipart form data: {str(e)}",
                     )
 
     if patch_data is None:
@@ -572,13 +610,15 @@ async def lock_item(item_id: str, request: Request):
     item_owner_id = it.get("owner_id")
     if item_owner_id and item_owner_id == user_id:
         raise HTTPException(
-            status_code=403,
-            detail="You cannot swap or purchase your own items"
+            status_code=403, detail="You cannot swap or purchase your own items"
         )
 
     if it.get("status") == "locked":
         raise HTTPException(status_code=400, detail="already locked")
     it["status"] = "locked"
+    # Set lock metadata so clients can show expiry and who locked it
+    it["locked_by"] = user_id
+    it["locked_until"] = (datetime.utcnow() + timedelta(hours=24)).isoformat()
     await storage_service.upsert_item(it)
     return {"status": "locked"}
 
@@ -621,6 +661,9 @@ async def unlock_item(item_id: str, request: Request):
         raise HTTPException(status_code=400, detail="not locked")
 
     it["status"] = "available"
+    # Clear lock metadata
+    it.pop("locked_until", None)
+    it.pop("locked_by", None)
     await storage_service.upsert_item(it)
     return {"status": "available"}
 
@@ -644,35 +687,34 @@ async def request_swap(item_id: str, request: Request):
         user_id, _ = token.split("|", 1)
     except Exception:
         raise HTTPException(status_code=401, detail="invalid token")
-    
+
     it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
-    
+
     # Prevent users from swapping their own items
     item_owner_id = it.get("owner_id")
     if item_owner_id and item_owner_id == user_id:
         raise HTTPException(
-            status_code=403,
-            detail="You cannot swap or purchase your own items"
+            status_code=403, detail="You cannot swap or purchase your own items"
         )
-    
+
     # Check if item is available (not already swapped or has pending request)
     if it.get("status") not in ["available", "pending"]:
         raise HTTPException(
             status_code=400,
-            detail=f"Item is not available for swap (current status: {it.get('status')})"
+            detail=f"Item is not available for swap (current status: {it.get('status')})",
         )
-    
+
     # Check if user already has a pending request for this item
     existing_requests = await swap_service.get_requests_for_requester(user_id)
     for req in existing_requests:
         if req.get("item_id") == item_id and req.get("status") == "pending":
             raise HTTPException(
                 status_code=400,
-                detail="You already have a pending swap request for this item"
+                detail="You already have a pending swap request for this item",
             )
-    
+
     # Get credits required from item (use new field if available, fallback to parsing description for backward compatibility)
     credits_required = it.get("credits", 1.0)  # Default is 1 credit for all items
     if credits_required is None:
@@ -684,37 +726,36 @@ async def request_swap(item_id: str, request: Request):
                 credits_required = float(credits_match.group(1))
             else:
                 credits_required = 1.0
-    
+
     # Check if user has enough credits
     from services.user_service import get_user_by_id
+
     user = await get_user_by_id(user_id)
     if not user:
         raise HTTPException(status_code=404, detail="user not found")
-    
+
     user_credits = user.get("credits", 0.0)
     if user_credits < credits_required:
         raise HTTPException(
             status_code=400,
-            detail=f"Insufficient credits. Required: {credits_required}, Available: {user_credits}"
+            detail=f"Insufficient credits. Required: {credits_required}, Available: {user_credits}",
         )
-    
+
     # Create swap request (don't transfer credits yet)
     swap_request = await swap_service.create_swap_request(
-        item_id=item_id,
-        requester_id=user_id,
-        credits_required=credits_required
+        item_id=item_id, requester_id=user_id, credits_required=credits_required
     )
-    
+
     # Mark item as pending (has a swap request)
     it["status"] = "pending"
     await storage_service.upsert_item(it)
-    
+
     return {
         "status": "requested",
         "message": f"Swap request created. Waiting for owner approval.",
         "request_id": swap_request["id"],
         "item_id": item_id,
-        "credits_required": credits_required
+        "credits_required": credits_required,
     }
 
 
@@ -735,81 +776,78 @@ async def approve_swap(item_id: str, request_id: str, request: Request):
         user_id, _ = token.split("|", 1)
     except Exception:
         raise HTTPException(status_code=401, detail="invalid token")
-    
+
     # Get the swap request
     swap_request = await swap_service.get_swap_request(request_id)
     if not swap_request:
         raise HTTPException(status_code=404, detail="swap request not found")
-    
+
     if swap_request.get("item_id") != item_id:
         raise HTTPException(status_code=400, detail="swap request does not match item")
-    
+
     if swap_request.get("status") != "pending":
         raise HTTPException(
             status_code=400,
-            detail=f"Swap request is not pending (current status: {swap_request.get('status')})"
+            detail=f"Swap request is not pending (current status: {swap_request.get('status')})",
         )
-    
+
     # Get the item
     it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
-    
+
     # Verify the user is the owner
     item_owner_id = it.get("owner_id")
     if not item_owner_id or item_owner_id != user_id:
         raise HTTPException(
-            status_code=403,
-            detail="Only the item owner can approve swap requests"
+            status_code=403, detail="Only the item owner can approve swap requests"
         )
-    
+
     requester_id = swap_request.get("requester_id")
     credits_required = swap_request.get("credits_required", 1.0)
-    
+
     # Verify requester still has enough credits
     from services.user_service import get_user_by_id
+
     requester = await get_user_by_id(requester_id)
     if not requester:
         raise HTTPException(status_code=404, detail="requester not found")
-    
+
     requester_credits = requester.get("credits", 0.0)
     if requester_credits < credits_required:
         raise HTTPException(
             status_code=400,
-            detail=f"Requester no longer has sufficient credits. Required: {credits_required}, Available: {requester_credits}"
+            detail=f"Requester no longer has sufficient credits. Required: {credits_required}, Available: {requester_credits}",
         )
-    
+
     # Update swap request status to approved
     await swap_service.update_swap_request(request_id, "approved")
-    
+
     # Cancel other pending requests for this item
     await swap_service.cancel_other_pending_requests(item_id, request_id)
-    
+
     # Mark item as swapped/locked
     it["status"] = "swapped"
     await storage_service.upsert_item(it)
-    
+
     # NOW transfer credits (only after approval)
     # Deduct credits from buyer
-    await credit_service.deduct_credits(
-        user_id=requester_id,
-        amount=credits_required
-    )
-    
+    await credit_service.deduct_credits(user_id=requester_id, amount=credits_required)
+
     # Add credits to seller
     await credit_service.add_credits(
         user_id=item_owner_id,
         amount=credits_required,
         transaction_type="swap_credit",
-        description=f"Credits received from approved swap of item: {it.get('title')}"
+        description=f"Credits received from approved swap of item: {it.get('title')}",
     )
-    
+
     return {
         "status": "approved",
         "message": f"Swap request approved. {credits_required} credits transferred.",
         "request_id": request_id,
         "item_id": item_id,
-        "credits_transferred": credits_required
+        "credits_transferred": credits_required,
     }
 
 
@@ -830,46 +868,45 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
         user_id, _ = token.split("|", 1)
     except Exception:
         raise HTTPException(status_code=401, detail="invalid token")
-    
+
     # Get the swap request
     swap_request = await swap_service.get_swap_request(request_id)
     if not swap_request:
         raise HTTPException(status_code=404, detail="swap request not found")
-    
+
     if swap_request.get("item_id") != item_id:
         raise HTTPException(status_code=400, detail="swap request does not match item")
-    
+
     if swap_request.get("status") != "pending":
         raise HTTPException(
             status_code=400,
-            detail=f"Swap request is not pending (current status: {swap_request.get('status')})"
+            detail=f"Swap request is not pending (current status: {swap_request.get('status')})",
         )
-    
+
     # Get the item
     it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
-    
+
     # Verify the user is the owner
     item_owner_id = it.get("owner_id")
     if not item_owner_id or item_owner_id != user_id:
         raise HTTPException(
-            status_code=403,
-            detail="Only the item owner can reject swap requests"
+            status_code=403, detail="Only the item owner can reject swap requests"
         )
-    
+
     # Update swap request status to rejected
     await swap_service.update_swap_request(request_id, "rejected")
-    
+
     # If no other pending requests, mark item as available again
     pending_requests = swap_service.get_pending_requests_for_item(item_id)
     if len(pending_requests) == 0:
         it["status"] = "available"
         await storage_service.upsert_item(it)
-    
+
     return {
         "status": "rejected",
         "message": "Swap request rejected.",
         "request_id": request_id,
-        "item_id": item_id
+        "item_id": item_id,
     }

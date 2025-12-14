@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function SwapHistory() {
   const { user } = useAuth();
   const [swapHistory, setSwapHistory] = useState([]);
+  const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -58,9 +59,51 @@ export default function SwapHistory() {
     );
   }
 
+  // Counts for badges
+  const receivedCount = swapHistory.filter(s => !s.is_seller).length;
+  const givenCount = swapHistory.filter(s => !!s.is_seller).length;
+
+  const filteredSwaps = swapHistory.filter((s) => {
+    if (activeTab === 'received') return !s.is_seller;
+    if (activeTab === 'given') return !!s.is_seller;
+    return true;
+  });
+
   return (
     <div className="space-y-4">
-      {swapHistory.map((swap) => {
+      {/* Tabs */}
+      <div className="swap-history-tabs inline-flex rounded-md overflow-hidden bg-white border border-swapcircle mb-4" role="tablist" aria-label="Swap history tabs">
+        <button
+          onClick={() => setActiveTab('all')}
+          aria-selected={activeTab === 'all'}
+          role="tab"
+          className={`px-4 py-2 text-sm font-medium ${activeTab === 'all' ? 'bg-swapcircle-alt text-swapcircle-primary' : 'text-swapcircle-secondary hover:text-swapcircle-primary'}`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setActiveTab('received')}
+          aria-selected={activeTab === 'received'}
+          role="tab"
+          className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${activeTab === 'received' ? 'bg-swapcircle-alt text-swapcircle-primary' : 'text-swapcircle-secondary hover:text-swapcircle-primary'}`}
+        >
+          <span className="icon">↘</span>
+          <span>Received</span>
+          <span className="ml-1 text-xs text-swapcircle-tertiary">({receivedCount})</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('given')}
+          aria-selected={activeTab === 'given'}
+          role="tab"
+          className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${activeTab === 'given' ? 'bg-swapcircle-alt text-swapcircle-primary' : 'text-swapcircle-secondary hover:text-swapcircle-primary'}`}
+        >
+          <span className="icon">↗</span>
+          <span>Given Away</span>
+          <span className="ml-1 text-xs text-swapcircle-tertiary">({givenCount})</span>
+        </button>
+      </div>
+
+      {filteredSwaps.map((swap) => {
         const itemImage = swap.item?.images?.[0] 
           ? getImageUrl(swap.item.images[0])
           : '/api/placeholder/300';

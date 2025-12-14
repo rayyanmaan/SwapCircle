@@ -10,16 +10,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary colors
-        primary: {
-          DEFAULT: theme.colors.primary,
-          hover: theme.colors.primaryHover,
-        },
+        // Primary brand colors
+        primary: theme.colors.primary,
+        'primary-hover': theme.colors.primaryHover,
+        'primary-light': theme.colors.primaryLight,
         
         // Secondary colors
         secondary: theme.colors.secondary,
         
-        // Neutral grays
+        // Neutral colors
         neutral: theme.colors.neutral,
         
         // Semantic colors
@@ -30,35 +29,60 @@ export default {
         
         // Special colors
         credit: theme.colors.credit,
+        'credit-text': theme.colors.creditText,
         
         // Text colors
-        text: theme.colors.text,
+        'text-primary': theme.colors.text.primary,
+        'text-secondary': theme.colors.text.secondary,
+        'text-tertiary': theme.colors.text.tertiary,
+        'text-inverse': theme.colors.text.inverse,
+        'text-blue': theme.colors.text.blue,
         
         // Border colors
-        border: {
-          DEFAULT: theme.colors.border,
-          hover: theme.colors.borderHover,
-        },
+        border: theme.colors.border,
+        'border-hover': theme.colors.borderHover,
+        
+        // Backgrounds
+        background: theme.colors.background,
+        'background-alt': theme.colors.backgroundAlt,
       },
       
-      fontSize: theme.typography.fontSize,
-      fontWeight: theme.typography.fontWeight,
+      // Typography
       fontFamily: theme.typography.fontFamily,
       
+      fontSize: theme.typography.fontSize,
+      
+      fontWeight: theme.typography.fontWeight,
+      
+      lineHeight: theme.typography.lineHeight,
+      
+      // Spacing
+      spacing: theme.spacing,
+      
+      // Border Radius
       borderRadius: theme.borderRadius,
       
+      // Border Width - Add border-3 support
+      borderWidth: {
+        DEFAULT: '1px',
+        0: '0',
+        2: '2px',
+        3: '3px',
+        4: '4px',
+        8: '8px',
+      },
+      
+      // Shadows
       boxShadow: theme.shadow,
       
+      // Transitions
       transitionDuration: theme.transition.duration,
+      
       transitionTimingFunction: theme.transition.timingFunction,
       
+      // Breakpoints (Responsive)
       screens: theme.breakpoints,
-      
-      spacing: {
-        ...theme.spacing,
-      },
     },
   },
   plugins: [],
 };
-

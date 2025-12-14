@@ -5,6 +5,7 @@ pydantic>=1.7.4,<3.0.0
 pydantic-settings>=2.0.0  # For pydantic v2 BaseSettings support (only needed if using pydantic v2)
 python-dotenv>=1.0.0
 pytest>=7.0.0
+pytest-asyncio>=0.21.0
 httpx>=0.23.0
 motor>=3.1.1        # async MongoDB driver
 email-validator

@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
-/* Theme variables - Gen Z Aesthetic */
+/* Theme variables - Updated Brand Colors */
 :root {
   --background: #FFFFFF;
-  --foreground: #000000;
+  --foreground: #0F0F0F;
   
-  /* Primary colors - Clean Blue */
-  --swapcircle-primary: #2563EB;
-  --swapcircle-primary-hover: #1D4ED8;
+  /* Primary colors - Deep Phthalo Blue */
+  --swapcircle-primary: #0046B0;
+  --swapcircle-primary-hover: #002E7A;
   
   /* Secondary colors - Blue Palette */
-  --swapcircle-blue: #2563EB;
-  --swapcircle-light-blue: #3B82F6;
+  --swapcircle-blue: #0046B0;
+  --swapcircle-light-blue: #0052CC;
   --swapcircle-lighter-blue: #60A5FA;
-  --swapcircle-dark-blue: #1D4ED8;
+  --swapcircle-dark-blue: #002E7A;
   --swapcircle-very-light-blue: #DBEAFE;
   
   /* Neutral colors - Clean Whites and Grays */
@@ -26,13 +26,13 @@
   --swapcircle-neutral-600: #6B7280;
   --swapcircle-neutral-700: #4B5563;
   --swapcircle-neutral-800: #374151;
-  --swapcircle-neutral-900: #000000;
+  --swapcircle-neutral-900: #0F0F0F;
   
   /* Semantic colors */
   --swapcircle-success: #10b981;
   --swapcircle-error: #ef4444;
   --swapcircle-warning: #f59e0b;
-  --swapcircle-info: #3b82f6;
+  --swapcircle-info: #0046B0;
   
   /* Special colors */
   --swapcircle-credit: #DBEAFE;
@@ -41,52 +41,14 @@
   /* Background colors */
   --swapcircle-background-alt: #F9FAFB;
   
-  /* Text colors */
-  --swapcircle-text-primary: #000000;
+  /* Text colors - Updated to almost black */
+  --swapcircle-text-primary: #0F0F0F;
   --swapcircle-text-secondary: #374151;
   --swapcircle-text-tertiary: #6B7280;
   
   /* Border colors */
   --swapcircle-border: #E5E7EB;
   --swapcircle-border-hover: #D1D5DB;
-}
-
-@theme inline {
-  /* System colors */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-script: var(--font-dancing-script);
-  --font-mono: var(--font-geist-mono);
-  
-  /* Primary colors - Clean Blue */
-  --color-primary: 37 99 235; /* #2563EB */
-  --color-primary-hover: 29 78 216; /* #1D4ED8 */
-  
-  /* Secondary colors */
-  --color-secondary-blue: 37 99 235; /* #2563EB */
-  --color-secondary-light-blue: 59 130 246; /* #3B82F6 */
-  --color-secondary-lighter-blue: 96 165 250; /* #60A5FA */
-  --color-secondary-dark-blue: 29 78 216; /* #1D4ED8 */
-  --color-secondary-very-light-blue: 219 234 254; /* #DBEAFE */
-  
-  /* Neutral colors */
-  --color-neutral-50: 255 255 255; /* #FFFFFF */
-  --color-neutral-100: 249 250 251; /* #F9FAFB */
-  --color-neutral-200: 243 244 246; /* #F3F4F6 */
-  --color-neutral-300: 229 231 235; /* #E5E7EB */
-  --color-neutral-400: 209 213 219; /* #D1D5DB */
-  --color-neutral-500: 156 163 175; /* #9CA3AF */
-  --color-neutral-600: 107 114 128; /* #6B7280 */
-  --color-neutral-700: 75 85 99; /* #4B5563 */
-  --color-neutral-800: 55 65 81; /* #374151 */
-  --color-neutral-900: 0 0 0; /* #000000 */
-  
-  /* Semantic colors */
-  --color-success: 16 185 129; /* #10B981 */
-  --color-error: 239 68 68; /* #EF4444 */
-  --color-warning: 245 158 11; /* #F59E0B */
-  --color-info: 59 130 246; /* #3B82F6 */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -290,7 +252,7 @@ h1, h2, h3, h4, h5, h6 {
 .input-swapcircle:focus {
   outline: none;
   border-color: var(--swapcircle-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 70, 176, 0.1);
 }
 
 .input-swapcircle::placeholder {
@@ -312,7 +274,7 @@ h1, h2, h3, h4, h5, h6 {
 .search-tube:focus {
   outline: none;
   border-color: var(--swapcircle-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 70, 176, 0.1);
 }
 
 .search-tube::placeholder {
@@ -327,6 +289,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .heading-primary {
+  font-family: var(--font-serif), Georgia, serif;
   color: var(--swapcircle-text-primary);
   font-weight: 600;
 }
@@ -361,7 +324,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Modal Backdrop */
 .modal-backdrop {
-  background-color: rgba(37, 99, 235, 0.1);
+  background-color: rgba(0, 70, 176, 0.1);
   backdrop-filter: blur(4px);
 }
 
@@ -421,6 +384,53 @@ h1, h2, h3, h4, h5, h6 {
   100% {
     transform: translateX(-20px);
   }
+}
+
+/* Availability Visual Indicator */
+.listing-unavailable {
+  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+  /* No longer directly fade the whole element; an overlay will provide
+     a darker mask underneath badges so labels remain fully opaque. */
+  /* keep a small visual indication in case overlay fails */
+  opacity: 0.95;
+}
+
+/* Dark overlay used for Pending / Unavailable states; sits *under* labels */
+.unavailable-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6); /* darker fade, closer to black */
+  z-index: 5;
+  mix-blend-mode: normal;
+}
+
+/* Swap History Tabs (dialer-inspired look) */
+.swap-history-tabs {
+  border-radius: 9999px;
+  padding: 2px;
+  display: inline-flex;
+  gap: 0.25rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.swap-history-tabs button {
+  border: none;
+  background: transparent;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+}
+.swap-history-tabs button:hover {
+  background: rgba(0,70,176,0.03);
+}
+.swap-history-tabs button > .icon {
+  font-size: 1.05rem;
+}
+
+.tab-badge {
+  background: rgba(0,0,0,0.04);
+  padding: 0 6px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: var(--swapcircle-text-tertiary);
 }
 
 @keyframes check-scale {
@@ -505,20 +515,4 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
-}
-
-/* Toast Animation */
-@keyframes slide-up {
-  from {
-    transform: translate(-50%, 100px);
-    opacity: 0;
-  }
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
 }

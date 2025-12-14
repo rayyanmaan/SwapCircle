@@ -3,28 +3,22 @@
  * 
  * Clean, minimalist design with blue accents
  * Inspired by modern, professional campus platforms
- * 
- * Color Usage Guide:
- * - Primary: Main brand color (vibrant blue)
- * - Secondary: Light blue accents for interactive elements
- * - Neutral: Clean whites and blacks
- * - Semantic: Standard status colors
- * - Credit: Light blue for credits display
  */
 
 export const theme = {
   colors: {
-    // Primary brand color - Vibrant blue
-    primary: '#2563EB', // Blue
-    primaryHover: '#1D4ED8', // Darker blue
-    primaryGradient: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', // Blue gradient
+    // Primary brand color - Deep Phthalo-inspired Blue
+    primary: '#0046B0', // Blue
+    primaryHover: '#002E7A', // Darker blue
+    primaryLight: '#0052CC', // Lighter blue
+    primaryGradient: 'linear-gradient(135deg, #0046B0 0%, #002E7A 100%)', // Blue gradient
     
     // Secondary/accent colors - Blue palette
     secondary: {
-      blue: '#2563EB',       // Primary blue
-      lightBlue: '#3B82F6',  // Light blue
+      blue: '#0046B0',       // Primary blue
+      lightBlue: '#0052CC',  // Light blue
       lighterBlue: '#60A5FA', // Lighter blue
-      darkBlue: '#1D4ED8',   // Dark blue
+      darkBlue: '#002E7A',   // Dark blue
       veryLightBlue: '#DBEAFE', // Very light blue for backgrounds
     },
     
@@ -39,14 +33,14 @@ export const theme = {
       600: '#6B7280',  // Dark gray
       700: '#4B5563',  // Darker gray
       800: '#374151',  // Very dark gray
-      900: '#000000',  // Black
+      900: '#0F0F0F',  // Almost black
     },
     
     // Semantic colors - Standard status colors
     success: '#10B981',  // Green
     error: '#EF4444',    // Red
     warning: '#F59E0B',  // Amber
-    info: '#3B82F6',     // Blue
+    info: '#0046B0',     // Blue
     
     // Special colors
     credit: '#DBEAFE',   // Light blue for credits display
@@ -56,13 +50,13 @@ export const theme = {
     background: '#FFFFFF',  // Pure white
     backgroundAlt: '#F9FAFB', // Off-white
     
-    // Text - Clean black and grays
+    // Text - Almost black and grays
     text: {
-      primary: '#000000',      // Black
+      primary: '#0F0F0F',      // Almost black
       secondary: '#374151',    // Dark gray
       tertiary: '#6B7280',     // Medium gray
       inverse: '#FFFFFF',       // White text
-      blue: '#2563EB',         // Blue text for accents
+      blue: '#0046B0',         // Blue text for accents
     },
     
     // Borders - Clean grays
@@ -84,14 +78,17 @@ export const theme = {
   
   // Border radius
   borderRadius: {
+    none: '0',
     sm: '0.25rem',
     md: '0.5rem',
     lg: '0.75rem',
+    xl: '1rem',
     full: '9999px',
   },
   
   // Shadows
   shadow: {
+    none: 'none',
     sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
     md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
     lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
@@ -102,6 +99,7 @@ export const theme = {
   typography: {
     fontFamily: {
       sans: 'var(--font-geist-sans), system-ui, sans-serif',
+      serif: 'var(--font-garamond), Georgia, serif', // EB Garamond
       script: 'var(--font-dancing-script), cursive',
       mono: 'var(--font-geist-mono), monospace',
     },
@@ -115,12 +113,18 @@ export const theme = {
       '3xl': '1.875rem',
       '4xl': '2.25rem',
       '5xl': '3rem',
+      '6xl': '3.75rem',
     },
     fontWeight: {
       normal: 400,
       medium: 500,
       semibold: 600,
       bold: 700,
+    },
+    lineHeight: {
+      tight: 1.2,
+      normal: 1.5,
+      relaxed: 1.75,
     },
   },
   
@@ -135,22 +139,23 @@ export const theme = {
       default: 'ease-in-out',
       easeIn: 'ease-in',
       easeOut: 'ease-out',
+      linear: 'linear',
     },
   },
   
   // Breakpoints (for responsive design)
   breakpoints: {
-    sm: '640px',
-    md: '768px',
-    lg: '1024px',
-    xl: '1280px',
-    '2xl': '1536px',
+    sm: '640px',   // Small phones
+    md: '768px',   // Tablets
+    lg: '1024px',  // Desktops
+    xl: '1280px',  // Large desktops
+    '2xl': '1536px', // Extra large
   },
 };
 
 /**
  * Get color by path
- * Example: getColor('primary') or getColor('neutral.500')
+ * Example: getColor('primary') or getColor('neutral.900')
  */
 export const getColor = (path) => {
   const parts = path.split('.');
@@ -170,7 +175,11 @@ export const getColor = (path) => {
 export const getSpacing = (key) => theme.spacing[key] || key;
 
 /**
+ * Get font size by key
+ */
+export const getFontSize = (key) => theme.typography.fontSize[key] || key;
+
+/**
  * Export theme as default
  */
 export default theme;
-

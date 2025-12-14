@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Logo from './Logo';
 
 export default function Footer() {
   const [showShippingModal, setShowShippingModal] = useState(false);
@@ -33,80 +34,76 @@ export default function Footer() {
     <>
       <footer className="bg-swapcircle-white border-t border-swapcircle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Main Footer Content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            {/* Brand Column */}
-            <div className="col-span-1 md:col-span-1">
-              <h3 className="text-2xl font-bold mb-4 text-swapcircle-blue">
-                SwapCircle
-              </h3>
-              <p className="text-sm mb-4 text-swapcircle-secondary">
+          {/* Main Footer Content - Logo Left, Columns Right */}
+          <div className="flex flex-col md:flex-row md:justify-between mb-12">
+            {/* Left Side - Brand */}
+            <div className="mb-8 md:mb-0 md:flex-shrink-0">
+              <div className="flex items-center gap-3 mb-4">
+                <Logo showText={false} />
+                <h3 className="text-2xl font-serif italic font-bold text-black">
+                  SwapCircle
+                </h3>
+              </div>
+              <p className="text-sm text-swapcircle-secondary max-w-xs">
                 The best way for college students to swap clothes and keep fashion circular.
               </p>
             </div>
 
-          {/* Shop Column */}
-          <div>
-            <h4 className="heading-primary text-sm font-semibold mb-4">
-              Shop
-            </h4>
-            <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
-                  Browse All
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
-                  Women's
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
-                  Men's
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
-                  Accessories
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary">
-                  Trending Now
-                </a>
-              </li>
-            </ul>
-          </div>
+            {/* Right Side - Columns */}
+            <div className="flex gap-16">
+              {/* Shop Column */}
+              <div>
+                <h4 className="heading-primary text-sm font-semibold mb-4 text-black">
+                  Shop
+                </h4>
+                <ul className="space-y-2">
+                  <li>
+                    <Link 
+                      href="/browse" 
+                      className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                      aria-label="Browse all items"
+                    >
+                      Browse All
+                    </Link>
+                  </li>
+                </ul>
+              </div>
 
-            {/* Help Column */}
-            <div>
-              <h4 className="heading-primary text-sm font-semibold mb-4">
-                Help
-              </h4>
-              <ul className="space-y-2">
-                <li>
-                  <button 
-                    onClick={() => scrollToSection('how-it-works')}
-                    className="text-sm link-swapcircle text-swapcircle-secondary hover:underline cursor-pointer bg-none border-none p-0"
-                  >
-                    How It Works
-                  </button>
-                </li>
-                <li>
-                  <button 
-                    onClick={() => setShowShippingModal(true)}
-                    className="text-sm link-swapcircle text-swapcircle-secondary hover:underline cursor-pointer bg-none border-none p-0"
-                  >
-                    Shipping & Returns
-                  </button>
-                </li>
-                <li>
-                  <Link href="/contact" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
-                    Contact Us
-                  </Link>
-                </li>
-              </ul>
+              {/* Help Column */}
+              <div>
+                <h4 className="heading-primary text-sm font-semibold mb-4 text-black">
+                  Help
+                </h4>
+                <ul className="space-y-2">
+                  <li>
+                    <button 
+                      onClick={() => scrollToSection('how-it-works')}
+                      className="text-sm link-swapcircle text-swapcircle-secondary hover:underline cursor-pointer bg-none border-none p-0"
+                      aria-label="Learn how SwapCircle works"
+                    >
+                      How It Works
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      onClick={() => setShowShippingModal(true)}
+                      className="text-sm link-swapcircle text-swapcircle-secondary hover:underline cursor-pointer bg-none border-none p-0"
+                      aria-label="View shipping and returns information"
+                    >
+                      Shipping & Returns
+                    </button>
+                  </li>
+                  <li>
+                    <Link 
+                      href="/contact" 
+                      className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                      aria-label="Contact SwapCircle support"
+                    >
+                      Contact Us
+                    </Link>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
@@ -117,15 +114,34 @@ export default function Footer() {
                 © {new Date().getFullYear()} SwapCircle. All rights reserved.
               </p>
               <div className="flex space-x-6">
-                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
+                <Link 
+                  href="/privacy" 
+                  className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                  aria-label="Read our privacy policy"
+                >
                   Privacy Policy
-                </a>
-                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
+                </Link>
+                <Link 
+                  href="/terms" 
+                  className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                  aria-label="Read our terms of service"
+                >
                   Terms of Service
-                </a>
-                <a href="#" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
+                </Link>
+                <Link 
+                  href="/cookies" 
+                  className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                  aria-label="Read our cookie policy"
+                >
                   Cookie Policy
-                </a>
+                </Link>
+                <Link 
+                  href="/refund-policy" 
+                  className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                  aria-label="Read our refund and returns policy"
+                >
+                  Refund & Returns
+                </Link>
               </div>
             </div>
           </div>
@@ -136,12 +152,12 @@ export default function Footer() {
       {showShippingModal && (
         <>
           <div 
-            className="fixed inset-0 backdrop-blur-sm z-40"
+            className="fixed inset-0 backdrop-blur-sm z-40 cursor-pointer"
             onClick={() => setShowShippingModal(false)}
           />
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
             <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-lg pointer-events-auto">
-              <h2 className="text-2xl font-bold mb-4 text-swapcircle-blue">
+              <h2 className="text-2xl font-serif font-bold mb-4 text-swapcircle-blue">
                 Shipping & Returns
               </h2>
               <p className="text-swapcircle-secondary mb-6 leading-relaxed">
@@ -149,9 +165,19 @@ export default function Footer() {
                 You will handle your own shipping and request for return directly to the person 
                 you rented an item from.
               </p>
+              <p className="text-swapcircle-secondary mb-6 leading-relaxed">
+                For more information, please visit our <Link 
+                  href="/refund-policy" 
+                  className="text-swapcircle-blue text-sm font-semibold hover:underline"
+                  aria-label="Read our refund and returns policy"
+                >
+                  Refund & Returns Policy
+                </Link>.
+              </p>
               <button
                 onClick={() => setShowShippingModal(false)}
-                className="w-full bg-swapcircle-primary text-white py-2 rounded-lg hover:opacity-90 transition"
+                className="w-full bg-swapcircle-primary text-white py-2 rounded-lg hover:opacity-90 transition cursor-pointer"
+                aria-label="Close shipping and returns modal"
               >
                 Got it
               </button>
