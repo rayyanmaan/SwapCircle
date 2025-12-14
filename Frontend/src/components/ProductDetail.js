@@ -62,7 +62,7 @@ export default function ProductDetail({ product }) {
             username: sellerData.username,
             avatar: sellerData.avatar || sellerData.username?.[0]?.toUpperCase() || '?',
             credits: sellerData.credits || 0,
-            lockDuration: '48 hours',
+            lockDuration: '24 hours',
           });
 
           // Fetch seller rating stats
@@ -83,7 +83,7 @@ export default function ProductDetail({ product }) {
             username: null,
             avatar: '?',
             credits: 0,
-            lockDuration: '48 hours',
+            lockDuration: '24 hours',
           });
           setSellerRatingStats({ average_rating: null, total_ratings: 0 });
         }

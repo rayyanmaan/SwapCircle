@@ -598,6 +598,12 @@
             border-color: var(--border);
             color: var(--dark);
         }
+        .badge.unavailable {
+            background: #F3F4F6;
+            border-color: #E5E7EB;
+            color: #374151;
+            font-weight: 600;
+        }
 
         .product-description {
             padding: 1.5rem 0;
@@ -1989,12 +1995,15 @@
 
         function renderItems(containerId, items) {
             const container = document.getElementById(containerId);
-            container.innerHTML = items.map(item => `
-                <div class="item-card" onclick="viewProduct(${item.id})">
+            container.innerHTML = items.map(item => {
+                const isUnavailable = ['swapped','pending','locked'].includes(item.status);
+                return `
+                <div class="item-card ${isUnavailable ? 'listing-unavailable' : ''}" onclick="viewProduct(${item.id})">
                     <div class="item-image">
                         <img src="${item.images[0]}" alt="${item.title}">
                         <div class="condition-badge">${item.condition}</div>
                         <button class="favorite-btn" onclick="event.stopPropagation()">♡</button>
+                        ${isUnavailable ? '<div class="badge unavailable">Unavailable</div>' : ''}
                     </div>
                     <div class="item-info">
                         <div class="item-header">
@@ -2007,7 +2016,7 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function viewProduct(itemId) {
@@ -2021,7 +2030,7 @@
             document.getElementById('productCredits').textContent = item.credits;
             document.getElementById('sellerName').textContent = item.seller.name;
             document.getElementById('sellerAvatar').textContent = item.seller.name.charAt(0);
-            document.getElementById('sellerStats').textContent = `${item.seller.credits} credits • 48 hours lock`;
+            document.getElementById('sellerStats').textContent = `${item.seller.credits} credits • 24 hours lock`;
 
             document.getElementById('productBadges').innerHTML = `
                 <span class="badge condition">${item.condition}</span>

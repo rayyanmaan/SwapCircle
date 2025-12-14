@@ -20,9 +20,11 @@ export default function ListingCard({
     setIsFavorited(!isFavorited);
   };
 
+  const isUnavailable = ['swapped', 'pending', 'locked'].includes(status);
+
   return (
-    <a href={`/product/${id}`} className="group cursor-pointer">
-      <div className="relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt">
+    <a href={`/product/${id}`} className={`group cursor-pointer ${isUnavailable ? 'listing-unavailable' : ''}`}>
+      <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
           <div className="absolute inset-0 group-hover:scale-105 transition-transform duration-300">
@@ -66,6 +68,13 @@ export default function ListingCard({
             <span className="text-xs font-medium text-amber-800">
               Pending
             </span>
+          </div>
+        )}
+
+        {/* Locked or Unavailable badge */}
+        {isUnavailable && (
+          <div className="absolute top-2 left-2 backdrop-blur-sm px-2 py-1 rounded-full bg-gray-100/80">
+            <span className="text-xs font-medium text-gray-700">Unavailable</span>
           </div>
         )}
 
