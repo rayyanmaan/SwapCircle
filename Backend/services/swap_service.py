@@ -80,7 +80,7 @@ async def get_pending_requests_for_owner(owner_id: str) -> List[Dict[str, Any]]:
 
 
 async def get_requests_for_requester(requester_id: str) -> List[Dict[str, Any]]:
-    """Get all swap requests made by a user."""
+    """Get all swap requests made by a user (includes all statuses)."""
     db = get_db()
     swap_requests_collection = db["swap_requests"]
     cursor = swap_requests_collection.find({"requester_id": requester_id})
@@ -142,8 +142,20 @@ async def update_swap_request(request_id: str, status: str) -> Optional[Dict[str
         return _convert_id(request)
 
 
+async def cancel_swap_request(request_id: str) -> Optional[Dict[str, Any]]:
+    """Cancel a swap request by updating its status to 'cancelled'.
+    
+    This is a convenience function that calls update_swap_request with 'cancelled' status.
+    """
+    return await update_swap_request(request_id, "cancelled")
+
+
 async def cancel_other_pending_requests(item_id: str, exclude_request_id: str = None):
-    """Cancel all other pending requests for an item (when one is approved)."""
+    """Cancel all other pending requests for an item (when one is approved).
+    
+    This is used when a swap request is approved to automatically cancel any other
+    pending requests for the same item.
+    """
     db = get_db()
     swap_requests_collection = db["swap_requests"]
     

@@ -37,10 +37,16 @@ export const theme = {
     },
     
     // Semantic colors - Standard status colors
-    success: '#10B981',  // Green
-    error: '#EF4444',    // Red
-    warning: '#F59E0B',  // Amber
-    info: '#0046B0',     // Blue
+    success: '#10B981',      // Green
+    successText: '#065F46',  // Dark green text
+    error: '#EF4444',        // Red
+    errorText: '#7F1D1D',    // Dark red text
+    warning: '#F59E0B',      // Amber
+    warningText: '#92400E',  // Dark amber text
+    pending: '#FEF3C7',      // Light yellow background
+    pendingText: '#92400E',  // Dark yellow text
+    info: '#0046B0',         // Blue
+    infoText: '#001F5C',     // Dark blue text
     
     // Special colors
     credit: '#DBEAFE',   // Light blue for credits display

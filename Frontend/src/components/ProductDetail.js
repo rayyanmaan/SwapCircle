@@ -6,11 +6,13 @@ import { FaLocationDot } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
+import SwapProcessingModal from './SwapProcessingModal';
 import AuthModal from './AuthModal';
 import { userAPI, itemsAPI, ratingAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 import Toast from './Toast';
 import RatingDisplay from './RatingDisplay';
+import { theme } from '@/styles/theme';
 
 export default function ProductDetail({ product }) {
   const router = useRouter();
@@ -19,6 +21,9 @@ export default function ProductDetail({ product }) {
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login');
+  const [showProcessingModal, setShowProcessingModal] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState('processing'); // 'processing', 'success', 'error'
+  const [processingActionType, setProcessingActionType] = useState('request'); // 'request', 'cancel'
   const [seller, setSeller] = useState(null);
   const [userCredits, setUserCredits] = useState(0);
   const [isFavorited, setIsFavorited] = useState(false);
@@ -27,6 +32,9 @@ export default function ProductDetail({ product }) {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const [sellerRatingStats, setSellerRatingStats] = useState({ average_rating: null, total_ratings: 0 });
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [productStatus, setProductStatus] = useState(null);
 
   // Transform backend product data to component format
   const transformProduct = (productData) => {
@@ -55,6 +63,13 @@ export default function ProductDetail({ product }) {
   };
 
   const productData = transformProduct(product);
+
+  // Track product status locally for real-time updates
+  useEffect(() => {
+    if (productData) {
+      setProductStatus(productData.status);
+    }
+  }, [productData]);
 
   // Check if current user is the owner
   const isOwner = user && productData?.owner_id && user.id === productData.owner_id;
@@ -195,22 +210,66 @@ export default function ProductDetail({ product }) {
     }
 
     // Check if item is available
-    if (product?.status && product.status !== 'available' && product.status !== 'pending') {
+    if (productStatus && productStatus !== 'available' && productStatus !== 'pending') {
       alert('This item is no longer available for swap');
       return;
     }
 
     try {
+      // Show processing modal
+      setShowProcessingModal(true);
+      setProcessingStatus('processing');
+      setProcessingActionType('request');
+
       // Call the swap request API endpoint
       const result = await itemsAPI.requestSwap(productData.id);
-      // Show success modal with request message
-      alert(result.message || 'Swap request created! Waiting for owner approval.');
-      setShowSwapModal(true);
-      // Refresh the page to show updated status
-      window.location.reload();
+      
+      // Show success modal after a brief delay
+      setTimeout(() => {
+        setProcessingStatus('success');
+      }, 2000);
+
+      // Update product status locally
+      setProductStatus('pending');
     } catch (error) {
       console.error('Error requesting swap:', error);
-      alert(error.message || 'Failed to request swap. Please try again.');
+      setProcessingStatus('error');
+    }
+  };
+
+  const handleProcessingModalClose = () => {
+    setShowProcessingModal(false);
+    if (processingStatus === 'success') {
+      // Refresh page after successful swap request
+      window.location.reload();
+    }
+  };
+
+  const handleCancelSwap = async () => {
+    setCancelLoading(true);
+    setShowCancelConfirm(false);
+    
+    try {
+      // Show processing modal
+      setShowProcessingModal(true);
+      setProcessingStatus('processing');
+      setProcessingActionType('cancel');
+
+      await itemsAPI.cancelSwapRequest(productData.id);
+      
+      // Show success modal after a brief delay
+      setTimeout(() => {
+        setProcessingStatus('success');
+      }, 2000);
+
+      // Update product status back to available
+      setProductStatus('available');
+    } catch (error) {
+      console.error('Error cancelling swap:', error);
+      setProcessingStatus('error');
+    } finally {
+      setCancelLoading(false);
+      setShowCancelConfirm(false);
     }
   };
 
@@ -329,6 +388,8 @@ export default function ProductDetail({ product }) {
                   </p>
                 </div>
               </div>
+
+              {/* PENDING STATUS - SINGLE BOX WITH TAP TO CANCEL */}
               {!isAuthenticated ? (
                 <div className="space-y-3">
                   <button 
@@ -353,19 +414,28 @@ export default function ProductDetail({ product }) {
                     You cannot swap your own items
                   </p>
                 </div>
-              ) : productData?.status === 'pending' ? (
-                <div className="space-y-3">
-                  <button 
-                    className="btn-secondary w-full py-4 text-lg cursor-not-allowed opacity-50"
-                    disabled
+              ) : productStatus === 'pending' ? (
+                <button
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={cancelLoading}
+                  className="w-full space-y-2 group disabled:opacity-50 cursor-pointer"
+                >
+                  {/* Pending Status Box */}
+                  <div
+                    className="w-full py-2 text-lg font-semibold rounded-lg flex items-center justify-center transition-all group-hover:shadow-md"
+                    style={{
+                      backgroundColor: theme.colors.pending,
+                      color: theme.colors.pendingText,
+                    }}
                   >
-                    Pending Request
-                  </button>
-                  <p className="text-sm text-swapcircle-tertiary text-center">
-                    This item has a pending swap request
+                    {cancelLoading ? 'Cancelling...' : 'Pending Request'}
+                  </div>
+                  {/* Tap to Cancel Text */}
+                  <p className="text-sm text-swapcircle-tertiary text-center group-hover:text-swapcircle-secondary transition-colors">
+                    Tap to cancel
                   </p>
-                </div>
-              ) : productData?.status === 'swapped' || productData?.status === 'locked' ? (
+                </button>
+              ) : productStatus === 'swapped' || productStatus === 'locked' ? (
                 <div className="space-y-3">
                   <button 
                     className="btn-secondary w-full py-4 text-lg cursor-not-allowed opacity-50"
@@ -473,9 +543,43 @@ export default function ProductDetail({ product }) {
       
       <Footer />
 
+      {/* Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h2 className="heading-primary text-xl font-bold mb-2">Cancel Swap Request?</h2>
+            <p className="text-swapcircle-secondary mb-6">
+              Are you sure you want to cancel your swap request for <strong>{productData.title}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="btn-secondary flex-1 py-2"
+              >
+                Keep It
+              </button>
+              <button
+                onClick={handleCancelSwap}
+                disabled={cancelLoading}
+                className="btn-primary flex-1 py-2 disabled:opacity-50"
+              >
+                {cancelLoading ? 'Cancelling...' : 'Cancel Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <SwapSuccessModal
         isOpen={showSwapModal}
         onClose={() => setShowSwapModal(false)}
+      />
+
+      <SwapProcessingModal
+        isOpen={showProcessingModal}
+        status={processingStatus}
+        actionType={processingActionType}
+        onClose={handleProcessingModalClose}
       />
 
       <AuthModal
@@ -492,4 +596,3 @@ export default function ProductDetail({ product }) {
     </div>
   );
 }
-
