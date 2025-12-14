@@ -99,7 +99,7 @@ export default function NotificationCenter() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg hover:bg-swapcircle-neutral-100 transition-colors"
+        className="relative p-2 rounded-lg hover:bg-swapcircle-neutral-100 transition-colors cursor-pointer"
         aria-label="Notifications"
       >
         <svg

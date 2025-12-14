@@ -51,44 +51,6 @@
   --swapcircle-border-hover: #D1D5DB;
 }
 
-@theme inline {
-  /* System colors */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-script: var(--font-dancing-script);
-  --font-mono: var(--font-geist-mono);
-  
-  /* Primary colors - Deep Phthalo Blue */
-  --color-primary: 0 70 176; /* #0046B0 */
-  --color-primary-hover: 0 46 122; /* #002E7A */
-  
-  /* Secondary colors */
-  --color-secondary-blue: 0 70 176; /* #0046B0 */
-  --color-secondary-light-blue: 0 82 204; /* #0052CC */
-  --color-secondary-lighter-blue: 96 165 250; /* #60A5FA */
-  --color-secondary-dark-blue: 0 46 122; /* #002E7A */
-  --color-secondary-very-light-blue: 219 234 254; /* #DBEAFE */
-  
-  /* Neutral colors */
-  --color-neutral-50: 255 255 255; /* #FFFFFF */
-  --color-neutral-100: 249 250 251; /* #F9FAFB */
-  --color-neutral-200: 243 244 246; /* #F3F4F6 */
-  --color-neutral-300: 229 231 235; /* #E5E7EB */
-  --color-neutral-400: 209 213 219; /* #D1D5DB */
-  --color-neutral-500: 156 163 175; /* #9CA3AF */
-  --color-neutral-600: 107 114 128; /* #6B7280 */
-  --color-neutral-700: 75 85 99; /* #4B5563 */
-  --color-neutral-800: 55 65 81; /* #374151 */
-  --color-neutral-900: 15 15 15; /* #0F0F0F */
-  
-  /* Semantic colors */
-  --color-success: 16 185 129; /* #10B981 */
-  --color-error: 239 68 68; /* #EF4444 */
-  --color-warning: 245 158 11; /* #F59E0B */
-  --color-info: 0 70 176; /* #0046B0 */
-}
-
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
