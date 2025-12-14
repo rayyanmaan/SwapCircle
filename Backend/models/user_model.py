@@ -1,6 +1,6 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional, List
 
 
 def user_document(
@@ -33,6 +33,7 @@ def user_document(
         "twitter_handle": twitter_handle,
         "linkedin_url": linkedin_url,
         "bio": bio,
+        "favorites": [],
     }
 
 
@@ -71,8 +72,13 @@ class UserOut(BaseModel):
     facebook_url: Optional[str] = None
     twitter_handle: Optional[str] = None
     linkedin_url: Optional[str] = None
+<<<<<<< HEAD
+    favorites: List[str] = []  # List of item IDs
     average_rating: Optional[float] = None
     total_ratings: int = 0
+=======
+    favorites: List[str] = Field(default_factory=list)  # List of item IDs
+>>>>>>> 388fb40 (feat: enhance favorites functionality with authentication checks and improve user model from issues flagged by aiman)
 
 
 class Login(BaseModel):

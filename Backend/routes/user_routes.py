@@ -1,10 +1,42 @@
 """User-related routes (profile get/update with auth)"""
-from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File
+from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File, Depends
 
 from services import user_service, auth_service, image_service
 from models.user_model import UserOut
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+
+def get_authenticated_user_id(request: Request) -> str:
+    """FastAPI dependency to extract and verify user ID from token.
+    
+    Returns:
+        str: The authenticated user ID from the token
+        
+    Raises:
+        HTTPException: If token is missing, invalid, or malformed
+    """
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    if not auth_service.verify_access_token(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    try:
+        user_id, _ = token.split("|", 1)
+        return user_id
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format"
+        )
 
 
 @router.get("/")
@@ -43,6 +75,7 @@ async def get_user_by_username(username: str):
         facebook_url=user.get("facebook_url"),
         twitter_handle=user.get("twitter_handle"),
         linkedin_url=user.get("linkedin_url"),
+        favorites=user.get("favorites", []),
         average_rating=rating_stats.get("average_rating"),
         total_ratings=rating_stats.get("total_ratings", 0)
     )
@@ -77,6 +110,7 @@ async def get_user(user_id: str):
         facebook_url=user.get("facebook_url"),
         twitter_handle=user.get("twitter_handle"),
         linkedin_url=user.get("linkedin_url"),
+        favorites=user.get("favorites", []),
         average_rating=rating_stats.get("average_rating"),
         total_ratings=rating_stats.get("total_ratings", 0)
     )
@@ -290,6 +324,7 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
             facebook_url=updated_user.get("facebook_url"),
             twitter_handle=updated_user.get("twitter_handle"),
             linkedin_url=updated_user.get("linkedin_url"),
+            favorites=updated_user.get("favorites", []),
             average_rating=rating_stats.get("average_rating"),
             total_ratings=rating_stats.get("total_ratings", 0)
         )
@@ -300,3 +335,57 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to upload profile picture: {str(e)}"
         )
+
+
+@router.post("/{user_id}/favorites/{item_id}")
+async def add_favorite(user_id: str, item_id: str, auth_user_id: str = Depends(get_authenticated_user_id)):
+    """Add item to user's favorites (requires authentication)"""
+    # Check if user is adding to their own favorites
+    if auth_user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to modify this user's favorites"
+        )
+    
+    updated_user = await user_service.add_favorite(user_id, item_id)
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return {"message": "Item added to favorites", "favorites": updated_user.get("favorites", [])}
+
+
+@router.delete("/{user_id}/favorites/{item_id}")
+async def remove_favorite(user_id: str, item_id: str, auth_user_id: str = Depends(get_authenticated_user_id)):
+    """Remove item from user's favorites (requires authentication)"""
+    # Check if user is updating their own favorites
+    if auth_user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to modify this user's favorites"
+        )
+    
+    updated_user = await user_service.remove_favorite(user_id, item_id)
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    return {"message": "Item removed from favorites", "favorites": updated_user.get("favorites", [])}
+
+
+@router.get("/{user_id}/favorites")
+async def get_favorites(user_id: str, auth_user_id: str = Depends(get_authenticated_user_id)):
+    """Get user's favorite item IDs (requires authentication)"""
+    # Check if user is accessing their own favorites
+    if auth_user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to view this user's favorites"
+        )
+    
+    favorites = await user_service.get_user_favorites(user_id)
+    return {"favorites": favorites}

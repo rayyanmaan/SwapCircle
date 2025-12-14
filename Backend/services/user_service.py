@@ -4,6 +4,8 @@ Stores users in MongoDB `users` collection with support for async operations.
 """
 from typing import Dict, Any, List, Optional
 from bson import ObjectId
+from bson.errors import InvalidId
+from pymongo import ReturnDocument
 from database.connection import get_db
 
 
@@ -126,3 +128,61 @@ async def update_user(user_id: str, updates: Dict[str, Any], session=None) -> Op
             return None
         user = await users_collection.find_one({"id": user_id}, session=session)
         return _convert_id(user)
+
+
+async def add_favorite(user_id: str, item_id: str) -> Optional[Dict[str, Any]]:
+    """Add an item to user's favorites. Uses $addToSet to prevent duplicates."""
+    db = get_db()
+    users_collection = db["users"]
+    try:
+        user_oid = ObjectId(user_id)
+        result = await users_collection.find_one_and_update(
+            {"_id": user_oid},
+            {"$addToSet": {"favorites": item_id}},
+            return_document=ReturnDocument.AFTER
+        )
+        return _convert_id(result)
+    except InvalidId:
+        # Fallback for string IDs
+        result = await users_collection.find_one_and_update(
+            {"id": user_id},
+            {"$addToSet": {"favorites": item_id}},
+            return_document=ReturnDocument.AFTER
+        )
+        return _convert_id(result)
+
+
+async def remove_favorite(user_id: str, item_id: str) -> Optional[Dict[str, Any]]:
+    """Remove an item from user's favorites."""
+    db = get_db()
+    users_collection = db["users"]
+    try:
+        user_oid = ObjectId(user_id)
+        result = await users_collection.find_one_and_update(
+            {"_id": user_oid},
+            {"$pull": {"favorites": item_id}},
+            return_document=ReturnDocument.AFTER
+        )
+        return _convert_id(result)
+    except InvalidId:
+        # Fallback for string IDs
+        result = await users_collection.find_one_and_update(
+            {"id": user_id},
+            {"$pull": {"favorites": item_id}},
+            return_document=ReturnDocument.AFTER
+        )
+        return _convert_id(result)
+
+
+async def get_user_favorites(user_id: str) -> List[str]:
+    """Get list of item IDs that user has favorited."""
+    db = get_db()
+    users_collection = db["users"]
+    try:
+        user_oid = ObjectId(user_id)
+        user = await users_collection.find_one({"_id": user_oid}, {"favorites": 1})
+    except Exception:
+        # Fallback for string IDs
+        user = await users_collection.find_one({"id": user_id}, {"favorites": 1})
+    
+    return user.get("favorites", []) if user else []
