@@ -77,7 +77,7 @@ export default function ProductDetail({ product }) {
           name: normalized.full_name,
           avatar: normalized.avatar,
           credits: normalized.credits,
-          lockDuration: '48 hours',
+          lockDuration: '24 hours',
         });
         setSellerError(false);
       } catch (err) {
@@ -89,7 +89,7 @@ export default function ProductDetail({ product }) {
           name: 'Seller Profile Unavailable',
           avatar: '?',
           credits: 0,
-          lockDuration: '48 hours',
+          lockDuration: '24 hours',
           isError: true,
         });
       }

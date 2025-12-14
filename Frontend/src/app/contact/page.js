@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import Footer from '@/components/Footer';
 
+// Modal type constants to prevent typos
+const MODAL_TYPES = {
+  CONTACT: 'contact',
+  FEEDBACK: 'feedback',
+  BUG: 'bug'
+};
+
 export default function ContactPage() {
   const [activeModal, setActiveModal] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -118,6 +125,27 @@ export default function ContactPage() {
     }
   };
 
+  const getModalTitle = () => {
+    if (activeModal === MODAL_TYPES.CONTACT) return 'Contact us';
+    if (activeModal === MODAL_TYPES.FEEDBACK) return 'Share your feedback';
+    if (activeModal === MODAL_TYPES.BUG) return 'Report a bug';
+    return '';
+  };
+
+  const getModalDescription = () => {
+    if (activeModal === MODAL_TYPES.CONTACT) return 'Get in touch with our support team.';
+    if (activeModal === MODAL_TYPES.FEEDBACK) return 'Help us improve by sharing your thoughts.';
+    if (activeModal === MODAL_TYPES.BUG) return 'Report errors or bugs to the team.';
+    return '';
+  };
+
+  const getMessagePlaceholder = () => {
+    if (activeModal === MODAL_TYPES.CONTACT) return 'How can we help?';
+    if (activeModal === MODAL_TYPES.FEEDBACK) return 'Tell us how we can improve...';
+    if (activeModal === MODAL_TYPES.BUG) return 'Describe the issue in a few sentences...';
+    return '';
+  };
+
   return (
     <main className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -135,8 +163,8 @@ export default function ContactPage() {
             <h3 className="text-2xl font-serif mb-3 text-black">Contact our team</h3>
             <p className="text-gray-700 mb-6 text-sm leading-relaxed">Need assistance or have a question? Get in touch with our team for support.</p>
             <button
-              onClick={() => setActiveModal('contact')}
-              className="w-full bg-swapcircle-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition"
+              onClick={() => setActiveModal(MODAL_TYPES.CONTACT)}
+              className="w-full bg-swapcircle-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition cursor-pointer"
             >
               Contact us
             </button>
@@ -147,8 +175,8 @@ export default function ContactPage() {
             <h3 className="text-2xl font-serif mb-3 text-black">Leave feedback</h3>
             <p className="text-gray-700 mb-6 text-sm leading-relaxed">Your feedback is valuable to us. Share your ideas to help us improve our products and services.</p>
             <button
-              onClick={() => setActiveModal('feedback')}
-              className="w-full bg-swapcircle-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition"
+              onClick={() => setActiveModal(MODAL_TYPES.FEEDBACK)}
+              className="w-full bg-swapcircle-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition cursor-pointer"
             >
               Share feedback
             </button>
@@ -159,8 +187,8 @@ export default function ContactPage() {
             <h3 className="text-2xl font-serif mb-3 text-black">Report a bug</h3>
             <p className="text-gray-700 mb-6 text-sm leading-relaxed">Notice something that's not quite right? Report errors or bugs to our team and we will get it fixed as soon as possible!</p>
             <button
-              onClick={() => setActiveModal('bug')}
-              className="w-full bg-swapcircle-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition"
+              onClick={() => setActiveModal(MODAL_TYPES.BUG)}
+              className="w-full bg-swapcircle-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition cursor-pointer"
             >
               Report bug
             </button>
@@ -182,21 +210,18 @@ export default function ContactPage() {
               <button
                 onClick={handleCloseModal}
                 disabled={loading}
-                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 text-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Close modal"
+                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 text-2xl disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 ×
               </button>
 
               <h2 className="text-2xl font-serif mb-2 text-black">
-                {activeModal === 'contact' && 'Contact us'}
-                {activeModal === 'feedback' && 'Share your feedback'}
-                {activeModal === 'bug' && 'Report a bug'}
+                {getModalTitle()}
               </h2>
               <div className="w-12 h-1 bg-swapcircle-primary mb-4"></div>
               <p className="text-gray-700 mb-6 text-sm">
-                {activeModal === 'contact' && 'Get in touch with our support team.'}
-                {activeModal === 'feedback' && 'Help us improve by sharing your thoughts.'}
-                {activeModal === 'bug' && 'Report errors or bugs to the team.'}
+                {getModalDescription()}
               </p>
 
               {/* General Error Message Display */}
@@ -208,14 +233,18 @@ export default function ContactPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                    Your name
+                  </label>
                   <input
+                    id="name"
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Your name"
                     required
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500 ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500 transition hover:border-swapcircle-primary hover:shadow-sm ${
                       fieldErrors.name ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
                   />
@@ -223,14 +252,18 @@ export default function ContactPage() {
                 </div>
 
                 <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    Email address
+                  </label>
                   <input
+                    id="email"
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="Enter your email"
                     required
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500 ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500 transition hover:border-swapcircle-primary hover:shadow-sm ${
                       fieldErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
                   />
@@ -238,14 +271,18 @@ export default function ContactPage() {
                 </div>
 
                 <div>
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+                    Subject
+                  </label>
                   <input
+                    id="subject"
                     type="text"
                     name="subject"
                     value={formData.subject}
                     onChange={handleInputChange}
                     placeholder="Subject"
                     required
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500 ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-sm text-gray-900 placeholder-gray-500 transition hover:border-swapcircle-primary hover:shadow-sm ${
                       fieldErrors.subject ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
                   />
@@ -253,18 +290,18 @@ export default function ContactPage() {
                 </div>
 
                 <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                    Message
+                  </label>
                   <textarea
+                    id="message"
                     name="message"
                     value={formData.message}
                     onChange={handleInputChange}
-                    placeholder={
-                      activeModal === 'contact' ? 'How can we help?' :
-                      activeModal === 'feedback' ? 'Tell us how we can improve...' :
-                      'Describe the issue in a few sentences...'
-                    }
+                    placeholder={getMessagePlaceholder()}
                     required
                     rows="4"
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary resize-none text-sm text-gray-900 placeholder-gray-500 ${
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary resize-none text-sm text-gray-900 placeholder-gray-500 transition hover:border-swapcircle-primary hover:shadow-sm ${
                       fieldErrors.message ? 'border-red-300 bg-red-50' : 'border-gray-300'
                     }`}
                   />
@@ -292,7 +329,7 @@ export default function ContactPage() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => setShowConfirmClose(false)}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition"
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition cursor-pointer"
                       >
                         Keep editing
                       </button>
@@ -304,7 +341,7 @@ export default function ContactPage() {
                           setFieldErrors({});
                           setShowConfirmClose(false);
                         }}
-                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
+                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition cursor-pointer"
                       >
                         Discard
                       </button>

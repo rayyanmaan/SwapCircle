@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { userAPI } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import Toast from './Toast';
@@ -18,6 +19,7 @@ export default function ListingCard({
   status,
   showSwappedStatus = false,
 }) {
+  const router = useRouter();
   const { user, isAuthenticated } = useAuth();
   const [isFavorited, setIsFavorited] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -86,15 +88,26 @@ export default function ListingCard({
   };
 
   const handleCardClick = () => {
-    window.location.href = `/product/${id}`;
+    router.push(`/product/${id}`);
   };
+
+  // 'pending' should not mark an item as unavailable — pending means it's
+  // requested but not yet accepted/rejected. Unavailable covers swapped or
+  // locked items which are not available for new swaps.
+  const isUnavailable = ['swapped', 'locked'].includes(status);
+  const isPending = status === 'pending';
+  // faded items should include both unavailable (swapped/locked) and
+  // pending (requested but unresolved) so they look visually subdued
+  const isFaded = isUnavailable || isPending;
 
   return (
     <div className="group cursor-pointer flex flex-col h-full" onClick={handleCardClick}>
       <div className="relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt">
+    <a href={`/product/${id}`} className={`group cursor-pointer ${isFaded ? 'listing-unavailable' : ''}`}>
+      <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
-          <div className="absolute inset-0 group-hover:scale-105 transition-transform duration-300">
+          <div className={`${isFaded ? '' : 'absolute inset-0 group-hover:scale-105'} absolute inset-0 transition-transform duration-300`}>
             <img
               src={image}
               alt={title}
@@ -129,13 +142,30 @@ export default function ListingCard({
           </div>
         ) : null}
 
-        {/* Status badge (Pending) - positioned below swapped/condition badge or top-left if no badge */}
-        {status && status === "pending" && (
-          <div className={`absolute ${(showSwappedStatus && status === "swapped") || condition ? 'top-10 left-2' : 'top-2 left-2'} backdrop-blur-sm px-2 py-1 rounded-full bg-amber-100`}>
-            <span className="text-xs font-medium text-amber-800">
-              Pending
-            </span>
-          </div>
+        {/* Centered status overlay for Pending / Unavailable badges.
+            These should be centered over the image and stacked with a
+            small gap when both are present (rare). */}
+        {(isPending || isUnavailable) && (
+          <>
+            {/* Dark overlay sits under badges so badges remain fully opaque */}
+            <div className="absolute inset-0 unavailable-overlay pointer-events-none" aria-hidden="true"></div>
+
+            <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+              <div className="flex flex-col items-center gap-2">
+                {isUnavailable && (
+                  <div className="backdrop-blur-sm px-3 py-1 rounded-full bg-gray-100/80">
+                    <span className="text-xs font-medium text-gray-700">Unavailable</span>
+                  </div>
+                )}
+
+                {isPending && (
+                  <div className="backdrop-blur-sm px-3 py-1 rounded-full bg-amber-100">
+                    <span className="text-xs font-medium text-amber-800">Pending</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
         )}
 
         {/* Heart icon */}

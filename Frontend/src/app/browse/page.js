@@ -33,11 +33,9 @@ export default function BrowsePage() {
         setLoading(true);
         setError(null);
         const data = await itemsAPI.getItems();
-        // Filter to only show available items
-        const availableItems = Array.isArray(data) 
-          ? data.filter(item => item.status === "available")
-          : [];
-        setListings(availableItems);
+        // Show all items on browse page, including unavailable ones (we'll visually indicate them but keep them visible)
+        const allItems = Array.isArray(data) ? data : [];
+        setListings(allItems);
       } catch (err) {
         console.error('Error fetching items:', err);
         setError(err.message || 'Failed to load items');
@@ -78,6 +76,7 @@ export default function BrowsePage() {
         category: metadata.category || 'General',
         brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',
         image: imageUrl, // ListingCard expects 'image' prop, not 'imageUrl'
+        status: item.status || 'available',
         isOwner: isOwner,
       };
     });

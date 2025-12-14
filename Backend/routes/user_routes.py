@@ -1,10 +1,42 @@
 """User-related routes (profile get/update with auth)"""
-from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File
+from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File, Depends
 
 from services import user_service, auth_service, image_service
 from models.user_model import UserOut
 
 router = APIRouter(prefix="/users", tags=["Users"])
+
+
+def get_authenticated_user_id(request: Request) -> str:
+    """FastAPI dependency to extract and verify user ID from token.
+    
+    Returns:
+        str: The authenticated user ID from the token
+        
+    Raises:
+        HTTPException: If token is missing, invalid, or malformed
+    """
+    token = request.headers.get("Authorization", "").replace("Bearer ", "")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
+    if not auth_service.verify_access_token(token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token"
+        )
+    
+    try:
+        user_id, _ = token.split("|", 1)
+        return user_id
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token format"
+        )
 
 
 @router.get("/")
@@ -23,6 +55,11 @@ async def get_user_by_username(username: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
+    
+    # Get rating stats
+    from services import rating_service
+    rating_stats = await rating_service.get_user_rating_stats(user.get("id"))
+    
     # Return public fields only
     return UserOut(
         id=user.get("id"),
@@ -39,6 +76,8 @@ async def get_user_by_username(username: str):
         twitter_handle=user.get("twitter_handle"),
         linkedin_url=user.get("linkedin_url"),
         favorites=user.get("favorites", [])
+        average_rating=rating_stats.get("average_rating"),
+        total_ratings=rating_stats.get("total_ratings", 0)
     )
 
 
@@ -51,6 +90,11 @@ async def get_user(user_id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
+    
+    # Get rating stats
+    from services import rating_service
+    rating_stats = await rating_service.get_user_rating_stats(user_id)
+    
     # Return public fields only
     return UserOut(
         id=user.get("id"),
@@ -67,6 +111,8 @@ async def get_user(user_id: str):
         twitter_handle=user.get("twitter_handle"),
         linkedin_url=user.get("linkedin_url"),
         favorites=user.get("favorites", [])
+        average_rating=rating_stats.get("average_rating"),
+        total_ratings=rating_stats.get("total_ratings", 0)
     )
 
 
@@ -167,6 +213,10 @@ async def patch_user(user_id: str, request: Request):
                 detail="Failed to update user"
             )
         
+        # Get rating stats
+        from services import rating_service
+        rating_stats = await rating_service.get_user_rating_stats(user_id)
+        
         return UserOut(
             id=updated_user.get("id"),
             email=updated_user.get("email"),
@@ -180,7 +230,9 @@ async def patch_user(user_id: str, request: Request):
             whatsapp_number=updated_user.get("whatsapp_number"),
             facebook_url=updated_user.get("facebook_url"),
             twitter_handle=updated_user.get("twitter_handle"),
-            linkedin_url=updated_user.get("linkedin_url")
+            linkedin_url=updated_user.get("linkedin_url"),
+            average_rating=rating_stats.get("average_rating"),
+            total_ratings=rating_stats.get("total_ratings", 0)
         )
     except Exception as e:
         raise HTTPException(
@@ -254,6 +306,10 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
                 detail="Failed to update profile picture"
             )
         
+        # Get rating stats
+        from services import rating_service
+        rating_stats = await rating_service.get_user_rating_stats(user_id)
+        
         return UserOut(
             id=updated_user.get("id"),
             email=updated_user.get("email"),
@@ -269,6 +325,8 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
             twitter_handle=updated_user.get("twitter_handle"),
             linkedin_url=updated_user.get("linkedin_url"),
             favorites=updated_user.get("favorites", [])
+            average_rating=rating_stats.get("average_rating"),
+            total_ratings=rating_stats.get("total_ratings", 0)
         )
     except HTTPException:
         raise
@@ -280,32 +338,8 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
 
 
 @router.post("/{user_id}/favorites/{item_id}")
-async def add_favorite(user_id: str, item_id: str, request: Request):
+async def add_favorite(user_id: str, item_id: str, auth_user_id: str = Depends(get_authenticated_user_id)):
     """Add item to user's favorites (requires authentication)"""
-    # Extract token from Authorization header
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    
-    # Verify token and extract user ID
-    if not auth_service.verify_access_token(token):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
-        )
-    
-    # Extract user_id from token format: user_id|signature
-    try:
-        auth_user_id, _ = token.split("|", 1)
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token format"
-        )
-    
     # Check if user is adding to their own favorites
     if auth_user_id != user_id:
         raise HTTPException(
@@ -324,32 +358,8 @@ async def add_favorite(user_id: str, item_id: str, request: Request):
 
 
 @router.delete("/{user_id}/favorites/{item_id}")
-async def remove_favorite(user_id: str, item_id: str, request: Request):
+async def remove_favorite(user_id: str, item_id: str, auth_user_id: str = Depends(get_authenticated_user_id)):
     """Remove item from user's favorites (requires authentication)"""
-    # Extract token from Authorization header
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    
-    # Verify token and extract user ID
-    if not auth_service.verify_access_token(token):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
-        )
-    
-    # Extract user_id from token format: user_id|signature
-    try:
-        auth_user_id, _ = token.split("|", 1)
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token format"
-        )
-    
     # Check if user is updating their own favorites
     if auth_user_id != user_id:
         raise HTTPException(
@@ -368,32 +378,8 @@ async def remove_favorite(user_id: str, item_id: str, request: Request):
 
 
 @router.get("/{user_id}/favorites")
-async def get_favorites(user_id: str, request: Request):
+async def get_favorites(user_id: str, auth_user_id: str = Depends(get_authenticated_user_id)):
     """Get user's favorite item IDs (requires authentication)"""
-    # Extract token from Authorization header
-    token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
-        )
-    
-    # Verify token and extract user ID
-    if not auth_service.verify_access_token(token):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
-        )
-    
-    # Extract user_id from token format: user_id|signature
-    try:
-        auth_user_id, _ = token.split("|", 1)
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token format"
-        )
-    
     # Check if user is accessing their own favorites
     if auth_user_id != user_id:
         raise HTTPException(

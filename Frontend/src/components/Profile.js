@@ -7,8 +7,10 @@ import ListingCard from './ListingCard';
 import SwapRequests from './SwapRequests';
 import SwapHistory from './SwapHistory';
 import { useAuth } from '@/contexts/AuthContext';
-import { itemsAPI, userAPI } from '@/services/api';
+import { itemsAPI, userAPI, ratingAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
+import RatingDisplay from './RatingDisplay';
+import StarRating from './StarRating';
 
 export default function Profile({ username: usernameProp }) {
   const { user: authUser, isAuthenticated } = useAuth();
@@ -39,6 +41,7 @@ export default function Profile({ username: usernameProp }) {
   const [swapHistory, setSwapHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [ratingStats, setRatingStats] = useState({ average_rating: null, total_ratings: 0 });
 
   // Determine if viewing own profile
   const isOwnProfile = !username && isAuthenticated && authUser;
@@ -80,6 +83,12 @@ export default function Profile({ username: usernameProp }) {
           linkedin_url: userData.linkedin_url || '',
         });
 
+        // Set rating stats from userData (already included from backend)
+        setRatingStats({
+          average_rating: userData.average_rating || null,
+          total_ratings: userData.total_ratings || 0
+        });
+
         // Fetch user's items
         const userItems = await itemsAPI.getItems({ owner_id: userData.id });
         
@@ -108,7 +117,17 @@ export default function Profile({ username: usernameProp }) {
         if (isOwnProfile && isAuthenticated && authUser) {
           try {
             const historyData = await itemsAPI.getSwapHistory();
-            setSwapHistory(Array.isArray(historyData) ? historyData : []);
+            const normalizedHistory = Array.isArray(historyData) ? historyData : [];
+
+            // Store the history locally for the "history" tab
+            setSwapHistory(normalizedHistory);
+
+            // Keep the profile's 'Swapped' counter in sync with the actual
+            // number of completed swaps. Previously 'swapped' was initialized
+            // to 0 and never updated leading to stale/incorrect counters.
+            // Here we set it to the length of the returned swap history so
+            // "Swapped" accurately reflects what the user sees.
+            setUser(prev => prev ? { ...prev, swapped: normalizedHistory.length } : null);
           } catch (err) {
             // Silently handle auth errors - user might not be logged in
             if (err.message && err.message.includes('authorization')) {
@@ -117,6 +136,8 @@ export default function Profile({ username: usernameProp }) {
               console.error('Error fetching swap history:', err);
             }
             setSwapHistory([]);
+            // If we can't fetch history, ensure the counter is 0
+            setUser(prev => prev ? { ...prev, swapped: 0 } : null);
           }
         }
         
@@ -195,6 +216,7 @@ export default function Profile({ username: usernameProp }) {
     fetchFavorites();
   }, [isOwnProfile, isAuthenticated, authUser, activeTab]);
 
+<<<<<<< HEAD
   // Fetch favorites when viewing own profile and favorites tab is active
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -256,7 +278,14 @@ export default function Profile({ username: usernameProp }) {
 
     fetchFavorites();
   }, [isOwnProfile, isAuthenticated, authUser, activeTab]);
+  // Ensure 'swapped' counter stays in sync if swapHistory changes later
+  // (for example, if swapHistory is refreshed while the profile is mounted).
+  useEffect(() => {
+    setUser(prev => prev ? { ...prev, swapped: swapHistory.length } : null);
+  }, [swapHistory]);
 
+=======
+>>>>>>> 5757f20 (refactor: remove redundant fetchFavorites logic from Profile component)
   const getSocialLink = (platform, value) => {
     if (!value) return null;
 
@@ -387,9 +416,28 @@ export default function Profile({ username: usernameProp }) {
                   {user.name}
                 </h1>
               </div>
-              <p className="text-swapcircle-secondary mb-1">@{user.username}</p>
+              <div className="flex items-center gap-3 mb-1">
+                <p className="text-swapcircle-secondary">@{user.username}</p>
+                <RatingDisplay 
+                  averageRating={ratingStats.average_rating} 
+                  totalRatings={ratingStats.total_ratings} 
+                />
+              </div>
               {isOwnProfile && (
                 <p className="text-swapcircle-secondary mb-3">{user.email}</p>
+              )}
+              {!isOwnProfile && isAuthenticated && (
+                <div className="mb-3">
+                  <StarRating 
+                    ratedUserId={user.id}
+                    onRatingChange={(stars) => {
+                      // Refresh rating stats after rating
+                      ratingAPI.getRatingStats(user.id).then(stats => {
+                        setRatingStats(stats);
+                      }).catch(err => console.error('Error fetching rating stats:', err));
+                    }}
+                  />
+                </div>
               )}
               
               {/* Bio */}
