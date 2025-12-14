@@ -1,5 +1,4 @@
 'use client';
-
 export default function Logo({ className = '', showText = true }) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
