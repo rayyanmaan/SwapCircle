@@ -4,6 +4,7 @@ Routes match the frontend API expectations:
 - POST /swaps/items/{item_id}/request - Create a swap request
 - POST /swaps/items/{item_id}/requests/{request_id}/approve - Approve a swap request
 - POST /swaps/items/{item_id}/requests/{request_id}/reject - Reject a swap request
+- POST /swaps/items/{item_id}/cancel - Cancel a swap request (requester cancels their own request)
 - GET /swaps/requests - Get swap requests for authenticated user
 - GET /swaps/history - Get swap history (approved swaps) for authenticated user
 """
@@ -265,6 +266,75 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
     }
 
 
+@router.post("/items/{item_id}/cancel", status_code=status.HTTP_200_OK)
+async def cancel_swap(item_id: str, request: Request):
+    """Cancel a pending swap request. Only the requester can cancel their own request."""
+    # Require authentication
+    user_id = auth_service.get_user_id_from_request(request)
+    
+    it = await storage_service.get_item(item_id)
+    if not it:
+        raise HTTPException(status_code=404, detail="item not found")
+    
+    # Get the pending swap request for this item made by the current user
+    user_requests = await swap_service.get_requests_for_requester(user_id)
+    swap_request = None
+    
+    for req in user_requests:
+        if req.get("item_id") == item_id and req.get("status") == "pending":
+            swap_request = req
+            break
+    
+    if not swap_request:
+        raise HTTPException(
+            status_code=404,
+            detail="No pending swap request found for this item"
+        )
+    
+    # Verify user is the requester
+    if swap_request.get("requester_id") != user_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the requester can cancel their own swap request"
+        )
+    
+    # Update swap request status to cancelled
+    await swap_service.update_swap_request(swap_request.get("id"), "cancelled")
+    
+    # Check if there are any other pending requests for this item
+    pending_requests = await swap_service.get_pending_requests_for_item(item_id)
+    if not pending_requests:
+        # No more pending requests, mark item as available again
+        it["status"] = "available"
+        await storage_service.upsert_item(it)
+    
+    # Create notification for the item owner
+    item_owner_id = it.get("owner_id")
+    requester = await get_user_by_id(user_id)
+    requester_name = requester.get("username", "Someone") if requester else "Someone"
+    
+    if item_owner_id:
+        await notification_service.create_notification(
+            user_id=item_owner_id,
+            event_type="request_cancelled",
+            request_id=swap_request.get("id"),
+            item_id=item_id,
+            metadata={
+                "item_title": it.get("title", "Unknown Item"),
+                "other_user_id": user_id,
+                "other_user_name": requester_name,
+                "status": "cancelled"
+            }
+        )
+    
+    return {
+        "status": "cancelled",
+        "message": "Swap request cancelled successfully.",
+        "request_id": swap_request.get("id"),
+        "item_id": item_id
+    }
+
+
 @router.get("/requests", status_code=status.HTTP_200_OK)
 async def get_swap_requests(request: Request):
     """Get swap requests for the authenticated user.
@@ -341,4 +411,3 @@ async def get_swap_history(request: Request):
         })
     
     return enriched_swaps
-

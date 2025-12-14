@@ -627,6 +627,15 @@ export const itemsAPI = {
   },
 
   /**
+   * Cancel a swap request (requester cancels their own request)
+   */
+  async cancelSwapRequest(itemId) {
+    return apiRequest(`/swaps/items/${itemId}/cancel`, {
+      method: 'POST',
+    });
+  },
+
+  /**
    * Approve a swap request (owner only)
    */
   async approveSwapRequest(itemId, requestId) {
