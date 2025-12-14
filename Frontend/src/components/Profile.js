@@ -116,7 +116,17 @@ export default function Profile({ username: usernameProp }) {
         if (isOwnProfile && isAuthenticated && authUser) {
           try {
             const historyData = await itemsAPI.getSwapHistory();
-            setSwapHistory(Array.isArray(historyData) ? historyData : []);
+            const normalizedHistory = Array.isArray(historyData) ? historyData : [];
+
+            // Store the history locally for the "history" tab
+            setSwapHistory(normalizedHistory);
+
+            // Keep the profile's 'Swapped' counter in sync with the actual
+            // number of completed swaps. Previously 'swapped' was initialized
+            // to 0 and never updated leading to stale/incorrect counters.
+            // Here we set it to the length of the returned swap history so
+            // "Swapped" accurately reflects what the user sees.
+            setUser(prev => prev ? { ...prev, swapped: normalizedHistory.length } : null);
           } catch (err) {
             // Silently handle auth errors - user might not be logged in
             if (err.message && err.message.includes('authorization')) {
@@ -125,6 +135,8 @@ export default function Profile({ username: usernameProp }) {
               console.error('Error fetching swap history:', err);
             }
             setSwapHistory([]);
+            // If we can't fetch history, ensure the counter is 0
+            setUser(prev => prev ? { ...prev, swapped: 0 } : null);
           }
         }
         
@@ -140,6 +152,12 @@ export default function Profile({ username: usernameProp }) {
 
     fetchUserData();
   }, [username, isAuthenticated, authUser, isOwnProfile]);
+
+  // Ensure 'swapped' counter stays in sync if swapHistory changes later
+  // (for example, if swapHistory is refreshed while the profile is mounted).
+  useEffect(() => {
+    setUser(prev => prev ? { ...prev, swapped: swapHistory.length } : null);
+  }, [swapHistory]);
 
   const getSocialLink = (platform, value) => {
     if (!value) return null;
