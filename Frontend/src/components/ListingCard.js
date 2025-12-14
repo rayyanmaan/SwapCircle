@@ -213,7 +213,7 @@ export default function ListingCard({
           )}
         </div>
       </div>
-      </a>
+
       <Toast 
         message={toastMessage}
         isVisible={showToast}
