@@ -327,31 +327,6 @@ export const userAPI = {
 
     return response.json();
   },
-
-  /**
-   * Add item to user's favorites
-   */
-  async addFavorite(userId, itemId) {
-    return apiRequest(`/users/${userId}/favorites/${itemId}`, {
-      method: 'POST',
-    });
-  },
-
-  /**
-   * Remove item from user's favorites
-   */
-  async removeFavorite(userId, itemId) {
-    return apiRequest(`/users/${userId}/favorites/${itemId}`, {
-      method: 'DELETE',
-    });
-  },
-
-  /**
-   * Get user's favorite item IDs
-   */
-  async getFavorites(userId) {
-    return apiRequest(`/users/${userId}/favorites`);
-  },
 };
 
 /**

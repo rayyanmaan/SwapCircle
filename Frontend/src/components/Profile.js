@@ -36,8 +36,7 @@ export default function Profile({ username: usernameProp }) {
   }, [searchParams]);
   const [user, setUser] = useState(null);
   const [listings, setListings] = useState([]);
-  const [favorites, setFavorites] = useState([]);
-  const [loadingFavorites, setLoadingFavorites] = useState(false);
+  const [favorites] = useState([]);
   const [swapHistory, setSwapHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -154,129 +153,6 @@ export default function Profile({ username: usernameProp }) {
     fetchUserData();
   }, [username, isAuthenticated, authUser, isOwnProfile]);
 
-  // Fetch favorites when viewing own profile and favorites tab is active
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!isOwnProfile || !isAuthenticated || !authUser || activeTab !== 'favorites') {
-        return;
-      }
-
-      try {
-        setLoadingFavorites(true);
-        
-        // Get list of favorite item IDs
-        const response = await userAPI.getFavorites(authUser.id);
-        const favoriteIds = response.favorites || [];
-        
-        if (!favoriteIds || favoriteIds.length === 0) {
-          setFavorites([]);
-          return;
-        }
-
-        // Fetch full details for each favorited item
-        const favoriteItemsPromises = favoriteIds.map(async (itemId) => {
-          try {
-            return await itemsAPI.getItem(itemId);
-          } catch (err) {
-            console.error(`Error fetching favorite item ${itemId}:`, err);
-            return null;
-          }
-        });
-
-        const favoriteItems = (await Promise.all(favoriteItemsPromises)).filter(Boolean);
-
-        // Transform to listing format
-        const transformedFavorites = favoriteItems.map((item) => {
-          const metadata = getItemMetadata(item);
-          const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
-          const imageUrl = firstImage ? getImageUrl(firstImage) : '/api/placeholder/300';
-          
-          return {
-            id: item.id,
-            title: item.title,
-            size: metadata.size || 'Size M',
-            credits: metadata.credits || 2,
-            condition: metadata.condition || 'Good',
-            timestamp: 'Recently',
-            image: imageUrl,
-            status: item.status || 'available',
-            showSwappedStatus: true,
-          };
-        });
-
-        setFavorites(transformedFavorites);
-      } catch (err) {
-        console.error('Error fetching favorites:', err);
-        setFavorites([]);
-      } finally {
-        setLoadingFavorites(false);
-      }
-    };
-
-    fetchFavorites();
-  }, [isOwnProfile, isAuthenticated, authUser, activeTab]);
-
-  // Fetch favorites when viewing own profile and favorites tab is active
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!isOwnProfile || !isAuthenticated || !authUser || activeTab !== 'favorites') {
-        return;
-      }
-
-      try {
-        setLoadingFavorites(true);
-        
-        // Get list of favorite item IDs
-        const response = await userAPI.getFavorites(authUser.id);
-        const favoriteIds = response.favorites || [];
-        
-        if (!favoriteIds || favoriteIds.length === 0) {
-          setFavorites([]);
-          return;
-        }
-
-        // Fetch full details for each favorited item
-        const favoriteItemsPromises = favoriteIds.map(async (itemId) => {
-          try {
-            return await itemsAPI.getItem(itemId);
-          } catch (err) {
-            console.error(`Error fetching favorite item ${itemId}:`, err);
-            return null;
-          }
-        });
-
-        const favoriteItems = (await Promise.all(favoriteItemsPromises)).filter(Boolean);
-
-        // Transform to listing format
-        const transformedFavorites = favoriteItems.map((item) => {
-          const metadata = getItemMetadata(item);
-          const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
-          const imageUrl = firstImage ? getImageUrl(firstImage) : '/api/placeholder/300';
-          
-          return {
-            id: item.id,
-            title: item.title,
-            size: metadata.size || 'Size M',
-            credits: metadata.credits || 2,
-            condition: metadata.condition || 'Good',
-            timestamp: 'Recently',
-            image: imageUrl,
-            status: item.status || 'available',
-            showSwappedStatus: true,
-          };
-        });
-
-        setFavorites(transformedFavorites);
-      } catch (err) {
-        console.error('Error fetching favorites:', err);
-        setFavorites([]);
-      } finally {
-        setLoadingFavorites(false);
-      }
-    };
-
-    fetchFavorites();
-  }, [isOwnProfile, isAuthenticated, authUser, activeTab]);
   // Ensure 'swapped' counter stays in sync if swapHistory changes later
   // (for example, if swapHistory is refreshed while the profile is mounted).
   useEffect(() => {
@@ -690,21 +566,9 @@ export default function Profile({ username: usernameProp }) {
             </div>
           )
         ) : activeTab === 'favorites' && isOwnProfile ? (
-          loadingFavorites ? (
-            <div className="text-center py-12">
-              <p className="text-swapcircle-secondary">Loading favorites...</p>
-            </div>
-          ) : favorites.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {favorites.map((listing) => (
-                <ListingCard key={listing.id} {...listing} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-swapcircle-secondary">No favorites yet.</p>
-            </div>
-          )
+          <div className="text-center py-16">
+            <p className="text-swapcircle-secondary">No favorites yet.</p>
+          </div>
         ) : activeTab === 'history' && isOwnProfile ? (
           <SwapHistory />
         ) : null}

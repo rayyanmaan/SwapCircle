@@ -1,10 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { userAPI } from '@/services/api';
-import { useAuth } from '@/contexts/AuthContext';
-import Toast from './Toast';
-import AuthModal from './AuthModal';
+import { useState } from 'react';
 
 export default function ListingCard({
   id,
@@ -15,77 +11,13 @@ export default function ListingCard({
   condition,
   timestamp,
   status,
-  showSwappedStatus = false,
+  showSwappedStatus = false, // If true, show swapped status instead of condition
 }) {
-  const { user, isAuthenticated } = useAuth();
   const [isFavorited, setIsFavorited] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState('success');
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState('login');
 
-  // Check if item is in user's favorites on mount
-  useEffect(() => {
-    const checkFavoriteStatus = async () => {
-      if (!isAuthenticated || !user) return;
-      
-      try {
-        const response = await userAPI.getFavorites(user.id);
-        const favoriteIds = response.favorites || [];
-        setIsFavorited(favoriteIds.includes(id));
-      } catch (error) {
-        console.error('Error checking favorite status:', error);
-      }
-    };
-
-    checkFavoriteStatus();
-  }, [isAuthenticated, user, id]);
-
-  const handleFavorite = async (e) => {
-    e.preventDefault();
+  const handleFavorite = (e) => {
     e.stopPropagation();
-
-    if (!isAuthenticated || !user) {
-      setAuthMode('login');
-      setShowAuthModal(true);
-      return;
-    }
-
-    if (isUpdating) {
-      return;
-    }
-
-    setIsUpdating(true);
-    const newFavoriteState = !isFavorited;
-    setIsFavorited(newFavoriteState);
-
-    try {
-      if (newFavoriteState) {
-        await userAPI.addFavorite(user.id, id);
-        setToastMessage('Added to favorites');
-        setToastType('favorite');
-        setShowToast(true);
-      } else {
-        await userAPI.removeFavorite(user.id, id);
-        setToastMessage('Removed from favorites');
-        setToastType('favorite');
-        setShowToast(true);
-      }
-    } catch (error) {
-      console.error('Error updating favorite:', error);
-      setIsFavorited(!newFavoriteState);
-      setToastMessage('Failed to update favorite');
-      setToastType('error');
-      setShowToast(true);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleCardClick = () => {
-    window.location.href = `/product/${id}`;
+    setIsFavorited(!isFavorited);
   };
 
   // 'pending' should not mark an item as unavailable — pending means it's
@@ -98,8 +30,6 @@ export default function ListingCard({
   const isFaded = isUnavailable || isPending;
 
   return (
-    <div className="group cursor-pointer" onClick={handleCardClick}>
-      <div className="relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt">
     <a href={`/product/${id}`} className={`group cursor-pointer ${isFaded ? 'listing-unavailable' : ''}`}>
       <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
         {/* Image with gradient overlay */}
@@ -167,9 +97,8 @@ export default function ListingCard({
 
         {/* Heart icon */}
           <button
-            type="button"
             onClick={handleFavorite}
-            className="absolute top-2 right-2 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors z-10"
+            className="absolute top-2 right-2 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors"
             aria-label="Favorite"
           >
             <svg
@@ -211,18 +140,7 @@ export default function ListingCard({
           </div>
         </div>
       </div>
-      <Toast 
-        message={toastMessage}
-        isVisible={showToast}
-        onClose={() => setShowToast(false)}
-        type={toastType}
-      />
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        mode={authMode}
-      />
-    </div>
+    </a>
   );
 }
 

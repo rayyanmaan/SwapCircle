@@ -8,7 +8,6 @@ import SwapSuccessModal from './SwapSuccessModal';
 import AuthModal from './AuthModal';
 import { userAPI, itemsAPI, ratingAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
-import Toast from './Toast';
 import RatingDisplay from './RatingDisplay';
 
 export default function ProductDetail({ product }) {
@@ -20,11 +19,6 @@ export default function ProductDetail({ product }) {
   const [authMode, setAuthMode] = useState('login');
   const [seller, setSeller] = useState(null);
   const [userCredits, setUserCredits] = useState(0);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState('success');
   const [sellerRatingStats, setSellerRatingStats] = useState({ average_rating: null, total_ratings: 0 });
 
   // Transform backend product data to component format
@@ -64,7 +58,7 @@ export default function ProductDetail({ product }) {
         try {
           const sellerData = await userAPI.getUser(productData.owner_id);
           setSeller({
-            name: sellerData.username || 'Unknown',
+            name: sellerData.full_name || sellerData.username || 'Unknown',
             username: sellerData.username,
             avatar: sellerData.avatar || sellerData.username?.[0]?.toUpperCase() || '?',
             credits: sellerData.credits || 0,
@@ -105,59 +99,6 @@ export default function ProductDetail({ product }) {
       setUserCredits(user.credits || 0);
     }
   }, [user]);
-
-  // Check if item is favorited
-  useEffect(() => {
-    const checkFavoriteStatus = async () => {
-      if (!isAuthenticated || !user || !productData?.id) return;
-      
-      try {
-        const response = await userAPI.getFavorites(user.id);
-        const favoriteIds = response.favorites || [];
-        setIsFavorited(favoriteIds.includes(productData.id));
-      } catch (error) {
-        console.error('Error checking favorite status:', error);
-      }
-    };
-
-    checkFavoriteStatus();
-  }, [isAuthenticated, user, productData?.id]);
-
-  const handleFavorite = async () => {
-    if (!isAuthenticated || !user) {
-      setAuthMode('login');
-      setShowAuthModal(true);
-      return;
-    }
-
-    if (isUpdatingFavorite) return;
-
-    setIsUpdatingFavorite(true);
-    const newFavoriteState = !isFavorited;
-    setIsFavorited(newFavoriteState);
-
-    try {
-      if (newFavoriteState) {
-        await userAPI.addFavorite(user.id, productData.id);
-        setToastMessage('Added to favorites');
-        setToastType('favorite');
-        setShowToast(true);
-      } else {
-        await userAPI.removeFavorite(user.id, productData.id);
-        setToastMessage('Removed from favorites');
-        setToastType('favorite');
-        setShowToast(true);
-      }
-    } catch (error) {
-      console.error('Error updating favorite:', error);
-      setIsFavorited(!newFavoriteState);
-      setToastMessage('Failed to update favorite');
-      setToastType('error');
-      setShowToast(true);
-    } finally {
-      setIsUpdatingFavorite(false);
-    }
-  };
 
   if (!productData) {
     return (
@@ -445,15 +386,11 @@ export default function ProductDetail({ product }) {
                 </button>
               ) : (
                 <>
-                  <button 
-                    onClick={handleFavorite}
-                    disabled={isUpdatingFavorite}
-                    className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2"
-                  >
-                    <svg className={`w-5 h-5 ${isFavorited ? 'icon-primary' : 'icon-primary'}`} fill={isFavorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2">
+                    <svg className="w-5 h-5 icon-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
-                    <span>{isFavorited ? 'Saved' : 'Save'}</span>
+                    <span>Save</span>
                   </button>
                   <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2">
                     <svg className="w-5 h-5 icon-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -486,13 +423,6 @@ export default function ProductDetail({ product }) {
         onClose={() => setShowAuthModal(false)}
         mode={authMode}
       />
-      <Toast 
-        message={toastMessage}
-        isVisible={showToast}
-        onClose={() => setShowToast(false)}
-        type={toastType}
-      />
     </div>
   );
 }
-
