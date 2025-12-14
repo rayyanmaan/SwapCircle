@@ -426,9 +426,10 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Availability Visual Indicator */
 .listing-unavailable {
-  transition: opacity 0.25s ease, filter 0.25s ease;
-  opacity: 0.75; /* subtle fade */
-  filter: grayscale(60%);
+  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+  /* stronger fade to visually de-emphasize unavailable/pending items */
+  opacity: 0.5;
+  filter: grayscale(80%);
 }
 
 /* Swap History Tabs (dialer-inspired look) */

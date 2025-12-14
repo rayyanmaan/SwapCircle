@@ -25,13 +25,16 @@ export default function ListingCard({
   // locked items which are not available for new swaps.
   const isUnavailable = ['swapped', 'locked'].includes(status);
   const isPending = status === 'pending';
+  // faded items should include both unavailable (swapped/locked) and
+  // pending (requested but unresolved) so they look visually subdued
+  const isFaded = isUnavailable || isPending;
 
   return (
-    <a href={`/product/${id}`} className={`group cursor-pointer ${isUnavailable ? 'listing-unavailable' : ''}`}>
+    <a href={`/product/${id}`} className={`group cursor-pointer ${isFaded ? 'listing-unavailable' : ''}`}>
       <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
-          <div className="absolute inset-0 group-hover:scale-105 transition-transform duration-300">
+          <div className={`${isFaded ? '' : 'absolute inset-0 group-hover:scale-105'} absolute inset-0 transition-transform duration-300`}>
             <img
               src={image}
               alt={title}

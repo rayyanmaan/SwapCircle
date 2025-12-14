@@ -2018,8 +2018,9 @@
             const container = document.getElementById(containerId);
             container.innerHTML = items.map(item => {
                 const isUnavailable = ['swapped','locked'].includes(item.status);
+                const isFaded = isUnavailable || item.status === 'pending';
                 return `
-                <div class="item-card ${isUnavailable ? 'listing-unavailable' : ''}" onclick="viewProduct(${item.id})">
+                <div class="item-card ${isFaded ? 'listing-unavailable' : ''}" onclick="viewProduct(${item.id})">
                     <div class="item-image">
                         <img src="${item.images[0]}" alt="${item.title}">
                         <div class="condition-badge">${item.condition}</div>
