@@ -167,6 +167,13 @@ export default function ListingCard({
           </>
         )}
 
+        {/* Locked or Unavailable badge */}
+        {isUnavailable && (
+          <div className="absolute top-2 left-2 backdrop-blur-sm px-2 py-1 rounded-full bg-gray-100/80">
+            <span className="text-xs font-medium text-gray-700">Unavailable</span>
+          </div>
+        )}
+
         {/* Heart icon */}
           <button
             type="button"
