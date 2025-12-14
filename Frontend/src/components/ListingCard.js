@@ -101,9 +101,12 @@ export default function ListingCard({
 
   return (
     <div className="group cursor-pointer" onClick={handleCardClick}>
-      <div className="relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt">
-    <a href={`/product/${id}`} className={`group cursor-pointer ${isFaded ? 'listing-unavailable' : ''}`}>
-      <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
+      <div
+        className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt ${
+          isFaded ? 'listing-unavailable' : ''
+        }`}
+        title={isUnavailable ? 'Unavailable' : undefined}
+      >
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
           <div className={`${isFaded ? '' : 'absolute inset-0 group-hover:scale-105'} absolute inset-0 transition-transform duration-300`}>
@@ -234,4 +237,3 @@ export default function ListingCard({
     </div>
   );
 }
-
