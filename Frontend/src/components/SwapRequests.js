@@ -4,12 +4,17 @@ import { useState, useEffect } from 'react';
 import { itemsAPI } from '@/services/api';
 import { getImageUrl } from '@/utils/itemParser';
 import { useAuth } from '@/contexts/AuthContext';
+import { theme } from '@/styles/theme';
 
 export default function SwapRequests() {
   const { user, refreshUser } = useAuth();
   const [swapRequests, setSwapRequests] = useState({ as_owner: [], as_requester: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelingRequestId, setCancelingRequestId] = useState(null);
+  const [cancelingItemId, setCancelingItemId] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     const fetchSwapRequests = async () => {
@@ -68,6 +73,37 @@ export default function SwapRequests() {
       console.error('Error rejecting swap request:', err);
       alert(err.message || 'Failed to reject swap request');
     }
+  };
+
+  const handleCancelRequest = async () => {
+    if (!cancelingItemId || !cancelingRequestId) {
+      return;
+    }
+
+    setCancelLoading(true);
+    try {
+      await itemsAPI.cancelSwapRequest(cancelingItemId);
+      alert('Swap request cancelled successfully.');
+      // Refresh swap requests
+      const data = await itemsAPI.getSwapRequests();
+      setSwapRequests(data);
+      // Refresh page to update item statuses
+      window.location.reload();
+    } catch (err) {
+      console.error('Error cancelling swap request:', err);
+      alert(err.message || 'Failed to cancel swap request');
+    } finally {
+      setCancelLoading(false);
+      setShowCancelConfirm(false);
+      setCancelingRequestId(null);
+      setCancelingItemId(null);
+    }
+  };
+
+  const openCancelConfirm = (itemId, requestId, itemTitle) => {
+    setCancelingItemId(itemId);
+    setCancelingRequestId(requestId);
+    setShowCancelConfirm(true);
   };
 
   if (loading) {
@@ -175,11 +211,29 @@ export default function SwapRequests() {
                 : '/api/placeholder/300';
               
               const statusColors = {
-                pending: 'bg-yellow-100 text-yellow-800',
-                approved: 'bg-green-100 text-green-800',
-                rejected: 'bg-red-100 text-red-800',
-                cancelled: 'bg-gray-100 text-gray-800',
+                pending: {
+                  bg: theme.colors.pending,
+                  text: theme.colors.pendingText,
+                  label: 'Pending',
+                },
+                approved: {
+                  bg: '#DCFCE7',
+                  text: '#166534',
+                  label: 'Approved',
+                },
+                rejected: {
+                  bg: '#FEE2E2',
+                  text: '#991B1B',
+                  label: 'Rejected',
+                },
+                cancelled: {
+                  bg: '#F3F4F6',
+                  text: '#374151',
+                  label: 'Cancelled',
+                },
               };
+
+              const statusInfo = statusColors[request.status] || statusColors.pending;
 
               return (
                 <div
@@ -203,11 +257,13 @@ export default function SwapRequests() {
                           {request.item?.title || 'Unknown Item'}
                         </h3>
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            statusColors[request.status] || statusColors.pending
-                          }`}
+                          className="px-3 py-1 rounded-full text-xs font-medium"
+                          style={{
+                            backgroundColor: statusInfo.bg,
+                            color: statusInfo.text,
+                          }}
                         >
-                          {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
+                          {statusInfo.label}
                         </span>
                       </div>
                       <div className="space-y-1 text-sm text-swapcircle-secondary">
@@ -233,7 +289,30 @@ export default function SwapRequests() {
                             Swap request was rejected by the owner.
                           </p>
                         )}
+                        {request.status === 'cancelled' && (
+                          <p className="text-gray-600 mt-2">
+                            Swap request was cancelled.
+                          </p>
+                        )}
                       </div>
+
+                      {/* Cancel Button - Only for pending requests */}
+                      {request.status === 'pending' && (
+                        <div className="mt-4">
+                          <button
+                            onClick={() =>
+                              openCancelConfirm(
+                                request.item_id,
+                                request.id,
+                                request.item?.title
+                              )
+                            }
+                            className="text-red-600 hover:text-red-700 text-sm font-medium underline"
+                          >
+                            Cancel Request
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -242,7 +321,33 @@ export default function SwapRequests() {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <h2 className="heading-primary text-xl font-bold mb-2">Cancel Swap Request?</h2>
+            <p className="text-swapcircle-secondary mb-6">
+              Are you sure you want to cancel this swap request? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="btn-secondary flex-1 py-2"
+              >
+                Keep It
+              </button>
+              <button
+                onClick={handleCancelRequest}
+                disabled={cancelLoading}
+                className="btn-primary flex-1 py-2 disabled:opacity-50"
+              >
+                {cancelLoading ? 'Cancelling...' : 'Cancel Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
