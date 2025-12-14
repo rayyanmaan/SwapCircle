@@ -605,6 +605,27 @@
             font-weight: 600;
         }
 
+        /* Centered status overlay for demo page */
+        .status-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        .status-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .badge.pending {
+            background: #FFFBEB;
+            border-color: #FDE68A;
+            color: #92400E;
+        }
+
         .product-description {
             padding: 1.5rem 0;
             border-top: 1px solid var(--border);
@@ -1996,14 +2017,23 @@
         function renderItems(containerId, items) {
             const container = document.getElementById(containerId);
             container.innerHTML = items.map(item => {
-                const isUnavailable = ['swapped','pending','locked'].includes(item.status);
+                const isUnavailable = ['swapped','locked'].includes(item.status);
+                const isFaded = isUnavailable || item.status === 'pending';
                 return `
-                <div class="item-card ${isUnavailable ? 'listing-unavailable' : ''}" onclick="viewProduct(${item.id})">
+                <div class="item-card ${isFaded ? 'listing-unavailable' : ''}" onclick="viewProduct(${item.id})">
                     <div class="item-image">
                         <img src="${item.images[0]}" alt="${item.title}">
                         <div class="condition-badge">${item.condition}</div>
                         <button class="favorite-btn" onclick="event.stopPropagation()">♡</button>
-                        ${isUnavailable ? '<div class="badge unavailable">Unavailable</div>' : ''}
+                        ${ (isUnavailable || item.status === 'pending') ? `
+                            <div class="unavailable-overlay" aria-hidden="true"></div>
+                            <div class="status-overlay">
+                                <div class="status-stack">
+                                    ${isUnavailable ? '<div class="badge unavailable">Unavailable</div>' : ''}
+                                    ${item.status === 'pending' ? '<div class="badge pending">Pending</div>' : ''}
+                                </div>
+                            </div>
+                        ` : '' }
                     </div>
                     <div class="item-info">
                         <div class="item-header">

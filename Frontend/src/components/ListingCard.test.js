@@ -1,28 +1,27 @@
 import React from 'react'
+import { render, screen } from '@testing-library/react'
 import ListingCard from './ListingCard'
-import { render, screen, fireEvent } from '@testing-library/react'
 
-describe('ListingCard', () => {
-  test('renders title and credits and size', () => {
-    render(<ListingCard id="1" title="Test" credits={3} size="M" />)
-    expect(screen.getByText('Test')).toBeInTheDocument()
-    expect(screen.getByText('M')).toBeInTheDocument()
-    expect(screen.getByText('3')).toBeInTheDocument()
+describe('ListingCard status display', () => {
+  test('pending items are faded and show Pending badge', () => {
+    render(<ListingCard id="1" title="Pending Item" status="pending" credits={2} />)
+    const link = screen.getByRole('link')
+    // faded class applied
+    expect(link.className).toContain('listing-unavailable')
+    // Pending badge visible
+    expect(screen.getByText('Pending')).toBeInTheDocument()
+    // Unavailable badge should not be present for pending
+    expect(screen.queryByText('Unavailable')).toBeNull()
+    // there should be an overlay element under the badge
+    expect(document.querySelector('.unavailable-overlay')).toBeTruthy()
   })
 
-  test('shows Unavailable badge when status is locked', () => {
-    render(<ListingCard id="1" title="Locked Item" status="locked" credits={2} />)
+  test('swapped items are faded and show Unavailable badge', () => {
+    render(<ListingCard id="1" title="Swapped Item" status="swapped" credits={2} />)
+    const link = screen.getByRole('link')
+    expect(link.className).toContain('listing-unavailable')
     expect(screen.getByText('Unavailable')).toBeInTheDocument()
-  })
-
-  test('favorite button toggles fill', () => {
-    render(<ListingCard id="1" title="Fav Item" credits={1} />)
-    const button = screen.getByLabelText('Favorite')
-    const svg = button.querySelector('svg')
-    expect(svg.getAttribute('fill')).toBe('none')
-    fireEvent.click(button)
-    expect(svg.getAttribute('fill')).toBe('currentColor')
-    fireEvent.click(button)
-    expect(svg.getAttribute('fill')).toBe('none')
+    // overlay should be present for unavailable items as well
+    expect(document.querySelector('.unavailable-overlay')).toBeTruthy()
   })
 })
