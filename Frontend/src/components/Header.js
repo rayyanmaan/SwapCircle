@@ -105,7 +105,9 @@ export default function Header() {
 
                 {/* Action Buttons - Logged In */}
                 <div className="hidden md:flex items-center space-x-3">
-                  <NotificationCenter />
+                  <div className="hover:opacity-80 transition-opacity cursor-pointer">
+                    <NotificationCenter />
+                  </div>
                   
                   <Link href="/profile" className="btn-credit hover:bg-swapcircle-credit/80 transition-colors">
                     {user?.credits || 0} credits
@@ -118,7 +120,7 @@ export default function Header() {
                   {/* Logout Button */}
                   <button
                     onClick={() => setShowLogoutConfirm(true)}
-                    className="p-2 rounded-lg hover:bg-swapcircle-neutral-100 transition-colors text-swapcircle-secondary"
+                    className="p-2 rounded-lg hover:bg-swapcircle-neutral-100 hover:text-swapcircle-primary transition-colors text-swapcircle-secondary cursor-pointer"
                     aria-label="Logout"
                   >
                     <svg
@@ -138,7 +140,7 @@ export default function Header() {
                 {/* Mobile Menu Button */}
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="md:hidden p-2 icon-primary"
+                  className="md:hidden p-2 icon-primary cursor-pointer"
                   aria-label="Toggle menu"
                 >
                   <svg
@@ -208,7 +210,7 @@ export default function Header() {
                 {/* Mobile Menu Button */}
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="md:hidden p-2 icon-primary"
+                  className="md:hidden p-2 icon-primary cursor-pointer"
                   aria-label="Toggle menu"
                 >
                   <svg
@@ -281,7 +283,10 @@ export default function Header() {
                     <Link href="/upload" className="btn-primary text-center" onClick={() => setIsMobileMenuOpen(false)}>
                       List Item
                     </Link>
-                    <button onClick={() => setShowLogoutConfirm(true)} className="btn-secondary text-left">
+                    <button 
+                      onClick={() => setShowLogoutConfirm(true)} 
+                      className="btn-secondary text-left hover:bg-swapcircle-neutral-100 hover:text-swapcircle-primary transition-colors cursor-pointer"
+                    >
                       Logout
                     </button>
                   </div>
@@ -324,7 +329,7 @@ export default function Header() {
       {showLogoutConfirm && (
         <>
           <div 
-            className="fixed inset-0 backdrop-blur-sm z-40"
+            className="fixed inset-0 backdrop-blur-sm z-40 cursor-pointer"
             onClick={() => setShowLogoutConfirm(false)}
           />
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
@@ -338,13 +343,13 @@ export default function Header() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 btn-secondary"
+                  className="flex-1 btn-secondary cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleConfirmLogout}
-                  className="flex-1 btn-primary"
+                  className="flex-1 btn-primary cursor-pointer"
                 >
                   Logout
                 </button>
