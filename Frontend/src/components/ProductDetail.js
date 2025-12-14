@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { FaLocationDot } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
@@ -290,30 +291,18 @@ export default function ProductDetail({ product }) {
 
             {/* Attributes */}
             <div className="flex flex-wrap gap-3">
-              <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#ECFDF5', color: '#10B981' }}>
+              <span className="px-3 py-1 rounded-md text-sm font-medium border border-black text-black bg-white">
                 {productData.condition}
               </span>
-              <span className="px-3 py-1 rounded-full text-sm font-medium bg-swapcircle-credit text-swapcircle-credit">
-                Brand: {productData.brand}
-              </span>
-              <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#FEF3C7', color: '#F59E0B' }}>
+              <span className="px-3 py-1 rounded-md text-sm font-medium border border-black text-black bg-white">
                 Size: {productData.size}
               </span>
+              <span className="px-3 py-1 rounded-md text-sm font-medium border border-black text-black bg-white">
+                Brand: {productData.brand}
+              </span>
               {productData.location && (
-                <span className="px-3 py-1 rounded-full text-sm font-medium bg-slate-700 text-white flex items-center gap-1">
-                  <svg
-                    className="w-4 h-4"
-                    aria-label="location"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M12 11a3 3 0 100-6 3 3 0 000 6z" />
-                    <path d="M12 22c4-4.5 7-8.5 7-12a7 7 0 10-14 0c0 3.5 3 7.5 7 12z" />
-                  </svg>
+                <span className="px-3 py-1 rounded-md text-sm font-medium border border-black text-black bg-white flex items-center gap-1">
+                  <FaLocationDot aria-label="location" className="w-4 h-4" />
                   <span>{productData.location}</span>
                 </span>
               )}
@@ -334,20 +323,9 @@ export default function ProductDetail({ product }) {
                 <p className="text-swapcircle-secondary text-sm">
                   You have {userCredits} credits available
                 </p>
-                <div className="flex items-center gap-2">
-                  <svg
-                    className="w-6 h-6 icon-credit"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path d="M12 8c-1.657 0-3 .895-3 2 0 1.105 1.343 2 3 2s3-.895 3-2c0-1.105-1.343-2-3-2z" />
-                  </svg>
-                  <p className="text-swapcircle-blue text-4xl font-bold">
-                    {productData.credits} Credits
+                <div className="flex items-center">
+                  <p className="text-swapcircle-blue text-3xl font-bold">
+                    {productData.credits} {productData.credits === 1 ? 'Credit' : 'Credits'}
                   </p>
                 </div>
               </div>

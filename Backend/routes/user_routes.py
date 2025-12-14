@@ -75,7 +75,7 @@ async def get_user_by_username(username: str):
         facebook_url=user.get("facebook_url"),
         twitter_handle=user.get("twitter_handle"),
         linkedin_url=user.get("linkedin_url"),
-        favorites=user.get("favorites", [])
+        favorites=user.get("favorites", []),
         average_rating=rating_stats.get("average_rating"),
         total_ratings=rating_stats.get("total_ratings", 0)
     )
@@ -110,7 +110,7 @@ async def get_user(user_id: str):
         facebook_url=user.get("facebook_url"),
         twitter_handle=user.get("twitter_handle"),
         linkedin_url=user.get("linkedin_url"),
-        favorites=user.get("favorites", [])
+        favorites=user.get("favorites", []),
         average_rating=rating_stats.get("average_rating"),
         total_ratings=rating_stats.get("total_ratings", 0)
     )
@@ -324,7 +324,7 @@ async def upload_profile_picture(user_id: str, request: Request, file: UploadFil
             facebook_url=updated_user.get("facebook_url"),
             twitter_handle=updated_user.get("twitter_handle"),
             linkedin_url=updated_user.get("linkedin_url"),
-            favorites=updated_user.get("favorites", [])
+            favorites=updated_user.get("favorites", []),
             average_rating=rating_stats.get("average_rating"),
             total_ratings=rating_stats.get("total_ratings", 0)
         )

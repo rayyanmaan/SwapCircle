@@ -20,6 +20,7 @@ export default function BrowsePage() {
     conditions: [],
     minCredits: null,
     maxCredits: null,
+    availability: 'all', // 'all' | 'available' | 'unavailable' | 'pending'
   });
   const [showFilters, setShowFilters] = useState(false);
   const [listings, setListings] = useState([]);
@@ -65,6 +66,21 @@ export default function BrowsePage() {
         console.log('Image data:', { firstImage, imageUrl, itemId: item.id });
       }
       
+      // Normalize status to known set: available | unavailable | pending
+      const rawStatus = (item.status || 'available');
+      const lower = String(rawStatus).toLowerCase().trim();
+      let normStatus = 'available';
+      if (lower === 'available') {
+        normStatus = 'available';
+      } else if (lower === 'pending' || lower === 'reserved' || lower === 'in-progress') {
+        normStatus = 'pending';
+      } else if (lower === 'unavailable' || lower === 'not available' || lower === 'not_available' || lower === 'sold' || lower === 'closed') {
+        normStatus = 'unavailable';
+      } else {
+        // Any other non-available becomes unavailable
+        normStatus = lower === 'available' ? 'available' : 'unavailable';
+      }
+
       return {
         id: item.id,
         title: item.title,
@@ -76,7 +92,7 @@ export default function BrowsePage() {
         category: metadata.category || 'General',
         brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',
         image: imageUrl, // ListingCard expects 'image' prop, not 'imageUrl'
-        status: item.status || 'available',
+        status: normStatus,
         isOwner: isOwner,
       };
     });
@@ -127,6 +143,17 @@ export default function BrowsePage() {
       filtered = filtered.filter((item) => item.credits <= filters.maxCredits);
     }
 
+    // Availability filter (available | unavailable | pending)
+    if (filters.availability && filters.availability !== 'all') {
+      if (filters.availability === 'unavailable') {
+        filtered = filtered.filter((item) => item.status === 'unavailable');
+      } else if (filters.availability === 'available') {
+        filtered = filtered.filter((item) => item.status === 'available');
+      } else if (filters.availability === 'pending') {
+        filtered = filtered.filter((item) => item.status === 'pending');
+      }
+    }
+
     // Sort
     switch (sortBy) {
       case 'newest':
@@ -174,7 +201,8 @@ export default function BrowsePage() {
     (filters.locations?.length || 0) +
     filters.conditions.length +
     (filters.minCredits !== null ? 1 : 0) +
-    (filters.maxCredits !== null ? 1 : 0);
+    (filters.maxCredits !== null ? 1 : 0) +
+    (filters.availability !== 'all' ? 1 : 0);
 
   return (
     <main className="min-h-screen bg-swapcircle-white">
@@ -265,6 +293,11 @@ export default function BrowsePage() {
                 <span className="px-3 py-1 rounded-full text-sm bg-white border border-swapcircle text-swapcircle-secondary">
                   Credits: {filters.minCredits !== null ? filters.minCredits : '0'} -{' '}
                   {filters.maxCredits !== null ? filters.maxCredits : '∞'}
+                </span>
+              )}
+              {filters.availability !== 'all' && (
+                <span className="px-3 py-1 rounded-full text-sm bg-white border border-swapcircle text-swapcircle-secondary">
+                  {filters.availability === 'available' ? 'Available' : filters.availability === 'pending' ? 'Pending' : 'Unavailable'}
                 </span>
               )}
               <button

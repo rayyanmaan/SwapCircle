@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { FaLocationDot } from 'react-icons/fa6';
 import { userAPI } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import Toast from './Toast';
@@ -91,10 +92,9 @@ export default function ListingCard({
     router.push(`/product/${id}`);
   };
 
-  // 'pending' should not mark an item as unavailable — pending means it's
-  // requested but not yet accepted/rejected. Unavailable covers swapped or
-  // locked items which are not available for new swaps.
-  const isUnavailable = ['swapped', 'locked'].includes(status);
+  // Unavailable items should appear faded; status is normalized upstream to
+  // 'available' | 'unavailable' | 'pending'. Keep fade for 'unavailable'.
+  const isUnavailable = status === 'unavailable';
   const isPending = status === 'pending';
   // faded items should include both unavailable (swapped/locked) and
   // pending (requested but unresolved) so they look visually subdued
@@ -103,7 +103,6 @@ export default function ListingCard({
   return (
     <div className="group cursor-pointer flex flex-col h-full">
       <a href={`/product/${id}`} className={`group ${isFaded ? 'listing-unavailable' : ''}`}>
-      <div className="relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt">
       <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
@@ -207,19 +206,7 @@ export default function ListingCard({
 
           {location && (
             <span className="flex items-center gap-1 ml-3">
-              <svg
-                className="w-4 h-4 text-swapcircle-secondary"
-                aria-label="location"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M12 11a3 3 0 100-6 3 3 0 000 6z" />
-                <path d="M12 22c4-4.5 7-8.5 7-12a7 7 0 10-14 0c0 3.5 3 7.5 7 12z" />
-              </svg>
+              <FaLocationDot aria-label="location" className="w-4 h-4 text-swapcircle-secondary" />
               <span className="truncate">{location}</span>
             </span>
           )}
