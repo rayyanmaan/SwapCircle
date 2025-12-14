@@ -303,6 +303,7 @@ export default function ProductDetail({ product }) {
                 <span className="px-3 py-1 rounded-full text-sm font-medium bg-slate-700 text-white flex items-center gap-1">
                   <svg
                     className="w-4 h-4"
+                    aria-label="location"
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"

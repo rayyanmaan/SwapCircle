@@ -101,9 +101,9 @@ export default function ListingCard({
   const isFaded = isUnavailable || isPending;
 
   return (
-    <div className="group cursor-pointer flex flex-col h-full" onClick={handleCardClick}>
+    <div className="group cursor-pointer flex flex-col h-full">
+      <a href={`/product/${id}`} className={`group ${isFaded ? 'listing-unavailable' : ''}`}>
       <div className="relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt">
-    <a href={`/product/${id}`} className={`group cursor-pointer ${isFaded ? 'listing-unavailable' : ''}`}>
       <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
@@ -209,6 +209,7 @@ export default function ListingCard({
             <span className="flex items-center gap-1 ml-3">
               <svg
                 className="w-4 h-4 text-swapcircle-secondary"
+                aria-label="location"
                 fill="none"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -224,6 +225,7 @@ export default function ListingCard({
           )}
         </div>
       </div>
+      </a>
       <Toast 
         message={toastMessage}
         isVisible={showToast}
