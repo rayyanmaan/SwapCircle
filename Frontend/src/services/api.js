@@ -638,6 +638,9 @@ export const itemsAPI = {
   },
 };
 
+// Exporting apiRequest for unit tests to assert headers and error handling.
+export { apiRequest };
+
 /**
  * Notifications API
  */
