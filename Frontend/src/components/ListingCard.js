@@ -20,7 +20,11 @@ export default function ListingCard({
     setIsFavorited(!isFavorited);
   };
 
-  const isUnavailable = ['swapped', 'pending', 'locked'].includes(status);
+  // 'pending' should not mark an item as unavailable — pending means it's
+  // requested but not yet accepted/rejected. Unavailable covers swapped or
+  // locked items which are not available for new swaps.
+  const isUnavailable = ['swapped', 'locked'].includes(status);
+  const isPending = status === 'pending';
 
   return (
     <a href={`/product/${id}`} className={`group cursor-pointer ${isUnavailable ? 'listing-unavailable' : ''}`}>
@@ -62,19 +66,24 @@ export default function ListingCard({
           </div>
         ) : null}
 
-        {/* Status badge (Pending) - positioned below swapped/condition badge or top-left if no badge */}
-        {status && status === "pending" && (
-          <div className={`absolute ${(showSwappedStatus && status === "swapped") || condition ? 'top-10 left-2' : 'top-2 left-2'} backdrop-blur-sm px-2 py-1 rounded-full bg-amber-100`}>
-            <span className="text-xs font-medium text-amber-800">
-              Pending
-            </span>
-          </div>
-        )}
+        {/* Centered status overlay for Pending / Unavailable badges.
+            These should be centered over the image and stacked with a
+            small gap when both are present (rare). */}
+        {(isPending || isUnavailable) && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+            <div className="flex flex-col items-center gap-2">
+              {isUnavailable && (
+                <div className="backdrop-blur-sm px-3 py-1 rounded-full bg-gray-100/80">
+                  <span className="text-xs font-medium text-gray-700">Unavailable</span>
+                </div>
+              )}
 
-        {/* Locked or Unavailable badge */}
-        {isUnavailable && (
-          <div className="absolute top-2 left-2 backdrop-blur-sm px-2 py-1 rounded-full bg-gray-100/80">
-            <span className="text-xs font-medium text-gray-700">Unavailable</span>
+              {isPending && (
+                <div className="backdrop-blur-sm px-3 py-1 rounded-full bg-amber-100">
+                  <span className="text-xs font-medium text-amber-800">Pending</span>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
