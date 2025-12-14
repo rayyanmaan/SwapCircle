@@ -6,6 +6,16 @@ This document describes how the frontend is connected to the backend APIs.
 
 The frontend and backend are now fully connected. All major components fetch data from the backend API instead of using mock data.
 
+## Interactive API Documentation
+
+FastAPI automatically provides interactive API documentation that you can use to explore and test all endpoints:
+
+- **Swagger UI**: `http://localhost:8000/docs` - Interactive API explorer where you can try out endpoints
+- **ReDoc**: `http://localhost:8000/redoc` - Clean, readable API documentation
+- **OpenAPI Schema**: `http://localhost:8000/openapi.json` - Machine-readable schema for API tools
+
+When the backend is running, visit `http://localhost:8000/docs` to see all available endpoints, their parameters, request/response schemas, and test them directly in your browser.
+
 ## API Service
 
 The main API service is located at `Frontend/src/services/api.js`. It provides:
