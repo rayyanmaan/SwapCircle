@@ -58,7 +58,11 @@ export default function Footer() {
                 </h4>
                 <ul className="space-y-2">
                   <li>
-                    <Link href="/browse" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
+                    <Link 
+                      href="/browse" 
+                      className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                      aria-label="Browse all items"
+                    >
                       Browse All
                     </Link>
                   </li>
@@ -75,6 +79,7 @@ export default function Footer() {
                     <button 
                       onClick={() => scrollToSection('how-it-works')}
                       className="text-sm link-swapcircle text-swapcircle-secondary hover:underline cursor-pointer bg-none border-none p-0"
+                      aria-label="Learn how SwapCircle works"
                     >
                       How It Works
                     </button>
@@ -83,12 +88,17 @@ export default function Footer() {
                     <button 
                       onClick={() => setShowShippingModal(true)}
                       className="text-sm link-swapcircle text-swapcircle-secondary hover:underline cursor-pointer bg-none border-none p-0"
+                      aria-label="View shipping and returns information"
                     >
                       Shipping & Returns
                     </button>
                   </li>
                   <li>
-                    <Link href="/contact" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
+                    <Link 
+                      href="/contact" 
+                      className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                      aria-label="Contact SwapCircle support"
+                    >
                       Contact Us
                     </Link>
                   </li>
@@ -104,16 +114,32 @@ export default function Footer() {
                 © {new Date().getFullYear()} SwapCircle. All rights reserved.
               </p>
               <div className="flex space-x-6">
-                <Link href="/privacy" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
+                <Link 
+                  href="/privacy" 
+                  className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                  aria-label="Read our privacy policy"
+                >
                   Privacy Policy
                 </Link>
-                <Link href="/terms" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
+                <Link 
+                  href="/terms" 
+                  className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                  aria-label="Read our terms of service"
+                >
                   Terms of Service
                 </Link>
-                <Link href="/cookies" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
+                <Link 
+                  href="/cookies" 
+                  className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                  aria-label="Read our cookie policy"
+                >
                   Cookie Policy
                 </Link>
-                <Link href="/refund-policy" className="text-sm link-swapcircle text-swapcircle-secondary hover:underline">
+                <Link 
+                  href="/refund-policy" 
+                  className="text-sm link-swapcircle text-swapcircle-secondary hover:underline"
+                  aria-label="Read our refund and returns policy"
+                >
                   Refund & Returns
                 </Link>
               </div>
@@ -126,7 +152,7 @@ export default function Footer() {
       {showShippingModal && (
         <>
           <div 
-            className="fixed inset-0 backdrop-blur-sm z-40"
+            className="fixed inset-0 backdrop-blur-sm z-40 cursor-pointer"
             onClick={() => setShowShippingModal(false)}
           />
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
@@ -140,11 +166,18 @@ export default function Footer() {
                 you rented an item from.
               </p>
               <p className="text-swapcircle-secondary mb-6 leading-relaxed">
-                For more information, please visit our <Link href="/refund-policy" className="text-swapcircle-blue text-sm font-semibold hover:underline">Refund & Returns Policy</Link>.
+                For more information, please visit our <Link 
+                  href="/refund-policy" 
+                  className="text-swapcircle-blue text-sm font-semibold hover:underline"
+                  aria-label="Read our refund and returns policy"
+                >
+                  Refund & Returns Policy
+                </Link>.
               </p>
               <button
                 onClick={() => setShowShippingModal(false)}
-                className="w-full bg-swapcircle-primary text-white py-2 rounded-lg hover:opacity-90 transition"
+                className="w-full bg-swapcircle-primary text-white py-2 rounded-lg hover:opacity-90 transition cursor-pointer"
+                aria-label="Close shipping and returns modal"
               >
                 Got it
               </button>

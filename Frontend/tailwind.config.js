@@ -62,6 +62,16 @@ export default {
       // Border Radius
       borderRadius: theme.borderRadius,
       
+      // Border Width - Add border-3 support
+      borderWidth: {
+        DEFAULT: '1px',
+        0: '0',
+        2: '2px',
+        3: '3px',
+        4: '4px',
+        8: '8px',
+      },
+      
       // Shadows
       boxShadow: theme.shadow,
       
