@@ -216,6 +216,7 @@ export default function Profile({ username: usernameProp }) {
     fetchFavorites();
   }, [isOwnProfile, isAuthenticated, authUser, activeTab]);
 
+<<<<<<< HEAD
   // Fetch favorites when viewing own profile and favorites tab is active
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -283,6 +284,8 @@ export default function Profile({ username: usernameProp }) {
     setUser(prev => prev ? { ...prev, swapped: swapHistory.length } : null);
   }, [swapHistory]);
 
+=======
+>>>>>>> 5757f20 (refactor: remove redundant fetchFavorites logic from Profile component)
   const getSocialLink = (platform, value) => {
     if (!value) return null;
 

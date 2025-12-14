@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { userAPI } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import Toast from './Toast';
@@ -17,6 +18,7 @@ export default function ListingCard({
   status,
   showSwappedStatus = false,
 }) {
+  const router = useRouter();
   const { user, isAuthenticated } = useAuth();
   const [isFavorited, setIsFavorited] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -85,7 +87,7 @@ export default function ListingCard({
   };
 
   const handleCardClick = () => {
-    window.location.href = `/product/${id}`;
+    router.push(`/product/${id}`);
   };
 
   // 'pending' should not mark an item as unavailable — pending means it's
