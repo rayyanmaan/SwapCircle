@@ -71,6 +71,8 @@ class UserOut(BaseModel):
     facebook_url: Optional[str] = None
     twitter_handle: Optional[str] = None
     linkedin_url: Optional[str] = None
+    average_rating: Optional[float] = None
+    total_ratings: int = 0
 
 
 class Login(BaseModel):
