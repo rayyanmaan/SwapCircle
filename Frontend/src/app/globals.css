@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
-/* Theme variables - Gen Z Aesthetic */
+/* Theme variables - Updated Brand Colors */
 :root {
   --background: #FFFFFF;
-  --foreground: #000000;
+  --foreground: #0F0F0F;
   
-  /* Primary colors - Clean Blue */
-  --swapcircle-primary: #2563EB;
-  --swapcircle-primary-hover: #1D4ED8;
+  /* Primary colors - Deep Phthalo Blue */
+  --swapcircle-primary: #0046B0;
+  --swapcircle-primary-hover: #002E7A;
   
   /* Secondary colors - Blue Palette */
-  --swapcircle-blue: #2563EB;
-  --swapcircle-light-blue: #3B82F6;
+  --swapcircle-blue: #0046B0;
+  --swapcircle-light-blue: #0052CC;
   --swapcircle-lighter-blue: #60A5FA;
-  --swapcircle-dark-blue: #1D4ED8;
+  --swapcircle-dark-blue: #002E7A;
   --swapcircle-very-light-blue: #DBEAFE;
   
   /* Neutral colors - Clean Whites and Grays */
@@ -26,13 +26,13 @@
   --swapcircle-neutral-600: #6B7280;
   --swapcircle-neutral-700: #4B5563;
   --swapcircle-neutral-800: #374151;
-  --swapcircle-neutral-900: #000000;
+  --swapcircle-neutral-900: #0F0F0F;
   
   /* Semantic colors */
   --swapcircle-success: #10b981;
   --swapcircle-error: #ef4444;
   --swapcircle-warning: #f59e0b;
-  --swapcircle-info: #3b82f6;
+  --swapcircle-info: #0046B0;
   
   /* Special colors */
   --swapcircle-credit: #DBEAFE;
@@ -41,8 +41,8 @@
   /* Background colors */
   --swapcircle-background-alt: #F9FAFB;
   
-  /* Text colors */
-  --swapcircle-text-primary: #000000;
+  /* Text colors - Updated to almost black */
+  --swapcircle-text-primary: #0F0F0F;
   --swapcircle-text-secondary: #374151;
   --swapcircle-text-tertiary: #6B7280;
   
@@ -59,15 +59,15 @@
   --font-script: var(--font-dancing-script);
   --font-mono: var(--font-geist-mono);
   
-  /* Primary colors - Clean Blue */
-  --color-primary: 37 99 235; /* #2563EB */
-  --color-primary-hover: 29 78 216; /* #1D4ED8 */
+  /* Primary colors - Deep Phthalo Blue */
+  --color-primary: 0 70 176; /* #0046B0 */
+  --color-primary-hover: 0 46 122; /* #002E7A */
   
   /* Secondary colors */
-  --color-secondary-blue: 37 99 235; /* #2563EB */
-  --color-secondary-light-blue: 59 130 246; /* #3B82F6 */
+  --color-secondary-blue: 0 70 176; /* #0046B0 */
+  --color-secondary-light-blue: 0 82 204; /* #0052CC */
   --color-secondary-lighter-blue: 96 165 250; /* #60A5FA */
-  --color-secondary-dark-blue: 29 78 216; /* #1D4ED8 */
+  --color-secondary-dark-blue: 0 46 122; /* #002E7A */
   --color-secondary-very-light-blue: 219 234 254; /* #DBEAFE */
   
   /* Neutral colors */
@@ -80,13 +80,13 @@
   --color-neutral-600: 107 114 128; /* #6B7280 */
   --color-neutral-700: 75 85 99; /* #4B5563 */
   --color-neutral-800: 55 65 81; /* #374151 */
-  --color-neutral-900: 0 0 0; /* #000000 */
+  --color-neutral-900: 15 15 15; /* #0F0F0F */
   
   /* Semantic colors */
   --color-success: 16 185 129; /* #10B981 */
   --color-error: 239 68 68; /* #EF4444 */
   --color-warning: 245 158 11; /* #F59E0B */
-  --color-info: 59 130 246; /* #3B82F6 */
+  --color-info: 0 70 176; /* #0046B0 */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -290,7 +290,7 @@ h1, h2, h3, h4, h5, h6 {
 .input-swapcircle:focus {
   outline: none;
   border-color: var(--swapcircle-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 70, 176, 0.1);
 }
 
 .input-swapcircle::placeholder {
@@ -312,7 +312,7 @@ h1, h2, h3, h4, h5, h6 {
 .search-tube:focus {
   outline: none;
   border-color: var(--swapcircle-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 70, 176, 0.1);
 }
 
 .search-tube::placeholder {
@@ -327,6 +327,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .heading-primary {
+  font-family: var(--font-serif), Georgia, serif;
   color: var(--swapcircle-text-primary);
   font-weight: 600;
 }
@@ -361,7 +362,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Modal Backdrop */
 .modal-backdrop {
-  background-color: rgba(37, 99, 235, 0.1);
+  background-color: rgba(0, 70, 176, 0.1);
   backdrop-filter: blur(4px);
 }
 
