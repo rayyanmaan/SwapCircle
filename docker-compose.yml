@@ -1,0 +1,51 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: swapcircle-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: swapcircle-backend
+    env_file:
+      - ./Backend/.env
+    environment:
+      # Always point the backend at the Mongo service defined above
+      MONGODB_URI: mongodb://mongo:27017/swapcircle
+      MONGODB_TLS: "false"
+      # Ensure config.py sees the Firebase credentials inside the container
+      FIREBASE_CREDENTIALS_PATH: /app/pics-storage-37f99-firebase-adminsdk-fbsvc-96dca777fc.json
+      # Provide sane defaults for local CORS + secrets if they are missing
+      SECRET_KEY: ${SECRET_KEY:-changeme}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    volumes:
+      - ./Backend/static:/app/static
+      - ./Backend/pics-storage-37f99-firebase-adminsdk-fbsvc-96dca777fc.json:/app/pics-storage-37f99-firebase-adminsdk-fbsvc-96dca777fc.json:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: swapcircle-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mongo-data:

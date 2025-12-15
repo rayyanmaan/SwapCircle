@@ -78,6 +78,8 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
    cd Backend
    # Create .env file with the following variables:
    MONGODB_URI=mongodb://localhost:27017/swapcircle
+   # Keep TLS disabled for local Mongo/docker, set true only for Atlas
+   MONGODB_TLS=false
    DATABASE_NAME=swapcircle
    SECRET_KEY=your-secret-key-here
    ```
@@ -103,6 +105,22 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
    Frontend will run on `http://localhost:3000`
 
 6. Open your browser and navigate to `http://localhost:3000`
+
+### Run Everything with Docker Compose
+
+If you prefer running the entire stack in containers, use the repo-level `docker-compose.yml`.
+
+1. Make sure Docker Desktop (or Docker Engine + docker compose plugin) is installed and running.
+2. Create `Backend/.env` with the same variables described above (Mongo URI, Firebase settings, etc.). For Docker we typically let Mongo run locally, so the defaults in `config.py` are fine.
+3. From the repository root run:
+   ```bash
+   docker compose up --build
+   ```
+   This will start:
+   - `mongo` (local MongoDB for development)
+   - `swapcircle-backend` on `http://localhost:8000`
+   - `swapcircle-frontend` on `http://localhost:3000`
+4. When you’re finished, stop everything with `Ctrl+C` or `docker compose down`.
 
 ## 📝 Usage
 [Add instructions on how to use the platform, including screenshots or GIFs]

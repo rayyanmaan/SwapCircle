@@ -30,11 +30,13 @@ async def connect_db():
 
         # For mongodb+srv, TLS is handled automatically by the connection string
         # For regular mongodb://, we might need to add TLS options
-        if not settings.mongodb_uri.startswith("mongodb+srv://"):
-            # Only add TLS options for non-SRV connections if needed
+        if settings.mongodb_tls and not settings.mongodb_uri.startswith(
+            "mongodb+srv://"
+        ):
+            # Only add TLS options for non-SRV connections if explicitly enabled
             import ssl
 
-            ssl_context = ssl.create_default_context()
+            ssl.create_default_context()
             client_options["tls"] = True
             client_options["tlsAllowInvalidCertificates"] = False
 

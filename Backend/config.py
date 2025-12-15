@@ -32,6 +32,7 @@ if PYDANTIC_V2:
         # Use ConfigDict (pydantic v2.0+)
         class Settings(BaseSettings):
             mongodb_uri: str = "mongodb://localhost:27017/swapcircle"
+            mongodb_tls: bool = False
             database_name: str = "swapcircle"
             secret_key: str = "changeme"
             # Firebase configuration
@@ -46,6 +47,7 @@ if PYDANTIC_V2:
         # Fallback for older pydantic v2 (use class Config)
         class Settings(BaseSettings):
             mongodb_uri: str = "mongodb://localhost:27017/swapcircle"
+            mongodb_tls: bool = False
             database_name: str = "swapcircle"
             secret_key: str = "changeme"
             # Firebase configuration
@@ -59,6 +61,7 @@ else:
     # Pydantic v1 Settings class
     class Settings(BaseSettings):
         mongodb_uri: str = "mongodb://localhost:27017/swapcircle"
+        mongodb_tls: bool = False
         database_name: str = "swapcircle"
         secret_key: str = "changeme"
         # Firebase configuration
