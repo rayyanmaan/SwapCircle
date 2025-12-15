@@ -101,18 +101,15 @@ class TestCreditDeductionOnRequest:
                         return_value=[],
                     ):
                         with patch(
-                            "routes.swap_routes.swap_service"
-                            ".create_swap_request",
+                            "routes.swap_routes.swap_service" ".create_swap_request",
                             return_value=mock_swap_request,
                         ):
                             with patch(
-                                "routes.swap_routes"
-                                ".credit_service.deduct_credits",
+                                "routes.swap_routes" ".credit_service.deduct_credits",
                                 return_value=4.0,
                             ):
                                 with patch(
-                                    "routes.swap_routes"
-                                    ".storage_service.upsert_item",
+                                    "routes.swap_routes" ".storage_service.upsert_item",
                                     return_value=None,
                                 ):
                                     with patch(
@@ -129,6 +126,7 @@ class TestCreditDeductionOnRequest:
                                             },
                                         )
                                         assert response.status_code == 200
+
     def test_insufficient_credits(
         self,
         client,
