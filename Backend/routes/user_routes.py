@@ -98,8 +98,8 @@ async def get_user(user_id: str, request: Request):
     # to determine if we should show credits
     requesting_user_id = None
     try:
-        requesting_user_id = auth_service.get_user_id_from_request(request)
-    except:
+        requesting_user_id = get_authenticated_user_id(request)
+    except Exception:
         # Not authenticated or invalid token - that's okay
         pass
 

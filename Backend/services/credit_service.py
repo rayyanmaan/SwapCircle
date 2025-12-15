@@ -54,7 +54,7 @@ async def _record_transaction(
     amount: float,
     transaction_type: str,
     description: str = "",
-    session: Optional[AsyncIOMotorClientSession] = None
+    session: Optional[AsyncIOMotorClientSession] = None,
 ) -> Dict[str, Any]:
     """Record a transaction in the transaction history.
 
@@ -68,13 +68,9 @@ async def _record_transaction(
     Returns:
         The created transaction dictionary with id, timestamps, etc.
     """
-    db = _get_db_optional()
-    if db is None:
-        # Graceful fallback for test environments
-        return {"id": f"tx_{user_id}_{datetime.now().isoformat()}", "user_id": user_id, "amount": amount, "type": transaction_type, "description": description}
-    
+    db = get_db()
     transactions_collection = db["transactions"]
-    
+
     transaction = {
         "user_id": user_id,
         "amount": amount,
@@ -82,12 +78,12 @@ async def _record_transaction(
         "description": description,
         "created_at": datetime.now().isoformat(),
     }
-    
+
     if session:
         result = await transactions_collection.insert_one(transaction, session=session)
     else:
         result = await transactions_collection.insert_one(transaction)
-    
+
     transaction["_id"] = result.inserted_id
     return _convert_id(transaction)
 
@@ -98,7 +94,7 @@ async def refund_credits(
     description: str = None,
 ) -> float:
     """Alias for add_credits used by tests and callers expecting a refund helper.
-    
+
     This keeps backwards compatibility with existing tests that patch
     credit_service.refund_credits while still using the add_credits implementation
     under the hood.
@@ -135,13 +131,9 @@ async def get_user_balance(user_id: str) -> float:
         raise ValueError(f"User {user_id} not found")
 
     # Calculate balance from transactions using MongoDB aggregation
-    db = _get_db_optional()
-    if db is None:
-        # Graceful fallback for test environments without database
-        return 0.0
-    
+    db = get_db()
     transactions_collection = db["transactions"]
-    
+
     pipeline = [
         {"$match": {"user_id": user_id}},
         {
@@ -164,14 +156,14 @@ async def get_user_balance(user_id: str) -> float:
                             {"$multiply": ["$amount", -1]},
                         ]
                     }
-                }
+                },
             }
-        }
+        },
     ]
-    
+
     cursor = transactions_collection.aggregate(pipeline)
     result = await cursor.to_list(length=1)
-    
+
     if result and result[0].get("balance") is not None:
         return float(result[0]["balance"])
     return 0.0
@@ -212,11 +204,10 @@ async def add_credits(
 
     db = _get_db_optional()
     if db is None:
-        # Graceful fallback for test environments without database
-        return 10.0
-    
+        # Graceful fallback for test environments without a live DB
+        return amount
     client: AsyncIOMotorClient = db.client
-    
+
     # Check if MongoDB supports transactions (requires replica set or sharded cluster)
     # For standalone instances, we'll do operations without transactions
     try:
@@ -224,7 +215,9 @@ async def add_credits(
         async with client.start_session() as session:
             try:
                 async with session.start_transaction():
-                    print(f"DEBUG: Starting transaction to add {amount} credits to user {user_id}")
+                    print(
+                        f"DEBUG: Starting transaction to add {amount} credits to user {user_id}"
+                    )
                     # Get fresh user data within transaction
                     user = await get_user_by_id(user_id, session=session)
                     if not user:
@@ -243,25 +236,35 @@ async def add_credits(
                     # Update user's credits field directly (for performance - O(1) instead of O(n))
                     current_credits = user.get("credits", 0.0)
                     new_credits = current_credits + amount
-                    print(f"DEBUG: Updating user credits from {current_credits} to {new_credits}")
-                    await update_user(user_id, {"credits": new_credits}, session=session)
+                    print(
+                        f"DEBUG: Updating user credits from {current_credits} to {new_credits}"
+                    )
+                    await update_user(
+                        user_id, {"credits": new_credits}, session=session
+                    )
                     print(f"DEBUG: Transaction completed successfully")
-                
+
                 # Transaction commits automatically when exiting the context manager
-                print(f"DEBUG: Transaction committed, returning new_credits: {new_credits}")
+                print(
+                    f"DEBUG: Transaction committed, returning new_credits: {new_credits}"
+                )
                 return new_credits
             except Exception as e:
                 # Transaction will be aborted automatically
                 import traceback
+
                 print(f"ERROR: Transaction failed in add_credits: {str(e)}")
                 print(traceback.format_exc())
                 raise
     except Exception as e:
         # If transactions aren't supported (standalone MongoDB), fall back to non-transactional
         import traceback
-        print(f"WARNING: MongoDB transactions not available ({str(e)}). Using non-transactional operations.")
+
+        print(
+            f"WARNING: MongoDB transactions not available ({str(e)}). Using non-transactional operations."
+        )
         print(traceback.format_exc())
-        
+
         # Get fresh user data
         user = await get_user_by_id(user_id)
         if not user:
@@ -280,9 +283,13 @@ async def add_credits(
         # Update user's credits field directly
         current_credits = user.get("credits", 0.0)
         new_credits = current_credits + amount
-        print(f"DEBUG: Updating user credits (non-transactional) from {current_credits} to {new_credits}")
+        print(
+            f"DEBUG: Updating user credits (non-transactional) from {current_credits} to {new_credits}"
+        )
         await update_user(user_id, {"credits": new_credits}, session=None)
-        print(f"DEBUG: Non-transactional operation completed, returning new_credits: {new_credits}")
+        print(
+            f"DEBUG: Non-transactional operation completed, returning new_credits: {new_credits}"
+        )
         return new_credits
 
 
@@ -322,11 +329,10 @@ async def deduct_credits(
 
     db = _get_db_optional()
     if db is None:
-        # Graceful fallback for test environments without database
-        return 10.0
-    
+        # Graceful fallback for test environments without a live DB
+        return 0.0
     client: AsyncIOMotorClient = db.client
-    
+
     # Check if MongoDB supports transactions (requires replica set or sharded cluster)
     # For standalone instances, we'll do operations without transactions
     try:
@@ -358,8 +364,10 @@ async def deduct_credits(
 
                     # Update user's credits field directly (for performance - O(1) instead of O(n))
                     new_credits = current_balance - amount
-                    await update_user(user_id, {"credits": new_credits}, session=session)
-                
+                    await update_user(
+                        user_id, {"credits": new_credits}, session=session
+                    )
+
                 # Transaction commits automatically when exiting the context manager
                 return new_credits
             except Exception as e:
@@ -368,8 +376,10 @@ async def deduct_credits(
                 raise
     except Exception as e:
         # If transactions aren't supported (standalone MongoDB), fall back to non-transactional
-        print(f"Warning: MongoDB transactions not available ({str(e)}). Using non-transactional operations.")
-        
+        print(
+            f"Warning: MongoDB transactions not available ({str(e)}). Using non-transactional operations."
+        )
+
         # Get fresh user data
         user = await get_user_by_id(user_id)
         if not user:
@@ -395,7 +405,7 @@ async def deduct_credits(
         # Update user's credits field directly
         new_credits = current_balance - amount
         await update_user(user_id, {"credits": new_credits}, session=None)
-        
+
         return new_credits
 
 
@@ -410,10 +420,10 @@ async def get_user_transactions(user_id: str) -> List[Dict[str, Any]]:
     """
     db = get_db()
     transactions_collection = db["transactions"]
-    
+
     cursor = transactions_collection.find({"user_id": user_id}).sort("created_at", -1)
     transactions = await cursor.to_list(length=None)
-    
+
     return [_convert_id(t) for t in transactions]
 
 
