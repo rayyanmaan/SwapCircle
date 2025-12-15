@@ -8,17 +8,17 @@ import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
 import SwapProcessingModal from './SwapProcessingModal';
 import AuthModal from './AuthModal';
-import ShareModal from './ShareModal';
-import ReportModal from './ReportModal';
-import { userAPI, itemsAPI, ratingAPI } from '@/services/api';
+import { itemsAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 import Toast from './Toast';
 import RatingDisplay from './RatingDisplay';
 import { theme } from '@/styles/theme';
+import { useSellerInfo } from '@/hooks/useSellerInfo';
+import { useFavoriteStatus } from '@/hooks/useFavoriteStatus';
 
 export default function ProductDetail({ product }) {
   const router = useRouter();
-  const { isAuthenticated, user, refreshUser } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -26,19 +26,13 @@ export default function ProductDetail({ product }) {
   const [showProcessingModal, setShowProcessingModal] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('processing'); // 'processing', 'success', 'error'
   const [processingActionType, setProcessingActionType] = useState('request'); // 'request', 'cancel'
-  const [seller, setSeller] = useState(null);
   const [userCredits, setUserCredits] = useState(0);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
-  const [sellerRatingStats, setSellerRatingStats] = useState({ average_rating: null, total_ratings: 0 });
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [productStatus, setProductStatus] = useState(null);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
 
   // Transform backend product data to component format
   const transformProduct = (productData) => {
@@ -78,48 +72,8 @@ export default function ProductDetail({ product }) {
   // Check if current user is the owner
   const isOwner = user && productData?.owner_id && user.id === productData.owner_id;
 
-  // Fetch seller information if owner_id is available
-  useEffect(() => {
-    const fetchSeller = async () => {
-      if (productData?.owner_id) {
-        try {
-          const sellerData = await userAPI.getUser(productData.owner_id);
-          setSeller({
-            name: sellerData.full_name || sellerData.username || 'Unknown',
-            username: sellerData.username,
-            avatar: sellerData.username?.[0]?.toUpperCase() || sellerData.full_name?.[0]?.toUpperCase() || '?',
-            profile_pic: sellerData.profile_pic || null,
-            credits: sellerData.credits || 0,
-            location: sellerData.location || null,
-          });
-
-          // Fetch seller rating stats
-          try {
-            const stats = await ratingAPI.getRatingStats(productData.owner_id);
-            setSellerRatingStats({
-              average_rating: stats.average_rating,
-              total_ratings: stats.total_ratings || 0
-            });
-          } catch (err) {
-            console.error('Error fetching seller rating stats:', err);
-            setSellerRatingStats({ average_rating: null, total_ratings: 0 });
-          }
-        } catch (err) {
-          console.error('Error fetching seller:', err);
-          setSeller({
-            name: 'Unknown',
-            username: null,
-            avatar: '?',
-            credits: 0,
-            location: null,
-          });
-          setSellerRatingStats({ average_rating: null, total_ratings: 0 });
-        }
-      }
-    };
-
-    fetchSeller();
-  }, [productData?.owner_id]);
+  // Fetch seller info and rating stats via hook
+  const { seller, sellerRatingStats } = useSellerInfo(productData?.owner_id);
 
   // Get user credits
   useEffect(() => {
@@ -128,22 +82,11 @@ export default function ProductDetail({ product }) {
     }
   }, [user]);
 
-  // Check if item is favorited
-  useEffect(() => {
-    const checkFavoriteStatus = async () => {
-      if (!isAuthenticated || !user || !productData?.id) return;
-      
-      try {
-        const response = await userAPI.getFavorites(user.id);
-        const favoriteIds = response.favorites || [];
-        setIsFavorited(favoriteIds.includes(productData.id));
-      } catch (error) {
-        console.error('Error checking favorite status:', error);
-      }
-    };
-
-    checkFavoriteStatus();
-  }, [isAuthenticated, user, productData?.id]);
+  const { isFavorited, isUpdatingFavorite, toggleFavorite } = useFavoriteStatus(
+    productData?.id,
+    user,
+    isAuthenticated,
+  );
 
   const handleFavorite = async () => {
     if (!isAuthenticated || !user) {
@@ -152,32 +95,19 @@ export default function ProductDetail({ product }) {
       return;
     }
 
-    if (isUpdatingFavorite) return;
-
-    setIsUpdatingFavorite(true);
-    const newFavoriteState = !isFavorited;
-    setIsFavorited(newFavoriteState);
-
     try {
-      if (newFavoriteState) {
-        await userAPI.addFavorite(user.id, productData.id);
-        setToastMessage('Added to favorites');
-        setToastType('favorite');
-        setShowToast(true);
-      } else {
-        await userAPI.removeFavorite(user.id, productData.id);
-        setToastMessage('Removed from favorites');
+      const result = await toggleFavorite();
+      if (result?.success) {
+        const message = result.action === 'added' ? 'Added to favorites' : 'Removed from favorites';
+        setToastMessage(message);
         setToastType('favorite');
         setShowToast(true);
       }
     } catch (error) {
       console.error('Error updating favorite:', error);
-      setIsFavorited(!newFavoriteState);
       setToastMessage('Failed to update favorite');
       setToastType('error');
       setShowToast(true);
-    } finally {
-      setIsUpdatingFavorite(false);
     }
   };
 
@@ -210,17 +140,13 @@ export default function ProductDetail({ product }) {
 
     // Prevent swapping own items (double check on frontend)
     if (isOwner) {
-      setToastMessage('You cannot swap your own items');
-      setToastType('error');
-      setShowToast(true);
+      alert('You cannot swap your own items');
       return;
     }
 
     // Check if item is available
     if (productStatus && productStatus !== 'available' && productStatus !== 'pending') {
-      setToastMessage('This item is no longer available for swap');
-      setToastType('error');
-      setShowToast(true);
+      alert('This item is no longer available for swap');
       return;
     }
 
@@ -233,11 +159,6 @@ export default function ProductDetail({ product }) {
       // Call the swap request API endpoint
       const result = await itemsAPI.requestSwap(productData.id);
       
-      // Refresh user data to get updated credits
-      if (refreshUser) {
-        await refreshUser();
-      }
-      
       // Show success modal after a brief delay
       setTimeout(() => {
         setProcessingStatus('success');
@@ -247,13 +168,7 @@ export default function ProductDetail({ product }) {
       setProductStatus('pending');
     } catch (error) {
       console.error('Error requesting swap:', error);
-      setShowProcessingModal(false);
-      
-      // Show user-friendly error message
-      const errorMessage = error.message || 'Failed to request swap';
-      setToastMessage(errorMessage.includes('enough credits') ? 'Not enough credits' : errorMessage);
-      setToastType('error');
-      setShowToast(true);
+      setProcessingStatus('error');
     }
   };
 
@@ -468,25 +383,17 @@ export default function ProductDetail({ product }) {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <button 
-                    className="btn-primary w-full py-4 text-lg disabled:opacity-50"
-                    onClick={handleSwapClick}
-                    disabled={userCredits < productData.credits}
-                  >
-                    Request Swap
-                  </button>
-                  {userCredits < productData.credits && (
-                    <p className="text-sm text-swapcircle-tertiary text-center">
-                      Not enough credits to request this item
-                    </p>
-                  )}
-                </div>
+                <button 
+                  className="btn-primary w-full py-4 text-lg"
+                  onClick={handleSwapClick}
+                >
+                  Request Swap
+                </button>
               )}
             </div>
 
             {/* Seller Section */}
-            {seller && !isOwner && (
+            {seller && (
               <div className="card-swapcircle border-2 rounded-lg p-6 border-swapcircle">
                 <h3 className="heading-primary text-lg font-semibold mb-4">Seller</h3>
                 <div className="flex items-center space-x-4 mb-4">
@@ -508,7 +415,7 @@ export default function ProductDetail({ product }) {
                       {seller.avatar}
                     </span>
                   </div>
-                    <div className="flex-1">
+                  <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       {seller.username ? (
                         <a
@@ -525,12 +432,9 @@ export default function ProductDetail({ product }) {
                         totalRatings={sellerRatingStats.total_ratings} 
                       />
                     </div>
-                      {seller.location && (
-                        <p className="text-swapcircle-secondary text-sm flex items-center gap-1">
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
-                          {seller.location}
-                        </p>
-                      )}
+                    <p className="text-swapcircle-secondary text-sm">
+                      {seller.credits} credits • {seller.lockDuration} lock
+                    </p>
                   </div>
                 </div>
                 {seller.username && (
@@ -568,13 +472,13 @@ export default function ProductDetail({ product }) {
                     </svg>
                     <span>{isFavorited ? 'Saved' : 'Save'}</span>
                   </button>
-                  <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2" onClick={()=>setShowShareModal(true)}>
+                  <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2">
                     <svg className="w-5 h-5 icon-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
                     <span>Share</span>
                   </button>
-                  <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2" onClick={()=>setShowReportModal(true)}>
+                  <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2">
                     <svg className="w-5 h-5 icon-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                     </svg>
@@ -632,19 +536,6 @@ export default function ProductDetail({ product }) {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         mode={authMode}
-      />
-      <ShareModal
-        isOpen={showShareModal}
-        onClose={(info)=>{ setShowShareModal(false); if(info?.copied){ setToastMessage('Link copied'); setToastType('success'); setShowToast(true); } }}
-        itemTitle={productData.title}
-        itemUrl={typeof window !== 'undefined' ? window.location.href : ''}
-      />
-      <ReportModal
-        isOpen={showReportModal}
-        onClose={(info)=>{ setShowReportModal(false); if(info?.success){ setToastMessage('Report submitted'); setToastType('success'); setShowToast(true); } }}
-        targetType="item"
-        targetId={productData.id}
-        itemUrl={typeof window !== 'undefined' ? window.location.href : ''}
       />
       <Toast 
         message={toastMessage}
