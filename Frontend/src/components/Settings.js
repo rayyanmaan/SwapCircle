@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { userAPI } from '@/services/api';
 import { getImageUrl } from '@/utils/itemParser';
 
 export default function Settings() {
+  const router = useRouter();
   const { user: authUser, isAuthenticated } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -203,6 +205,11 @@ export default function Settings() {
       setTimeout(() => {
         setSuccessMessage(null);
       }, 4000);
+
+      // Redirect to profile page after successful save
+      setTimeout(() => {
+        router.push('/profile');
+      }, 1500);
     } catch (err) {
       console.error('Error updating profile:', err);
       const errorMessage = err.message || err.detail || 'Failed to update profile';

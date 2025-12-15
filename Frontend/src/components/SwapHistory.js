@@ -59,13 +59,15 @@ export default function SwapHistory() {
     );
   }
 
-  // Counts for badges
-  const receivedCount = swapHistory.filter(s => !s.is_seller).length;
-  const givenCount = swapHistory.filter(s => !!s.is_seller).length;
+  // Classify swaps based on is_seller flag
+  // "Given Away" = user was the owner/seller (is_seller = true)
+  // "Received" = user was the requester (is_seller = false)
+  const givenSwaps = swapHistory.filter(s => s.is_seller === true);
+  const receivedSwaps = swapHistory.filter(s => s.is_seller === false);
 
   const filteredSwaps = swapHistory.filter((s) => {
-    if (activeTab === 'received') return !s.is_seller;
-    if (activeTab === 'given') return !!s.is_seller;
+    if (activeTab === 'received') return s.is_seller === false;
+    if (activeTab === 'given') return s.is_seller === true;
     return true;
   });
 
@@ -89,7 +91,7 @@ export default function SwapHistory() {
         >
           <span className="icon">↘</span>
           <span>Received</span>
-          <span className="ml-1 text-xs text-swapcircle-tertiary">({receivedCount})</span>
+          <span className="ml-1 text-xs text-swapcircle-tertiary">({receivedSwaps.length})</span>
         </button>
         <button
           onClick={() => setActiveTab('given')}
@@ -99,7 +101,7 @@ export default function SwapHistory() {
         >
           <span className="icon">↗</span>
           <span>Given Away</span>
-          <span className="ml-1 text-xs text-swapcircle-tertiary">({givenCount})</span>
+          <span className="ml-1 text-xs text-swapcircle-tertiary">({givenSwaps.length})</span>
         </button>
       </div>
 

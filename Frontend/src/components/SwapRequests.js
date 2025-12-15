@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { itemsAPI } from '@/services/api';
 import { getImageUrl } from '@/utils/itemParser';
 import { useAuth } from '@/contexts/AuthContext';
 import { theme } from '@/styles/theme';
 
 export default function SwapRequests() {
+  const router = useRouter();
   const { user, refreshUser } = useAuth();
   const [swapRequests, setSwapRequests] = useState({ as_owner: [], as_requester: [] });
   const [loading, setLoading] = useState(true);
@@ -144,8 +146,11 @@ export default function SwapRequests() {
                   className="border rounded-lg p-6 bg-white"
                 >
                   <div className="flex items-start gap-4">
-                    {/* Item Image */}
-                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0">
+                    {/* Item Image - Clickable */}
+                    <div 
+                      onClick={() => router.push(`/product/${request.item?.id}`)}
+                      className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                       <img
                         src={itemImage}
                         alt={request.item?.title || 'Item'}
@@ -155,7 +160,10 @@ export default function SwapRequests() {
 
                     {/* Request Details */}
                     <div className="flex-1">
-                      <h3 className="heading-primary text-lg font-semibold mb-2">
+                      <h3 
+                        onClick={() => router.push(`/product/${request.item?.id}`)}
+                        className="heading-primary text-lg font-semibold mb-2 cursor-pointer hover:text-swapcircle-primary transition-colors"
+                      >
                         {request.item?.title || 'Unknown Item'}
                       </h3>
                       <div className="space-y-1 text-sm text-swapcircle-secondary mb-4">
@@ -241,8 +249,11 @@ export default function SwapRequests() {
                   className="border rounded-lg p-6 bg-white"
                 >
                   <div className="flex items-start gap-4">
-                    {/* Item Image */}
-                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0">
+                    {/* Item Image - Clickable */}
+                    <div 
+                      onClick={() => router.push(`/product/${request.item?.id}`)}
+                      className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                    >
                       <img
                         src={itemImage}
                         alt={request.item?.title || 'Item'}
@@ -253,7 +264,10 @@ export default function SwapRequests() {
                     {/* Request Details */}
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="heading-primary text-lg font-semibold">
+                        <h3 
+                          onClick={() => router.push(`/product/${request.item?.id}`)}
+                          className="heading-primary text-lg font-semibold cursor-pointer hover:text-swapcircle-primary transition-colors"
+                        >
                           {request.item?.title || 'Unknown Item'}
                         </h3>
                         <span
