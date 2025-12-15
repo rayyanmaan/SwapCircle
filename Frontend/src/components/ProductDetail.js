@@ -8,11 +8,13 @@ import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
 import SwapProcessingModal from './SwapProcessingModal';
 import AuthModal from './AuthModal';
-import { userAPI, itemsAPI, ratingAPI } from '@/services/api';
+import { itemsAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 import Toast from './Toast';
 import RatingDisplay from './RatingDisplay';
 import { theme } from '@/styles/theme';
+import { useSellerInfo } from '@/hooks/useSellerInfo';
+import { useFavoriteStatus } from '@/hooks/useFavoriteStatus';
 
 export default function ProductDetail({ product }) {
   const router = useRouter();
@@ -24,14 +26,10 @@ export default function ProductDetail({ product }) {
   const [showProcessingModal, setShowProcessingModal] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('processing'); // 'processing', 'success', 'error'
   const [processingActionType, setProcessingActionType] = useState('request'); // 'request', 'cancel'
-  const [seller, setSeller] = useState(null);
   const [userCredits, setUserCredits] = useState(0);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
-  const [sellerRatingStats, setSellerRatingStats] = useState({ average_rating: null, total_ratings: 0 });
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [productStatus, setProductStatus] = useState(null);
@@ -74,48 +72,8 @@ export default function ProductDetail({ product }) {
   // Check if current user is the owner
   const isOwner = user && productData?.owner_id && user.id === productData.owner_id;
 
-  // Fetch seller information if owner_id is available
-  useEffect(() => {
-    const fetchSeller = async () => {
-      if (productData?.owner_id) {
-        try {
-          const sellerData = await userAPI.getUser(productData.owner_id);
-          setSeller({
-            name: sellerData.full_name || sellerData.username || 'Unknown',
-            username: sellerData.username,
-            avatar: sellerData.username?.[0]?.toUpperCase() || sellerData.full_name?.[0]?.toUpperCase() || '?',
-            profile_pic: sellerData.profile_pic || null,
-            credits: sellerData.credits || 0,
-            lockDuration: '24 hours',
-          });
-
-          // Fetch seller rating stats
-          try {
-            const stats = await ratingAPI.getRatingStats(productData.owner_id);
-            setSellerRatingStats({
-              average_rating: stats.average_rating,
-              total_ratings: stats.total_ratings || 0
-            });
-          } catch (err) {
-            console.error('Error fetching seller rating stats:', err);
-            setSellerRatingStats({ average_rating: null, total_ratings: 0 });
-          }
-        } catch (err) {
-          console.error('Error fetching seller:', err);
-          setSeller({
-            name: 'Unknown',
-            username: null,
-            avatar: '?',
-            credits: 0,
-            lockDuration: '24 hours',
-          });
-          setSellerRatingStats({ average_rating: null, total_ratings: 0 });
-        }
-      }
-    };
-
-    fetchSeller();
-  }, [productData?.owner_id]);
+  // Fetch seller info and rating stats via hook
+  const { seller, sellerRatingStats } = useSellerInfo(productData?.owner_id);
 
   // Get user credits
   useEffect(() => {
@@ -124,22 +82,11 @@ export default function ProductDetail({ product }) {
     }
   }, [user]);
 
-  // Check if item is favorited
-  useEffect(() => {
-    const checkFavoriteStatus = async () => {
-      if (!isAuthenticated || !user || !productData?.id) return;
-      
-      try {
-        const response = await userAPI.getFavorites(user.id);
-        const favoriteIds = response.favorites || [];
-        setIsFavorited(favoriteIds.includes(productData.id));
-      } catch (error) {
-        console.error('Error checking favorite status:', error);
-      }
-    };
-
-    checkFavoriteStatus();
-  }, [isAuthenticated, user, productData?.id]);
+  const { isFavorited, isUpdatingFavorite, toggleFavorite } = useFavoriteStatus(
+    productData?.id,
+    user,
+    isAuthenticated,
+  );
 
   const handleFavorite = async () => {
     if (!isAuthenticated || !user) {
@@ -148,32 +95,19 @@ export default function ProductDetail({ product }) {
       return;
     }
 
-    if (isUpdatingFavorite) return;
-
-    setIsUpdatingFavorite(true);
-    const newFavoriteState = !isFavorited;
-    setIsFavorited(newFavoriteState);
-
     try {
-      if (newFavoriteState) {
-        await userAPI.addFavorite(user.id, productData.id);
-        setToastMessage('Added to favorites');
-        setToastType('favorite');
-        setShowToast(true);
-      } else {
-        await userAPI.removeFavorite(user.id, productData.id);
-        setToastMessage('Removed from favorites');
+      const result = await toggleFavorite();
+      if (result?.success) {
+        const message = result.action === 'added' ? 'Added to favorites' : 'Removed from favorites';
+        setToastMessage(message);
         setToastType('favorite');
         setShowToast(true);
       }
     } catch (error) {
       console.error('Error updating favorite:', error);
-      setIsFavorited(!newFavoriteState);
       setToastMessage('Failed to update favorite');
       setToastType('error');
       setShowToast(true);
-    } finally {
-      setIsUpdatingFavorite(false);
     }
   };
 
