@@ -435,6 +435,12 @@ export default function ProductDetail({ product }) {
                     <p className="text-swapcircle-secondary text-sm">
                       {seller.credits} credits • {seller.lockDuration} lock
                     </p>
+                    {seller.location && (
+                      <div className="flex items-center gap-1 mt-2">
+                        <FaLocationDot className="text-swapcircle-primary w-3 h-3" />
+                        <span className="text-swapcircle-secondary text-sm">{seller.location}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 {seller.username && (

@@ -12,6 +12,7 @@ import { getImageUrl } from '@/utils/itemParser';
 import { toListingCardData } from '@/utils/itemTransforms';
 import RatingDisplay from './RatingDisplay';
 import StarRating from './StarRating';
+import { FaLocationDot } from 'react-icons/fa6';
 import { useProfileData } from '@/hooks/useProfileData';
 import { useFavorites } from '@/hooks/useFavorites';
 
@@ -223,6 +224,14 @@ export default function Profile({ username: usernameProp }) {
                 <p className="text-swapcircle-secondary mb-3 leading-relaxed max-w-2xl">
                   {user.bio}
                 </p>
+              )}
+              
+              {/* Location */}
+              {user.location && (
+                <div className="flex items-center gap-2 mb-3">
+                  <FaLocationDot className="text-swapcircle-primary w-4 h-4" />
+                  <span className="text-swapcircle-secondary">{user.location}</span>
+                </div>
               )}
               
               {/* Social Media Links */}
