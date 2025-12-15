@@ -56,7 +56,6 @@ export default function BrowsePage() {
       const isOwner = user && item.owner_id && user.id === item.owner_id;
       return {
         ...base,
-        location: base.location || 'San Francisco',
         image: base.image, // ListingCard expects 'image'
         isOwner,
       };

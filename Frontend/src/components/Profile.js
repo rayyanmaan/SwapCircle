@@ -12,6 +12,7 @@ import { getImageUrl } from '@/utils/itemParser';
 import { toListingCardData } from '@/utils/itemTransforms';
 import RatingDisplay from './RatingDisplay';
 import StarRating from './StarRating';
+import { FaLocationDot } from 'react-icons/fa6';
 import { useProfileData } from '@/hooks/useProfileData';
 import { useFavorites } from '@/hooks/useFavorites';
 
@@ -201,6 +202,12 @@ export default function Profile({ username: usernameProp }) {
                   totalRatings={ratingStats.total_ratings} 
                 />
               </div>
+              {user.location && (
+                <span className="text-swapcircle-secondary text-sm flex items-center gap-1 mb-2">
+                  <FaLocationDot className="w-4 h-4" />
+                  {user.location}
+                </span>
+              )}
               {isOwnProfile && (
                 <p className="text-swapcircle-secondary mb-3">{user.email}</p>
               )}

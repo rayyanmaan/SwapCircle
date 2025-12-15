@@ -41,6 +41,7 @@ export function useProfileData(usernameProp, isAuthenticated, authUser) {
           swapped: 0,
           profile_pic: userData.profile_pic || null,
           bio: userData.bio || '',
+          location: userData.location || '',
           instagram_handle: userData.instagram_handle || '',
           whatsapp_number: userData.whatsapp_number || '',
           facebook_url: userData.facebook_url || '',
