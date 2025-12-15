@@ -40,7 +40,7 @@ if PYDANTIC_V2:
             firebase_credentials_path: Optional[str] = None  # Path to Firebase service account JSON file
 
             model_config = ConfigDict(
-                env_file=".env",
+                env_file=[".env.local", ".env"],  # Try .env.local first, then .env
                 extra="ignore"  # Ignore extra fields from environment variables (like jwt_secret_key)
             )
     else:
@@ -55,7 +55,7 @@ if PYDANTIC_V2:
             firebase_credentials_path: Optional[str] = None  # Path to Firebase service account JSON file
 
             class Config:
-                env_file = ".env"
+                env_file = [".env.local", ".env"]  # Try .env.local first, then .env
                 extra = "ignore"  # Ignore extra fields from environment variables
 else:
     # Pydantic v1 Settings class
@@ -69,7 +69,7 @@ else:
         firebase_credentials_path: Optional[str] = None  # Path to Firebase service account JSON file
 
         class Config:
-            env_file = ".env"
+            env_file = [".env.local", ".env"]  # Try .env.local first, then .env
             extra = "ignore"  # Ignore extra fields from environment variables
 
 

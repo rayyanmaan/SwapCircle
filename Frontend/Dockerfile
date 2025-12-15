@@ -8,8 +8,13 @@ RUN npm set legacy-peer-deps true && npm ci
 FROM node:20-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+# Accept build arguments for NEXT_PUBLIC_* variables (fallback if .env.local doesn't exist)
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 COPY --from=deps /app/node_modules ./node_modules
+# Copy all files including .env.local if it exists
 COPY . .
+# Next.js will automatically read .env.local during build
 RUN npm run build
 
 FROM node:20-alpine AS runner
