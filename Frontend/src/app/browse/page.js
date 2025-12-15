@@ -7,7 +7,7 @@ import FilterSidebar from '@/components/FilterSidebar';
 import SearchBar from '@/components/SearchBar';
 import SortDropdown from '@/components/SortDropdown';
 import { itemsAPI } from '@/services/api';
-import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { toListingCardData } from '@/utils/itemTransforms';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function BrowsePage() {
@@ -48,54 +48,18 @@ export default function BrowsePage() {
     fetchItems();
   }, []);
 
-  // Transform backend items to listing format
+  // Transform backend items to listing format via shared helper
   const transformListings = (items) => {
     return items.map((item) => {
-      // Get metadata (prefers direct fields, falls back to parsing description for old items)
-      const metadata = getItemMetadata(item);
-      
-      // Get first image URL if available
-      const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
-      const imageUrl = firstImage ? getImageUrl(firstImage) : '/api/placeholder/300';
-      
-      // Check if current user is the owner
+      const base = toListingCardData(item);
+      if (!base) return null;
       const isOwner = user && item.owner_id && user.id === item.owner_id;
-      
-      // Debug logging (remove in production)
-      if (process.env.NODE_ENV === 'development' && firstImage) {
-        console.log('Image data:', { firstImage, imageUrl, itemId: item.id });
-      }
-      
-      // Normalize status to known set: available | unavailable | pending
-      const rawStatus = (item.status || 'available');
-      const lower = String(rawStatus).toLowerCase().trim();
-      let normStatus = 'available';
-      if (lower === 'available') {
-        normStatus = 'available';
-      } else if (lower === 'pending' || lower === 'reserved' || lower === 'in-progress') {
-        normStatus = 'pending';
-      } else if (lower === 'unavailable' || lower === 'not available' || lower === 'not_available' || lower === 'sold' || lower === 'closed') {
-        normStatus = 'unavailable';
-      } else {
-        // Any other non-available becomes unavailable
-        normStatus = lower === 'available' ? 'available' : 'unavailable';
-      }
-
       return {
-        id: item.id,
-        title: item.title,
-        size: metadata.size || 'Size M',
-        credits: metadata.credits || 1,
-        condition: metadata.condition || 'Good',
-        location: metadata.location || null,
-        timestamp: 'Recently', // Backend doesn't store timestamp yet
-        category: metadata.category || 'General',
-        brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',
-        image: imageUrl, // ListingCard expects 'image' prop, not 'imageUrl'
-        status: normStatus,
-        isOwner: isOwner,
+        ...base,
+        image: base.image, // ListingCard expects 'image'
+        isOwner,
       };
-    });
+    }).filter(Boolean);
   };
 
   // Filter and sort listings

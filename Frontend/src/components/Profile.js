@@ -7,11 +7,14 @@ import ListingCard from './ListingCard';
 import SwapRequests from './SwapRequests';
 import SwapHistory from './SwapHistory';
 import { useAuth } from '@/contexts/AuthContext';
-import { itemsAPI, userAPI, ratingAPI } from '@/services/api';
-import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { ratingAPI } from '@/services/api';
+import { getImageUrl } from '@/utils/itemParser';
+import { toListingCardData } from '@/utils/itemTransforms';
 import RatingDisplay from './RatingDisplay';
 import StarRating from './StarRating';
 import { FaLocationDot } from 'react-icons/fa6';
+import { useProfileData } from '@/hooks/useProfileData';
+import { useFavorites } from '@/hooks/useFavorites';
 
 export default function Profile({ username: usernameProp }) {
   const { user: authUser, isAuthenticated } = useAuth();
@@ -35,194 +38,17 @@ export default function Profile({ username: usernameProp }) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
-  const [user, setUser] = useState(null);
-  const [listings, setListings] = useState([]);
-  const [favorites, setFavorites] = useState([]);
-  const [loadingFavorites, setLoadingFavorites] = useState(false);
-  const [swapHistory, setSwapHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [ratingStats, setRatingStats] = useState({ average_rating: null, total_ratings: 0 });
+  const { user, setUser, listings, swapHistory, ratingStats, setRatingStats, loading, error, isOwnProfile } = useProfileData(
+    username,
+    isAuthenticated,
+    authUser,
+  );
 
-  // Determine if viewing own profile
-  const isOwnProfile = !username && isAuthenticated && authUser;
-
-  // Fetch user data and their listings
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        let userData;
-        if (username) {
-          // Fetch by username (public profile)
-          userData = await userAPI.getUserByUsername(username);
-        } else if (isAuthenticated && authUser) {
-          // Fetch own profile
-          userData = await userAPI.getUser(authUser.id);
-        } else {
-          setLoading(false);
-          return;
-        }
-
-        setUser({
-          id: userData.id,
-          name: userData.full_name || userData.username || 'User',
-          username: userData.username,
-          email: userData.email || '',
-          avatar: (userData.full_name || userData.username || 'U')[0].toUpperCase(),
-          credits: userData.credits || 0,
-          listed: 0, // Will be calculated from listings
-          swapped: 0, // Backend doesn't track this yet
-          profile_pic: userData.profile_pic || null,
-          bio: userData.bio || '',
-          location: userData.location || '',
-          instagram_handle: userData.instagram_handle || '',
-          whatsapp_number: userData.whatsapp_number || '',
-          facebook_url: userData.facebook_url || '',
-          twitter_handle: userData.twitter_handle || '',
-          linkedin_url: userData.linkedin_url || '',
-        });
-
-        // Set rating stats from userData (already included from backend)
-        setRatingStats({
-          average_rating: userData.average_rating || null,
-          total_ratings: userData.total_ratings || 0
-        });
-
-        // Fetch user's items
-        const userItems = await itemsAPI.getItems({ owner_id: userData.id });
-        
-        // Transform items to listing format
-        const transformedListings = userItems.map((item) => {
-          const metadata = getItemMetadata(item);
-          const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
-          const imageUrl = firstImage ? getImageUrl(firstImage) : '/api/placeholder/300';
-          
-          return {
-            id: item.id,
-            title: item.title,
-            size: metadata.size || 'Size M',
-            credits: metadata.credits || 2,
-            condition: metadata.condition || 'Good',
-            timestamp: 'Recently',
-            image: imageUrl,
-            status: item.status || 'available',
-            showSwappedStatus: true,
-          };
-        });
-
-        setListings(transformedListings);
-        
-        // Fetch swap history (only for own profile and when authenticated)
-        if (isOwnProfile && isAuthenticated && authUser) {
-          try {
-            const historyData = await itemsAPI.getSwapHistory();
-            const normalizedHistory = Array.isArray(historyData) ? historyData : [];
-
-            // Store the history locally for the "history" tab
-            setSwapHistory(normalizedHistory);
-
-            // Keep the profile's 'Swapped' counter in sync with the actual
-            // number of completed swaps. Previously 'swapped' was initialized
-            // to 0 and never updated leading to stale/incorrect counters.
-            // Here we set it to the length of the returned swap history so
-            // "Swapped" accurately reflects what the user sees.
-            setUser(prev => prev ? { ...prev, swapped: normalizedHistory.length } : null);
-          } catch (err) {
-            // Silently handle auth errors - user might not be logged in
-            if (err.message && err.message.includes('authorization')) {
-              console.warn('Not authenticated to fetch swap history');
-            } else {
-              console.error('Error fetching swap history:', err);
-            }
-            setSwapHistory([]);
-            // If we can't fetch history, ensure the counter is 0
-            setUser(prev => prev ? { ...prev, swapped: 0 } : null);
-          }
-        }
-        
-        // Update listed count
-        setUser(prev => prev ? { ...prev, listed: transformedListings.length } : null);
-      } catch (err) {
-        console.error('Error fetching user data:', err);
-        setError(err.message || 'Failed to load profile');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [username, isAuthenticated, authUser, isOwnProfile]);
-
-  // Fetch favorites when viewing own profile and favorites tab is active
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!isOwnProfile || !isAuthenticated || !authUser || activeTab !== 'favorites') {
-        return;
-      }
-
-      try {
-        setLoadingFavorites(true);
-        
-        // Get list of favorite item IDs
-        const response = await userAPI.getFavorites(authUser.id);
-        const favoriteIds = response.favorites || [];
-        
-        if (!favoriteIds || favoriteIds.length === 0) {
-          setFavorites([]);
-          return;
-        }
-
-        // Fetch full details for each favorited item
-        const favoriteItemsPromises = favoriteIds.map(async (itemId) => {
-          try {
-            return await itemsAPI.getItem(itemId);
-          } catch (err) {
-            console.error(`Error fetching favorite item ${itemId}:`, err);
-            return null;
-          }
-        });
-
-        const favoriteItems = (await Promise.all(favoriteItemsPromises)).filter(Boolean);
-
-        // Transform to listing format
-        const transformedFavorites = favoriteItems.map((item) => {
-          const metadata = getItemMetadata(item);
-          const firstImage = item.images && item.images.length > 0 ? item.images[0] : null;
-          const imageUrl = firstImage ? getImageUrl(firstImage) : '/api/placeholder/300';
-          
-          return {
-            id: item.id,
-            title: item.title,
-            size: metadata.size || 'Size M',
-            credits: metadata.credits || 2,
-            condition: metadata.condition || 'Good',
-            timestamp: 'Recently',
-            image: imageUrl,
-            status: item.status || 'available',
-            showSwappedStatus: true,
-          };
-        });
-
-        setFavorites(transformedFavorites);
-      } catch (err) {
-        console.error('Error fetching favorites:', err);
-        setFavorites([]);
-      } finally {
-        setLoadingFavorites(false);
-      }
-    };
-
-    fetchFavorites();
-  }, [isOwnProfile, isAuthenticated, authUser, activeTab]);
-
-  // Ensure 'swapped' counter stays in sync if swapHistory changes later
-  // (for example, if swapHistory is refreshed while the profile is mounted).
-  useEffect(() => {
-    setUser(prev => prev ? { ...prev, swapped: swapHistory.length } : null);
-  }, [swapHistory]);
+  const { favorites, loadingFavorites } = useFavorites({
+    enabled: isOwnProfile && isAuthenticated && !!authUser,
+    userId: authUser?.id,
+    activeTab,
+  });
 
 
 
@@ -241,16 +67,28 @@ export default function Profile({ username: usernameProp }) {
     return links[platform] || value;
   };
 
+  const listingCards = listings.map((item) => {
+    const transformed = toListingCardData(item);
+    if (!transformed) return null;
+    return { ...transformed, imageUrl: transformed.image };
+  }).filter(Boolean);
+
+  const favoriteCards = favorites.map((item) => {
+    const transformed = toListingCardData(item);
+    if (!transformed) return null;
+    return { ...transformed, imageUrl: transformed.image };
+  }).filter(Boolean);
+
   const getCurrentListings = () => {
     switch (activeTab) {
       case 'listings':
-        return listings;
+        return listingCards;
       case 'favorites':
-        return favorites;
+        return favoriteCards;
       case 'history':
         return swapHistory;
       default:
-        return listings;
+        return listingCards;
     }
   };
 
@@ -363,13 +201,13 @@ export default function Profile({ username: usernameProp }) {
                   averageRating={ratingStats.average_rating} 
                   totalRatings={ratingStats.total_ratings} 
                 />
-                {user.location && (
-                  <span className="text-swapcircle-secondary text-sm flex items-center gap-1">
-                    <FaLocationDot className="w-4 h-4" />
-                    {user.location}
-                  </span>
-                )}
               </div>
+              {user.location && (
+                <span className="text-swapcircle-secondary text-sm flex items-center gap-1 mb-2">
+                  <FaLocationDot className="w-4 h-4" />
+                  {user.location}
+                </span>
+              )}
               {isOwnProfile && (
                 <p className="text-swapcircle-secondary mb-3">{user.email}</p>
               )}
