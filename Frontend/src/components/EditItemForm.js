@@ -192,6 +192,11 @@ export default function EditItemForm({ itemId, initialItem }) {
         .filter((img) => !img.isExisting && img.file)
         .map((img) => img.file);
 
+      // Extract IDs of existing images to keep
+      const keepImageIds = images
+        .filter((img) => img.isExisting)
+        .map((img) => img.id);
+
       // Log the data being sent for debugging
       console.log('Updating item:', {
         itemId,
@@ -199,10 +204,11 @@ export default function EditItemForm({ itemId, initialItem }) {
         descriptionLength: updateData.description.length,
         newImageCount: newImageFiles.length,
         totalImages: images.length,
+        keepImageIds,
       });
 
-      // Update item - pass new images if any
-      const result = await itemsAPI.updateItem(itemId, updateData, newImageFiles);
+      // Update item - pass new images and IDs of images to keep
+      const result = await itemsAPI.updateItem(itemId, updateData, newImageFiles, keepImageIds);
       
       // Redirect to product page after successful update
       router.push(`/product/${itemId}`);
