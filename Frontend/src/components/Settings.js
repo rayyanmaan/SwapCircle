@@ -201,9 +201,9 @@ export default function Settings() {
       setError(null);
       setSuccessMessage('Profile updated successfully!');
       
-      // Reload page after 1.5 seconds to show updated profile
+      // Redirect to profile page after 1.5 seconds to show updated profile
       setTimeout(() => {
-        window.location.reload();
+        window.location.href = '/profile';
       }, 1500);
     } catch (err) {
       console.error('Error updating profile:', err);
