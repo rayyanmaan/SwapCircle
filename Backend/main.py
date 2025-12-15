@@ -3,6 +3,7 @@
 Mounts static files and includes the items router. Uses the database
 connection helpers in `Backend/database/connection.py`.
 """
+
 from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.staticfiles import StaticFiles
@@ -21,6 +22,7 @@ from routes.notification_routes import router as notifications_router
 from routes.rating_routes import router as ratings_router
 from routes.contact_routes import router as contact_router
 from routes.credit_routes import router as credits_router
+from routes.report_routes import router as reports_router
 
 
 @asynccontextmanager
@@ -47,16 +49,19 @@ from starlette.responses import Response
 # Get allowed origins from environment variable, default to localhost
 allowed_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
 # Normalize origins: remove trailing slashes and strip whitespace
-allowed_origins = [origin.strip().rstrip('/') for origin in allowed_origins_str.split(",")]
+allowed_origins = [
+    origin.strip().rstrip("/") for origin in allowed_origins_str.split(",")
+]
 
 # Debug: Print CORS configuration on startup
 print(f"CORS Configuration: allowed_origins={allowed_origins}")
+
 
 # Custom middleware to handle OPTIONS requests before they hit route handlers
 class OptionsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Log ALL requests for debugging
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print(f"[OptionsMiddleware] Request received:")
         print(f"  Method: {request.method}")
         print(f"  Path: {request.url.path}")
@@ -64,61 +69,85 @@ class OptionsMiddleware(BaseHTTPMiddleware):
         print(f"  Origin: {request.headers.get('origin', 'None')}")
         print(f"  Headers: {dict(request.headers)}")
         print(f"  Query params: {dict(request.query_params)}")
-        print("="*80)
-        
+        print("=" * 80)
+
         # Handle OPTIONS requests immediately
         if request.method == "OPTIONS":
             origin = request.headers.get("origin")
-            print(f"[OptionsMiddleware] OPTIONS request intercepted: {request.url.path} from origin: {origin}")
+            print(
+                f"[OptionsMiddleware] OPTIONS request intercepted: {request.url.path} from origin: {origin}"
+            )
             print(f"[OptionsMiddleware] Allowed origins: {allowed_origins}")
-            
+
             headers = {
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
                 "Access-Control-Allow-Headers": "*",
                 "Access-Control-Allow-Credentials": "true",
                 "Access-Control-Max-Age": "3600",
             }
-            
+
             # Normalize origin (remove trailing slash) for comparison
-            normalized_origin = origin.rstrip('/') if origin else None
-            
+            normalized_origin = origin.rstrip("/") if origin else None
+
             # Only set Access-Control-Allow-Origin if origin is in allowed list
             if normalized_origin and normalized_origin in allowed_origins:
-                headers["Access-Control-Allow-Origin"] = origin  # Use original origin in header
-                print(f"[OptionsMiddleware] ✅ OPTIONS request ALLOWED for origin: {origin}")
+                headers["Access-Control-Allow-Origin"] = (
+                    origin  # Use original origin in header
+                )
+                print(
+                    f"[OptionsMiddleware] ✅ OPTIONS request ALLOWED for origin: {origin}"
+                )
             elif origin:
-                print(f"[OptionsMiddleware] ❌ OPTIONS request BLOCKED - origin '{origin}' (normalized: '{normalized_origin}') not in allowed_origins: {allowed_origins}")
+                print(
+                    f"[OptionsMiddleware] ❌ OPTIONS request BLOCKED - origin '{origin}' (normalized: '{normalized_origin}') not in allowed_origins: {allowed_origins}"
+                )
             else:
                 print("[OptionsMiddleware] ⚠️ OPTIONS request with no origin header")
-            
+
             print(f"[OptionsMiddleware] Returning 200 OK with headers: {headers}")
             return Response(content="", status_code=200, headers=headers)
-        
+
         # For non-OPTIONS requests, continue to next middleware/handler
-        print(f"[OptionsMiddleware] Non-OPTIONS request ({request.method}), passing to next handler for {request.url.path}...")
+        print(
+            f"[OptionsMiddleware] Non-OPTIONS request ({request.method}), passing to next handler for {request.url.path}..."
+        )
         try:
             response = await call_next(request)
-            print(f"[OptionsMiddleware] ✅ Response status: {response.status_code} for {request.method} {request.url.path}")
-            
+            print(
+                f"[OptionsMiddleware] ✅ Response status: {response.status_code} for {request.method} {request.url.path}"
+            )
+
             # Add CORS headers to all responses (including 405 errors)
             origin = request.headers.get("origin")
-            normalized_origin = origin.rstrip('/') if origin else None
+            normalized_origin = origin.rstrip("/") if origin else None
             if normalized_origin and normalized_origin in allowed_origins:
-                response.headers["Access-Control-Allow-Origin"] = origin  # Use original origin
+                response.headers["Access-Control-Allow-Origin"] = (
+                    origin  # Use original origin
+                )
                 response.headers["Access-Control-Allow-Credentials"] = "true"
-                print(f"[OptionsMiddleware] Added CORS headers to response for origin: {origin}")
-            
+                print(
+                    f"[OptionsMiddleware] Added CORS headers to response for origin: {origin}"
+                )
+
             # Log 405 errors specifically
             if response.status_code == 405:
-                print(f"[OptionsMiddleware] ⚠️ 405 Method Not Allowed for {request.method} {request.url.path}")
-                print(f"[OptionsMiddleware] This means FastAPI found a route for the path but not the method")
-            
+                print(
+                    f"[OptionsMiddleware] ⚠️ 405 Method Not Allowed for {request.method} {request.url.path}"
+                )
+                print(
+                    f"[OptionsMiddleware] This means FastAPI found a route for the path but not the method"
+                )
+
             return response
         except Exception as e:
-            print(f"[OptionsMiddleware] ❌ Exception in call_next for {request.method} {request.url.path}: {type(e).__name__}: {e}")
+            print(
+                f"[OptionsMiddleware] ❌ Exception in call_next for {request.method} {request.url.path}: {type(e).__name__}: {e}"
+            )
             import traceback
+
             print(traceback.format_exc())
             raise
+
 
 # Add FastAPI CORS middleware first (will execute last due to reverse order)
 app.add_middleware(
@@ -140,48 +169,50 @@ async def global_exception_handler(request: Request, exc: Exception):
     """Global exception handler to ensure CORS headers are included in error responses."""
     from fastapi import HTTPException
     import traceback
-    
+
     # Don't handle HTTPException here - let FastAPI handle it normally
     if isinstance(exc, HTTPException):
         raise exc
-    
+
     # Log the full error for debugging
     print(f"Unhandled exception: {exc}")
     print(traceback.format_exc())
-    
+
     # Get the origin from the request to set appropriate CORS header
     origin = request.headers.get("origin")
-    normalized_origin = origin.rstrip('/') if origin else None
+    normalized_origin = origin.rstrip("/") if origin else None
     cors_headers = {}
     if normalized_origin and normalized_origin in allowed_origins:
         cors_headers = {
             "Access-Control-Allow-Origin": origin,  # Use original origin
             "Access-Control-Allow-Credentials": "true",
         }
-    
+
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": str(exc)},
-        headers=cors_headers
+        headers=cors_headers,
     )
 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Custom handler for validation errors to provide detailed error messages."""
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print(f"[ValidationExceptionHandler] Validation error caught!")
     print(f"  Method: {request.method}")
     print(f"  Path: {request.url.path}")
     print(f"  Origin: {request.headers.get('origin', 'None')}")
     print(f"  Error: {exc}")
-    print("="*80)
-    
+    print("=" * 80)
+
     # For OPTIONS requests, return 200 OK with CORS headers instead of validation error
     if request.method == "OPTIONS":
-        print("[ValidationExceptionHandler] OPTIONS request hit validation error - returning 200 OK")
+        print(
+            "[ValidationExceptionHandler] OPTIONS request hit validation error - returning 200 OK"
+        )
         origin = request.headers.get("origin")
-        normalized_origin = origin.rstrip('/') if origin else None
+        normalized_origin = origin.rstrip("/") if origin else None
         headers = {}
         if normalized_origin and normalized_origin in allowed_origins:
             headers = {
@@ -190,11 +221,15 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
                 "Access-Control-Allow-Headers": "*",
                 "Access-Control-Allow-Credentials": "true",
             }
-            print(f"[ValidationExceptionHandler] ✅ Returning 200 OK with CORS headers for origin: {origin}")
+            print(
+                f"[ValidationExceptionHandler] ✅ Returning 200 OK with CORS headers for origin: {origin}"
+            )
         else:
-            print(f"[ValidationExceptionHandler] ⚠️ Origin '{origin}' (normalized: '{normalized_origin}') not in allowed list: {allowed_origins}")
+            print(
+                f"[ValidationExceptionHandler] ⚠️ Origin '{origin}' (normalized: '{normalized_origin}') not in allowed list: {allowed_origins}"
+            )
         return JSONResponse(content={}, headers=headers, status_code=200)
-    
+
     errors = []
     for error in exc.errors():
         field = " -> ".join(str(loc) for loc in error["loc"])
@@ -283,16 +318,18 @@ app.include_router(ratings_router)
 app.include_router(contact_router)
 # include credits router
 app.include_router(credits_router)
+# include reports router
+app.include_router(reports_router)
 
 # Debug: Print all registered routes on startup
-print("\n" + "="*80)
+print("\n" + "=" * 80)
 print("Registered Routes:")
 for route in app.routes:
-    if hasattr(route, 'methods') and hasattr(route, 'path'):
+    if hasattr(route, "methods") and hasattr(route, "path"):
         print(f"  {', '.join(route.methods)} {route.path}")
-    elif hasattr(route, 'path'):
+    elif hasattr(route, "path"):
         print(f"  {route.path} (mount/static)")
-print("="*80 + "\n")
+print("=" * 80 + "\n")
 
 # Note: startup/shutdown are handled by the `lifespan` asynccontextmanager above.
 # Note: CORS middleware is added earlier (before routers) to handle OPTIONS preflight requests

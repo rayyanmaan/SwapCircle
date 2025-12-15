@@ -101,39 +101,31 @@ class TestCreditDeductionOnRequest:
                         return_value=[],
                     ):
                         with patch(
-                            "routes.swap_routes.swap_service"
-                            ".get_pending_requests_count_for_user",
-                            return_value=0,
+                            "routes.swap_routes.swap_service" ".create_swap_request",
+                            return_value=mock_swap_request,
                         ):
                             with patch(
-                                "routes.swap_routes.swap_service"
-                                ".create_swap_request",
-                                return_value=mock_swap_request,
+                                "routes.swap_routes" ".credit_service.deduct_credits",
+                                return_value=4.0,
                             ):
                                 with patch(
-                                    "routes.swap_routes"
-                                    ".credit_service.deduct_credits",
-                                    return_value=4.0,
+                                    "routes.swap_routes" ".storage_service.upsert_item",
+                                    return_value=None,
                                 ):
                                     with patch(
                                         "routes.swap_routes"
-                                        ".storage_service.upsert_item",
+                                        ".notification_service"
+                                        ".create_notification",
                                         return_value=None,
                                     ):
-                                        with patch(
-                                            "routes.swap_routes"
-                                            ".notification_service"
-                                            ".create_notification",
-                                            return_value=None,
-                                        ):
-                                            item_id = mock_item["id"]
-                                            response = client.post(
-                                                f"/swaps/items/{item_id}" "/request",
-                                                headers={
-                                                    "Authorization": f"Bearer {mock_token}"
-                                                },
-                                            )
-                                            assert response.status_code == 200
+                                        item_id = mock_item["id"]
+                                        response = client.post(
+                                            f"/swaps/items/{item_id}" "/request",
+                                            headers={
+                                                "Authorization": f"Bearer {mock_token}"
+                                            },
+                                        )
+                                        assert response.status_code == 200
 
     def test_insufficient_credits(
         self,
@@ -302,10 +294,13 @@ class TestPendingRequestLimit:
         client,
         mock_user2,
         mock_item,
+        mock_swap_request,
         mock_token,
     ):
         """Test user cannot exceed pending request limit."""
         mock_user2["credits"] = 2.0
+        mock_request_1 = {**mock_swap_request, "id": "request_1", "status": "pending"}
+        mock_request_2 = {**mock_swap_request, "id": "request_2", "status": "pending"}
         with patch(
             "routes.swap_routes.auth_service.get_user_id_from_request",
             return_value=mock_user2["id"],
@@ -320,18 +315,13 @@ class TestPendingRequestLimit:
                 ):
                     with patch(
                         "routes.swap_routes.swap_service" ".get_requests_for_requester",
-                        return_value=[],
+                        return_value=[mock_request_1, mock_request_2],
                     ):
-                        with patch(
-                            "routes.swap_routes.swap_service"
-                            ".get_pending_requests_count_for_user",
-                            return_value=2,
-                        ):
-                            response = client.post(
-                                f"/swaps/items/{mock_item['id']}" "/request",
-                                headers={"Authorization": f"Bearer {mock_token}"},
-                            )
-                            assert response.status_code == 400
+                        response = client.post(
+                            f"/swaps/items/{mock_item['id']}" "/request",
+                            headers={"Authorization": f"Bearer {mock_token}"},
+                        )
+                        assert response.status_code == 400
 
 
 class TestCreditPrivacy:

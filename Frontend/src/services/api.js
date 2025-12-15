@@ -355,6 +355,21 @@ export const userAPI = {
 };
 
 /**
+ * Reports API
+ */
+export const reportAPI = {
+  /**
+   * Submit a report for an item or user
+   */
+  async submitReport({ target_type, target_id, reason, details, item_url }) {
+    return apiRequest('/reports', {
+      method: 'POST',
+      body: { target_type, target_id, reason, details, item_url },
+    });
+  },
+};
+
+/**
  * Items API
  */
 export const itemsAPI = {

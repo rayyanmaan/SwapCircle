@@ -59,13 +59,15 @@ export default function SwapHistory() {
     );
   }
 
-  // Counts for badges
-  const receivedCount = swapHistory.filter(s => !s.is_seller).length;
-  const givenCount = swapHistory.filter(s => !!s.is_seller).length;
+  // Classify swaps based on user's role
+  // "Given Away" = user is the item owner (they posted the item that was swapped)
+  // "Received" = user is the requester (they requested the item and it was approved)
+  const givenSwaps = swapHistory.filter(s => s.item?.owner_id === user?.id);
+  const receivedSwaps = swapHistory.filter(s => s.requester_id === user?.id);
 
   const filteredSwaps = swapHistory.filter((s) => {
-    if (activeTab === 'received') return !s.is_seller;
-    if (activeTab === 'given') return !!s.is_seller;
+    if (activeTab === 'received') return s.requester_id === user?.id;
+    if (activeTab === 'given') return s.item?.owner_id === user?.id;
     return true;
   });
 
@@ -89,7 +91,7 @@ export default function SwapHistory() {
         >
           <span className="icon">↘</span>
           <span>Received</span>
-          <span className="ml-1 text-xs text-swapcircle-tertiary">({receivedCount})</span>
+          <span className="ml-1 text-xs text-swapcircle-tertiary">({receivedSwaps.length})</span>
         </button>
         <button
           onClick={() => setActiveTab('given')}
@@ -99,7 +101,7 @@ export default function SwapHistory() {
         >
           <span className="icon">↗</span>
           <span>Given Away</span>
-          <span className="ml-1 text-xs text-swapcircle-tertiary">({givenCount})</span>
+          <span className="ml-1 text-xs text-swapcircle-tertiary">({givenSwaps.length})</span>
         </button>
       </div>
 
@@ -136,16 +138,31 @@ export default function SwapHistory() {
                 
                 <div className="space-y-1 text-sm text-swapcircle-secondary mb-4">
                   <p>
-                    <strong>{swap.is_seller ? 'Sold to' : 'Bought from'}:</strong>{' '}
-                    {swap.other_user?.username ? (
-                      <a
-                        href={`/profile/${swap.other_user.username}`}
-                        className="text-swapcircle-primary hover:underline"
-                      >
-                        {swap.other_user?.full_name || swap.other_user?.username || 'Unknown'}
-                      </a>
+                    <strong>{swap.item?.owner_id === user?.id ? 'Swapped with' : 'Received from'}:</strong>{' '}
+                    {swap.item?.owner_id === user?.id ? (
+                      // Given away - show the requester
+                      swap.requester?.username ? (
+                        <a
+                          href={`/profile/${swap.requester.username}`}
+                          className="text-swapcircle-primary hover:underline"
+                        >
+                          {swap.requester?.full_name || swap.requester?.username || 'Unknown'}
+                        </a>
+                      ) : (
+                        swap.requester?.full_name || swap.requester?.username || 'Unknown'
+                      )
                     ) : (
-                      swap.other_user?.full_name || swap.other_user?.username || 'Unknown'
+                      // Received - show the owner
+                      swap.owner?.username ? (
+                        <a
+                          href={`/profile/${swap.owner.username}`}
+                          className="text-swapcircle-primary hover:underline"
+                        >
+                          {swap.owner?.full_name || swap.owner?.username || 'Unknown'}
+                        </a>
+                      ) : (
+                        swap.owner?.full_name || swap.owner?.username || 'Unknown'
+                      )
                     )}
                   </p>
                   <p>

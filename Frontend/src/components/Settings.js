@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +19,7 @@ export default function Settings() {
     full_name: '',
     username: '',
     bio: '',
+    location: '',
     instagram_handle: '',
     whatsapp_number: '',
     facebook_url: '',
@@ -51,6 +53,7 @@ export default function Settings() {
           avatar: (userData.full_name || userData.username || 'U')[0].toUpperCase(),
           profile_pic: userData.profile_pic || null,
           bio: userData.bio || '',
+          location: userData.location || '',
           instagram_handle: userData.instagram_handle || '',
           whatsapp_number: userData.whatsapp_number || '',
           facebook_url: userData.facebook_url || '',
@@ -63,6 +66,7 @@ export default function Settings() {
           full_name: userData.full_name || '',
           username: userData.username || '',
           bio: userData.bio || '',
+          location: userData.location || '',
           instagram_handle: userData.instagram_handle || '',
           whatsapp_number: userData.whatsapp_number || '',
           facebook_url: userData.facebook_url || '',
@@ -171,6 +175,7 @@ export default function Settings() {
         full_name: editForm.full_name || null,
         username: editForm.username,
         bio: editForm.bio || null,
+        location: editForm.location || null,
         instagram_handle: editForm.instagram_handle || null,
         whatsapp_number: editForm.whatsapp_number || null,
         facebook_url: editForm.facebook_url || null,
@@ -186,6 +191,7 @@ export default function Settings() {
         name: updatedUser.full_name || updatedUser.username || 'User',
         username: updatedUser.username,
         bio: updatedUser.bio || '',
+        location: updatedUser.location || '',
         instagram_handle: updatedUser.instagram_handle || '',
         whatsapp_number: updatedUser.whatsapp_number || '',
         facebook_url: updatedUser.facebook_url || '',
@@ -196,9 +202,9 @@ export default function Settings() {
       setError(null);
       setSuccessMessage('Profile updated successfully!');
       
-      // Navigate to profile page after a brief delay to show success message
+      // Redirect to profile page after 1.5 seconds to show updated profile
       setTimeout(() => {
-        router.push('/profile');
+        window.location.href = '/profile';
       }, 1500);
     } catch (err) {
       console.error('Error updating profile:', err);
@@ -382,6 +388,26 @@ export default function Settings() {
               <p className="text-xs text-swapcircle-secondary mt-1">
                 {editForm.bio.length}/500 characters
               </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-swapcircle-secondary mb-1">
+                Location
+              </label>
+              <select
+                value={editForm.location}
+                onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                className="w-full px-3 py-2 border border-swapcircle rounded-lg focus:outline-none focus:ring-2 focus:ring-swapcircle-primary text-swapcircle-primary bg-white"
+              >
+                <option value="">Select a location</option>
+                <option>San Francisco</option>
+                <option>Berlin</option>
+                <option>Buenos Aires</option>
+                <option>Hyderabad</option>
+                <option>Seoul</option>
+                <option>Taipei</option>
+                <option>Tokyo</option>
+                <option>Other</option>
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-swapcircle-secondary mb-1">

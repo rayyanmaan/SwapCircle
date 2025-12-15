@@ -92,6 +92,7 @@ async def refund_credits(
     user_id: str,
     amount: float,
     description: str = None,
+    transaction_type: str = TRANSACTION_TYPE_CREDIT_ADD,
 ) -> float:
     """Alias for add_credits used by tests and callers expecting a refund helper.
 
@@ -102,7 +103,7 @@ async def refund_credits(
     return await add_credits(
         user_id=user_id,
         amount=amount,
-        transaction_type=TRANSACTION_TYPE_CREDIT_ADD,
+        transaction_type=transaction_type,
         description=description,
     )
 
