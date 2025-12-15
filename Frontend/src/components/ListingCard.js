@@ -101,12 +101,13 @@ export default function ListingCard({
   const isFaded = isUnavailable || isPending;
 
   return (
-    <div className="group cursor-pointer flex flex-col h-full">
+    <div className="group cursor-pointer flex flex-col h-full" onClick={handleCardClick}>
       <a href={`/product/${id}`} className={`group ${isFaded ? 'listing-unavailable' : ''}`}>
-      <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
+        <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
           <div className={`${isFaded ? '' : 'absolute inset-0 group-hover:scale-105'} absolute inset-0 transition-transform duration-300`}>
+
             <img
               src={image}
               alt={title}
@@ -185,6 +186,7 @@ export default function ListingCard({
             >
               <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
+
           </button>
         </div>
       </a>
@@ -197,6 +199,7 @@ export default function ListingCard({
           </h3>
           <div className="shrink-0">
             <div className="px-2.5 py-1 rounded-md bg-swapcircle-alt text-swapcircle-primary text-sm font-semibold leading-none">
+
               {credits}
             </div>
           </div>
@@ -228,4 +231,3 @@ export default function ListingCard({
     </div>
   );
 }
-
