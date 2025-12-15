@@ -92,6 +92,10 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
    uvicorn main:app --reload
    ```
    Backend will run on `http://localhost:8000`
+   
+   **📚 API Documentation**: Once the backend is running, you can access interactive API documentation at:
+   - **Swagger UI**: `http://localhost:8000/docs` - Interactive API explorer
+   - **ReDoc**: `http://localhost:8000/redoc` - Clean API documentation
 
    **Frontend** (in another terminal):
    ```bash
@@ -123,6 +127,18 @@ If you prefer running the entire stack in containers, use the repo-level `docker
 4. When you’re finished, stop everything with `Ctrl+C` or `docker compose down`.
 
 ## 📝 Usage
+
+### For Developers
+
+1. **Read the Code Documentation**: Start with [`codebase/codebase.md`](./codebase/codebase.md) for an overview
+2. **Understand the Architecture**: Review `Documentation/backend-architecture.md` and `Documentation/frontend-specs.md`
+3. **Check API Documentation**: 
+   - See [`codebase/backend-routes.md`](./codebase/backend-routes.md) for all available endpoints
+   - **Interactive Docs**: When backend is running, visit `http://localhost:8000/docs` for Swagger UI or `http://localhost:8000/redoc` for ReDoc
+4. **Follow Styling Guidelines**: Read [`codebase/styling-guide.md`](./codebase/styling-guide.md) before making UI changes
+
+### For Users
+
 [Add instructions on how to use the platform, including screenshots or GIFs]
 
 ## 🗂️ Project Structure
@@ -142,6 +158,9 @@ SwapCircle/
 │   │   │   ├── ListingsGrid.js
 │   │   │   ├── ProductDetail.js
 │   │   │   └── ValueProposition.js
+│   │   ├── contexts/        # React contexts (Auth, Notifications)
+│   │   ├── services/        # API service layer
+│   │   ├── utils/           # Utility functions
 │   │   └── styles/          # Global styles and theme
 │   ├── public/              # Static assets
 │   ├── package.json
@@ -154,32 +173,64 @@ SwapCircle/
 │   ├── config.py            # Configuration and settings
 │   ├── database/
 │   │   └── connection.py    # MongoDB connection helpers
-│   ├── models/              # Data models
+│   ├── models/              # Pydantic data models
 │   │   ├── user_model.py
 │   │   ├── item_model.py
-│   │   ├── message_model.py
-│   │   └── transaction_model.py
+│   │   ├── swap_request_model.py
+│   │   ├── transaction_model.py
+│   │   └── rating_model.py
 │   ├── routes/              # API route handlers
 │   │   ├── auth_routes.py
 │   │   ├── user_routes.py
 │   │   ├── item_routes.py
+│   │   ├── swap_routes.py
 │   │   ├── message_routes.py
-│   │   └── credit_routes.py
+│   │   ├── credit_routes.py
+│   │   ├── rating_routes.py
+│   │   └── notification_routes.py
 │   ├── services/            # Business logic services
 │   │   ├── auth_service.py
+│   │   ├── user_service.py
+│   │   ├── swap_service.py
 │   │   ├── email_service.py
 │   │   ├── image_service.py
-│   │   └── credit_service.py
+│   │   ├── credit_service.py
+│   │   └── storage_service.py
 │   └── utils/               # Utility functions
-│       ├── constants.py
-│       ├── token_utils.py
-│       └── validators.py
+│       └── constants.py
+│
+├── codebase/                # Code documentation
+│   ├── codebase.md          # Main documentation index
+│   ├── components.md        # Frontend component docs
+│   ├── api-integration.md   # Frontend-Backend integration
+│   ├── theme.md             # Theme and styling guide
+│   ├── styling-guide.md     # Styling best practices
+│   ├── backend-routes.md   # Backend API routes
+│   ├── backend-services.md # Backend services
+│   └── backend-models.md   # Backend data models
 │
 ├── Documentation/           # Project documentation
-│   └── documentation.md
+│   ├── backend-architecture.md
+│   ├── frontend-specs.md
+│   └── project-overview.md
 │
 └── README.md               # This file
 ```
+
+## 📚 Code Documentation
+
+For detailed code documentation, see the [`codebase/`](./codebase/) folder:
+
+- **[codebase.md](./codebase/codebase.md)** - Main documentation index with overview and links
+- **[components.md](./codebase/components.md)** - Frontend component documentation
+- **[api-integration.md](./codebase/api-integration.md)** - Frontend-Backend API integration guide
+- **[theme.md](./codebase/theme.md)** - Theme, fonts, and styling information
+- **[styling-guide.md](./codebase/styling-guide.md)** - Styling best practices (use utility classes, no inline styles!)
+- **[backend-routes.md](./codebase/backend-routes.md)** - Complete backend API routes documentation
+- **[backend-services.md](./codebase/backend-services.md)** - Backend services and business logic
+- **[backend-models.md](./codebase/backend-models.md)** - Backend data models and schemas
+
+**Before making changes to the codebase, consult the relevant documentation files in the `codebase/` folder to understand the existing implementation.**
 
 ## 🧪 Testing
 ```bash

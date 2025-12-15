@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { FaLocationDot } from 'react-icons/fa6';
 import { userAPI } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import Toast from './Toast';
@@ -14,6 +15,7 @@ export default function ListingCard({
   size,
   credits,
   condition,
+  location,
   timestamp,
   status,
   showSwappedStatus = false,
@@ -90,14 +92,14 @@ export default function ListingCard({
     router.push(`/product/${id}`);
   };
 
-  // 'pending' should not mark an item as unavailable — pending means it's
-  // requested but not yet accepted/rejected. Unavailable covers swapped or
-  // locked items which are not available for new swaps.
-  const isUnavailable = ['swapped', 'locked'].includes(status);
+  // Unavailable items should appear faded; status is normalized upstream to
+  // 'available' | 'unavailable' | 'pending'. Keep fade for 'unavailable'.
+  const isUnavailable = status === 'unavailable';
   const isPending = status === 'pending';
   // faded items should include both unavailable (swapped/locked) and
   // pending (requested but unresolved) so they look visually subdued
   const isFaded = isUnavailable || isPending;
+
 
   return (
     <div className="group cursor-pointer" onClick={handleCardClick}>
@@ -110,6 +112,15 @@ export default function ListingCard({
         {/* Image with gradient overlay */}
         {image && image !== '/api/placeholder/300' ? (
           <div className={`${isFaded ? '' : 'absolute inset-0 group-hover:scale-105'} absolute inset-0 transition-transform duration-300`}>
+
+  return (
+    <div className="group cursor-pointer flex flex-col h-full">
+      <a href={`/product/${id}`} className={`group ${isFaded ? 'listing-unavailable' : ''}`}>
+      <div className={`relative overflow-hidden rounded-lg aspect-square bg-swapcircle-alt`} title={isUnavailable ? 'Unavailable' : undefined}>
+        {/* Image with gradient overlay */}
+        {image && image !== '/api/placeholder/300' ? (
+          <div className={`${isFaded ? '' : 'absolute inset-0 group-hover:scale-105'} absolute inset-0 transition-transform duration-300`}>
+
             <img
               src={image}
               alt={title}
@@ -170,13 +181,6 @@ export default function ListingCard({
           </>
         )}
 
-        {/* Locked or Unavailable badge */}
-        {isUnavailable && (
-          <div className="absolute top-2 left-2 backdrop-blur-sm px-2 py-1 rounded-full bg-gray-100/80">
-            <span className="text-xs font-medium text-gray-700">Unavailable</span>
-          </div>
-        )}
-
         {/* Heart icon */}
           <button
             type="button"
@@ -195,6 +199,7 @@ export default function ListingCard({
             >
               <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
+
           </button>
       </div>
 
@@ -218,11 +223,37 @@ export default function ListingCard({
               <path d="M12 8c-1.657 0-3 .895-3-6.378 0 1.364.717 2.617 1.891 3.291L12 8l.109-.087C13.283 7.237 14 5.986 14 4.622 14 1.895 12.657 0 11 0z M14 0c-1.657 0-3 .895-3 6.378 0 1.364.717 2.617 1.891 3.291L14 8l.109-.087C15.283 7.237 16 5.986 16 4.622 16 1.895 14.657 0 13 0z" />
             </svg>
             <span className="text-swapcircle-primary text-sm font-medium">
+
+          </button>
+        </div>
+      </a>
+
+      {/* Product Details */}
+      <div className="mt-3 flex-1 flex flex-col gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="heading-primary font-semibold text-sm truncate transition-colors">
+            {title}
+          </h3>
+          <div className="shrink-0">
+            <div className="px-2.5 py-1 rounded-md bg-swapcircle-alt text-swapcircle-primary text-sm font-semibold leading-none">
+
               {credits}
-            </span>
+            </div>
           </div>
         </div>
+
+        <div className="flex items-center justify-between text-swapcircle-secondary text-sm">
+          <span className="truncate">{size}</span>
+
+          {location && (
+            <span className="flex items-center gap-1 ml-3">
+              <FaLocationDot aria-label="location" className="w-4 h-4 text-swapcircle-secondary" />
+              <span className="truncate">{location}</span>
+            </span>
+          )}
+        </div>
       </div>
+
       <Toast 
         message={toastMessage}
         isVisible={showToast}
