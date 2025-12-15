@@ -76,53 +76,8 @@ export default function ProductDetail({ product }) {
   // Check if current user is the owner
   const isOwner = user && productData?.owner_id && user.id === productData.owner_id;
 
-<<<<<<< HEAD
   // Fetch seller info and rating stats via hook
   const { seller, sellerRatingStats } = useSellerInfo(productData?.owner_id);
-=======
-  // Fetch seller information if owner_id is available
-  useEffect(() => {
-    const fetchSeller = async () => {
-      if (productData?.owner_id) {
-        try {
-          const sellerData = await userAPI.getUser(productData.owner_id);
-          setSeller({
-            name: sellerData.full_name || sellerData.username || 'Unknown',
-            username: sellerData.username,
-            avatar: sellerData.username?.[0]?.toUpperCase() || sellerData.full_name?.[0]?.toUpperCase() || '?',
-            profile_pic: sellerData.profile_pic || null,
-            credits: sellerData.credits || 0,
-            location: sellerData.location || null,
-          });
-
-          // Fetch seller rating stats
-          try {
-            const stats = await ratingAPI.getRatingStats(productData.owner_id);
-            setSellerRatingStats({
-              average_rating: stats.average_rating,
-              total_ratings: stats.total_ratings || 0
-            });
-          } catch (err) {
-            console.error('Error fetching seller rating stats:', err);
-            setSellerRatingStats({ average_rating: null, total_ratings: 0 });
-          }
-        } catch (err) {
-          console.error('Error fetching seller:', err);
-          setSeller({
-            name: 'Unknown',
-            username: null,
-            avatar: '?',
-            credits: 0,
-            location: null,
-          });
-          setSellerRatingStats({ average_rating: null, total_ratings: 0 });
-        }
-      }
-    };
-
-    fetchSeller();
-  }, [productData?.owner_id]);
->>>>>>> bc97b9777b9a2bcb8c95d0736cd4ce84f1e19983
 
   // Get user credits
   useEffect(() => {
