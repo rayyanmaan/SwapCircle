@@ -37,6 +37,9 @@ jobs:
       env:
         CORS_ORIGINS: "http://localhost:3000"
         MONGODB_URI: "mongodb://localhost:27017/test"
+        DATABASE_NAME: "test"
+        SECRET_KEY: "test-secret-key-for-ci"
+        PYTHONPATH: ${{ github.workspace }}/Backend
       run: |
         pytest -v --tb=short
 

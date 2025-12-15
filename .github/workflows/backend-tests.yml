@@ -39,6 +39,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest-cov  # Install coverage plugin
+        pip install pytest-mock  # Install pytest-mock for better mocking support
+    
+    - name: Verify Python setup
+      env:
+        PYTHONPATH: ${{ github.workspace }}/Backend
+      run: |
+        python --version
+        python -c "import sys; print('Python path:', sys.path)"
+        python -c "import pytest; print('Pytest version:', pytest.__version__)"
     
     - name: Run tests with pytest
       env:
@@ -46,12 +55,15 @@ jobs:
         CORS_ORIGINS: "http://localhost:3000"
         # MongoDB connection string (tests use mocks, but set a dummy value to avoid errors)
         MONGODB_URI: "mongodb://localhost:27017/test"
+        DATABASE_NAME: "test"
+        SECRET_KEY: "test-secret-key-for-ci"
+        PYTHONPATH: ${{ github.workspace }}/Backend
       run: |
         pytest -v --tb=short --cov=. --cov-report=xml --cov-report=html --cov-report=term || pytest -v --tb=short
     
     - name: Upload coverage reports
       uses: codecov/codecov-action@v3
-      if: matrix.python-version == '3.11'
+      if: matrix.python-version == '3.11' && always()
       with:
         file: ./Backend/coverage.xml
         flags: backend
@@ -59,10 +71,11 @@ jobs:
         fail_ci_if_error: false
     
     - name: Upload coverage HTML report
-      if: matrix.python-version == '3.11'
+      if: matrix.python-version == '3.11' && always()
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: Backend/htmlcov/
         retention-days: 30
+        if-no-files-found: ignore
 

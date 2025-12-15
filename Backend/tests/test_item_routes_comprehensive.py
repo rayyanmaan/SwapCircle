@@ -18,8 +18,8 @@ class TestCreateItem:
     def test_create_item_success_json(self, client, mock_user, mock_item, mock_token):
         """Test creating an item with JSON body."""
         with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value=mock_user["id"]):
-            with patch("routes.item_routes.storage_service.upsert_item", return_value=None):
-                with patch("routes.item_routes.credit_service.add_credits", return_value=11.0):
+            with patch("routes.item_routes.storage_service.upsert_item", new_callable=AsyncMock, return_value=None):
+                with patch("routes.item_routes.credit_service.add_credits", new_callable=AsyncMock, return_value=11.0):
                     response = client.post(
                         "/items/",
                         json={
@@ -43,9 +43,9 @@ class TestCreateItem:
     def test_create_item_success_with_images(self, client, mock_user, mock_token):
         """Test creating an item with images."""
         with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value=mock_user["id"]):
-            with patch("routes.item_routes.image_service.upload_image", return_value=("/static/images/test.jpg", "img123")):
-                with patch("routes.item_routes.storage_service.upsert_item", return_value=None):
-                    with patch("routes.item_routes.credit_service.add_credits", return_value=11.0):
+            with patch("routes.item_routes.image_service.upload_image", new_callable=AsyncMock, return_value=("/static/images/test.jpg", "img123")):
+                with patch("routes.item_routes.storage_service.upsert_item", new_callable=AsyncMock, return_value=None):
+                    with patch("routes.item_routes.credit_service.add_credits", new_callable=AsyncMock, return_value=11.0):
                         files = [("images", ("test.jpg", BytesIO(b"fake image data"), "image/jpeg"))]
                         data = {
                             "item": '{"title": "Test Item", "description": "A test item", "category": "tops", "size": "M", "location": "San Francisco", "condition": "like_new", "branded": true, "credits": 2.0}'
@@ -84,8 +84,8 @@ class TestListItems:
     
     def test_list_items_success(self, client, mock_item):
         """Test listing all items."""
-        with patch("routes.item_routes.storage_service.list_items", return_value=[mock_item]):
-            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", return_value=[]):
+        with patch("routes.item_routes.storage_service.list_items", new_callable=AsyncMock, return_value=[mock_item]):
+            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", new_callable=AsyncMock, return_value=[]):
                 response = client.get("/items/")
                 assert response.status_code == 200
                 data = response.json()
@@ -94,8 +94,8 @@ class TestListItems:
     
     def test_list_items_filter_by_owner(self, client, mock_item):
         """Test listing items filtered by owner."""
-        with patch("routes.item_routes.storage_service.list_items", return_value=[mock_item]):
-            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", return_value=[]):
+        with patch("routes.item_routes.storage_service.list_items", new_callable=AsyncMock, return_value=[mock_item]):
+            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", new_callable=AsyncMock, return_value=[]):
                 response = client.get("/items/?owner_id=user123")
                 assert response.status_code == 200
                 data = response.json()
@@ -103,8 +103,8 @@ class TestListItems:
     
     def test_list_items_filter_by_status(self, client, mock_item):
         """Test listing items filtered by status."""
-        with patch("routes.item_routes.storage_service.list_items", return_value=[mock_item]):
-            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", return_value=[]):
+        with patch("routes.item_routes.storage_service.list_items", new_callable=AsyncMock, return_value=[mock_item]):
+            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", new_callable=AsyncMock, return_value=[]):
                 response = client.get("/items/?status=available")
                 assert response.status_code == 200
                 data = response.json()
@@ -112,7 +112,7 @@ class TestListItems:
     
     def test_list_items_empty(self, client):
         """Test listing items when none exist."""
-        with patch("routes.item_routes.storage_service.list_items", return_value=[]):
+        with patch("routes.item_routes.storage_service.list_items", new_callable=AsyncMock, return_value=[]):
             response = client.get("/items/")
             assert response.status_code == 200
             data = response.json()
@@ -124,8 +124,8 @@ class TestGetItem:
     
     def test_get_item_success(self, client, mock_item):
         """Test getting a single item."""
-        with patch("routes.item_routes.storage_service.get_item", return_value=mock_item):
-            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", return_value=[]):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=mock_item):
+            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", new_callable=AsyncMock, return_value=[]):
                 response = client.get(f"/items/{mock_item['id']}")
                 assert response.status_code == 200
                 data = response.json()
@@ -134,7 +134,7 @@ class TestGetItem:
     
     def test_get_item_not_found(self, client):
         """Test getting a non-existent item."""
-        with patch("routes.item_routes.storage_service.get_item", return_value=None):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=None):
             response = client.get("/items/nonexistent")
             assert response.status_code == 404
             assert "item not found" in response.json()["detail"]
@@ -142,8 +142,8 @@ class TestGetItem:
     def test_get_item_pending_status(self, client, mock_item):
         """Test getting an item with pending requests (status should be pending)."""
         mock_item["status"] = "available"
-        with patch("routes.item_routes.storage_service.get_item", return_value=mock_item):
-            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", return_value=[{"id": "req1"}]):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=mock_item):
+            with patch("routes.item_routes.swap_service.get_pending_requests_for_item", new_callable=AsyncMock, return_value=[{"id": "req1"}]):
                 response = client.get(f"/items/{mock_item['id']}")
                 assert response.status_code == 200
                 data = response.json()
@@ -155,9 +155,9 @@ class TestUpdateItem:
     
     def test_update_item_success(self, client, mock_user, mock_item, mock_token):
         """Test updating an item."""
-        with patch("routes.item_routes.storage_service.get_item", return_value=mock_item):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=mock_item):
             with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value=mock_user["id"]):
-                with patch("routes.item_routes.storage_service.upsert_item", return_value=None):
+                with patch("routes.item_routes.storage_service.upsert_item", new_callable=AsyncMock, return_value=None):
                     response = client.patch(
                         f"/items/{mock_item['id']}",
                         json={"title": "Updated Title"},
@@ -181,7 +181,7 @@ class TestUpdateItem:
     
     def test_update_item_not_found(self, client, mock_token):
         """Test updating a non-existent item."""
-        with patch("routes.item_routes.storage_service.get_item", return_value=None):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=None):
             with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value="user123"):
                 response = client.patch(
                     "/items/nonexistent",
@@ -192,10 +192,10 @@ class TestUpdateItem:
     
     def test_update_item_with_images(self, client, mock_user, mock_item, mock_token):
         """Test updating an item with new images."""
-        with patch("routes.item_routes.storage_service.get_item", return_value=mock_item):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=mock_item):
             with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value=mock_user["id"]):
-                with patch("routes.item_routes.image_service.upload_image", return_value=("/static/images/new.jpg", "img456")):
-                    with patch("routes.item_routes.storage_service.upsert_item", return_value=None):
+                with patch("routes.item_routes.image_service.upload_image", new_callable=AsyncMock, return_value=("/static/images/new.jpg", "img456")):
+                    with patch("routes.item_routes.storage_service.upsert_item", new_callable=AsyncMock, return_value=None):
                         files = [("images", ("new.jpg", BytesIO(b"fake image data"), "image/jpeg"))]
                         data = {"item": '{"title": "Updated Title"}'}
                         response = client.patch(
@@ -212,15 +212,15 @@ class TestDeleteItem:
     
     def test_delete_item_success(self, client, mock_item):
         """Test deleting an item."""
-        with patch("routes.item_routes.storage_service.get_item", return_value=mock_item):
-            with patch("routes.item_routes.image_service.delete_image", return_value=None):
-                with patch("routes.item_routes.storage_service.delete_item", return_value=None):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=mock_item):
+            with patch("routes.item_routes.image_service.delete_image", new_callable=AsyncMock, return_value=None):
+                with patch("routes.item_routes.storage_service.delete_item", new_callable=AsyncMock, return_value=None):
                     response = client.delete(f"/items/{mock_item['id']}")
                     assert response.status_code == 204
     
     def test_delete_item_not_found(self, client):
         """Test deleting a non-existent item."""
-        with patch("routes.item_routes.storage_service.get_item", return_value=None):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=None):
             response = client.delete("/items/nonexistent")
             assert response.status_code == 404
 
@@ -230,9 +230,9 @@ class TestLockItem:
     
     def test_lock_item_success(self, client, mock_user, mock_item, mock_token):
         """Test locking an item."""
-        with patch("routes.item_routes.storage_service.get_item", return_value=mock_item):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=mock_item):
             with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value="user456"):
-                with patch("routes.item_routes.storage_service.upsert_item", return_value=None):
+                with patch("routes.item_routes.storage_service.upsert_item", new_callable=AsyncMock, return_value=None):
                     response = client.post(
                         f"/items/{mock_item['id']}/lock",
                         headers={"Authorization": f"Bearer {mock_token}"}
@@ -269,9 +269,9 @@ class TestUnlockItem:
     def test_unlock_item_success(self, client, mock_user, mock_item, mock_token):
         """Test unlocking an item."""
         mock_item["status"] = "locked"
-        with patch("routes.item_routes.storage_service.get_item", return_value=mock_item):
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=mock_item):
             with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value=mock_user["id"]):
-                with patch("routes.item_routes.storage_service.upsert_item", return_value=None):
+                with patch("routes.item_routes.storage_service.upsert_item", new_callable=AsyncMock, return_value=None):
                     response = client.post(
                         f"/items/{mock_item['id']}/unlock",
                         headers={"Authorization": f"Bearer {mock_token}"}
