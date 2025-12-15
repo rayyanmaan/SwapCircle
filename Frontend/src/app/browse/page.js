@@ -103,6 +103,11 @@ export default function BrowsePage() {
     const transformedListings = transformListings(listings);
     let filtered = [...transformedListings];
 
+    // Hide own items for logged-in users
+    if (user) {
+      filtered = filtered.filter((item) => !item.isOwner);
+    }
+
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();

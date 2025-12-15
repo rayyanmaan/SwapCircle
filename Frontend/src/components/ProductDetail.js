@@ -8,6 +8,8 @@ import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
 import SwapProcessingModal from './SwapProcessingModal';
 import AuthModal from './AuthModal';
+import ShareModal from './ShareModal';
+import ReportModal from './ReportModal';
 import { userAPI, itemsAPI, ratingAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 import Toast from './Toast';
@@ -35,6 +37,8 @@ export default function ProductDetail({ product }) {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [productStatus, setProductStatus] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   // Transform backend product data to component format
   const transformProduct = (productData) => {
@@ -86,7 +90,7 @@ export default function ProductDetail({ product }) {
             avatar: sellerData.username?.[0]?.toUpperCase() || sellerData.full_name?.[0]?.toUpperCase() || '?',
             profile_pic: sellerData.profile_pic || null,
             credits: sellerData.credits || 0,
-            lockDuration: '24 hours',
+            location: sellerData.location || null,
           });
 
           // Fetch seller rating stats
@@ -107,7 +111,7 @@ export default function ProductDetail({ product }) {
             username: null,
             avatar: '?',
             credits: 0,
-            lockDuration: '24 hours',
+            location: null,
           });
           setSellerRatingStats({ average_rating: null, total_ratings: 0 });
         }
@@ -206,13 +210,17 @@ export default function ProductDetail({ product }) {
 
     // Prevent swapping own items (double check on frontend)
     if (isOwner) {
-      alert('You cannot swap your own items');
+      setToastMessage('You cannot swap your own items');
+      setToastType('error');
+      setShowToast(true);
       return;
     }
 
     // Check if item is available
     if (productStatus && productStatus !== 'available' && productStatus !== 'pending') {
-      alert('This item is no longer available for swap');
+      setToastMessage('This item is no longer available for swap');
+      setToastType('error');
+      setShowToast(true);
       return;
     }
 
@@ -243,13 +251,9 @@ export default function ProductDetail({ product }) {
       
       // Show user-friendly error message
       const errorMessage = error.message || 'Failed to request swap';
-      if (errorMessage.includes('enough credits') || errorMessage.includes('Insufficient credits')) {
-        alert('You don\'t have enough credits to request this item.');
-      } else if (errorMessage.includes('pending request limit')) {
-        alert(errorMessage);
-      } else {
-        alert(errorMessage);
-      }
+      setToastMessage(errorMessage.includes('enough credits') ? 'Not enough credits' : errorMessage);
+      setToastType('error');
+      setShowToast(true);
     }
   };
 
@@ -464,17 +468,25 @@ export default function ProductDetail({ product }) {
                   </p>
                 </div>
               ) : (
-                <button 
-                  className="btn-primary w-full py-4 text-lg"
-                  onClick={handleSwapClick}
-                >
-                  Request Swap
-                </button>
+                <div className="space-y-2">
+                  <button 
+                    className="btn-primary w-full py-4 text-lg disabled:opacity-50"
+                    onClick={handleSwapClick}
+                    disabled={userCredits < productData.credits}
+                  >
+                    Request Swap
+                  </button>
+                  {userCredits < productData.credits && (
+                    <p className="text-sm text-swapcircle-tertiary text-center">
+                      Not enough credits to request this item
+                    </p>
+                  )}
+                </div>
               )}
             </div>
 
             {/* Seller Section */}
-            {seller && (
+            {seller && !isOwner && (
               <div className="card-swapcircle border-2 rounded-lg p-6 border-swapcircle">
                 <h3 className="heading-primary text-lg font-semibold mb-4">Seller</h3>
                 <div className="flex items-center space-x-4 mb-4">
@@ -496,7 +508,7 @@ export default function ProductDetail({ product }) {
                       {seller.avatar}
                     </span>
                   </div>
-                  <div className="flex-1">
+                    <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       {seller.username ? (
                         <a
@@ -513,9 +525,12 @@ export default function ProductDetail({ product }) {
                         totalRatings={sellerRatingStats.total_ratings} 
                       />
                     </div>
-                    <p className="text-swapcircle-secondary text-sm">
-                      {seller.lockDuration} lock
-                    </p>
+                      {seller.location && (
+                        <p className="text-swapcircle-secondary text-sm flex items-center gap-1">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                          {seller.location}
+                        </p>
+                      )}
                   </div>
                 </div>
                 {seller.username && (
@@ -553,13 +568,13 @@ export default function ProductDetail({ product }) {
                     </svg>
                     <span>{isFavorited ? 'Saved' : 'Save'}</span>
                   </button>
-                  <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2">
+                  <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2" onClick={()=>setShowShareModal(true)}>
                     <svg className="w-5 h-5 icon-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                     </svg>
                     <span>Share</span>
                   </button>
-                  <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2">
+                  <button className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2" onClick={()=>setShowReportModal(true)}>
                     <svg className="w-5 h-5 icon-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                     </svg>
@@ -617,6 +632,19 @@ export default function ProductDetail({ product }) {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         mode={authMode}
+      />
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={(info)=>{ setShowShareModal(false); if(info?.copied){ setToastMessage('Link copied'); setToastType('success'); setShowToast(true); } }}
+        itemTitle={productData.title}
+        itemUrl={typeof window !== 'undefined' ? window.location.href : ''}
+      />
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={(info)=>{ setShowReportModal(false); if(info?.success){ setToastMessage('Report submitted'); setToastType('success'); setShowToast(true); } }}
+        targetType="item"
+        targetId={productData.id}
+        itemUrl={typeof window !== 'undefined' ? window.location.href : ''}
       />
       <Toast 
         message={toastMessage}

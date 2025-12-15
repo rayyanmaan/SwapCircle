@@ -64,6 +64,7 @@ async def get_user_by_username(username: str):
         email=user.get("email", ""),
         username=user.get("username"),
         full_name=user.get("full_name", ""),
+        location=user.get("location"),
         credits=user.get("credits", 0.0),
         email_verified=user.get("email_verified", False),
         bio=user.get("bio"),
@@ -112,6 +113,7 @@ async def get_user(user_id: str, request: Request):
         email=user.get("email"),
         username=user.get("username"),
         full_name=user.get("full_name", ""),
+        location=user.get("location"),
         credits=credits_to_show,
         email_verified=user.get("email_verified", False),
         bio=user.get("bio"),
@@ -132,7 +134,7 @@ async def patch_user(user_id: str, request: Request):
     """Update user profile (requires Bearer token authentication)
 
     Allowed fields to update: username, full_name, credits, instagram_handle,
-    whatsapp_number, facebook_url, twitter_handle, linkedin_url
+    whatsapp_number, facebook_url, twitter_handle, linkedin_url, bio, profile_pic, location
     Owner must provide valid Bearer token for their own user_id.
     """
     # Extract and validate Bearer token
@@ -198,6 +200,7 @@ async def patch_user(user_id: str, request: Request):
         "facebook_url",
         "twitter_handle",
         "linkedin_url",
+        "location",
     }
     updates = {k: v for k, v in body.items() if k in allowed_fields}
 
@@ -240,6 +243,7 @@ async def patch_user(user_id: str, request: Request):
             email=updated_user.get("email"),
             username=updated_user.get("username"),
             full_name=updated_user.get("full_name", ""),
+            location=updated_user.get("location"),
             credits=updated_user.get("credits", 0.0),
             email_verified=updated_user.get("email_verified", False),
             bio=updated_user.get("bio"),

@@ -317,6 +317,7 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
     await credit_service.refund_credits(
         user_id=requester_id,
         amount=credits_required,
+        transaction_type=TRANSACTION_TYPE_CREDIT_ADD,
         description=f"Credits refunded for rejected swap request of item: {it.get('title')}",
     )
 
