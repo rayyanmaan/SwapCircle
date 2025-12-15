@@ -80,6 +80,25 @@ async def _record_transaction(
     return _convert_id(transaction)
 
 
+async def refund_credits(
+    user_id: str,
+    amount: float,
+    description: str = None,
+) -> float:
+    """Alias for add_credits used by tests and callers expecting a refund helper.
+
+    This keeps backwards compatibility with existing tests that patch
+    credit_service.refund_credits while still using the add_credits implementation
+    under the hood.
+    """
+    return await add_credits(
+        user_id=user_id,
+        amount=amount,
+        transaction_type=TRANSACTION_TYPE_CREDIT_ADD,
+        description=description,
+    )
+
+
 async def get_user_balance(user_id: str) -> float:
     """Calculate user's current balance from transaction history.
 

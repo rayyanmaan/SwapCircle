@@ -45,6 +45,37 @@ async def get_item(item_id: str) -> Optional[Dict[str, Any]]:
     return _convert_id(item)
 
 
+async def reserve_item_for_request(item_id: str) -> Optional[Dict[str, Any]]:
+    """Atomically reserve an item for a swap request by setting status to pending.
+
+    Returns the updated item if reservation succeeded, otherwise None (meaning the
+    item was not available anymore).
+    """
+    db = get_db()
+    items_collection = db["items"]
+
+    # First try with ObjectId
+    try:
+        result = await items_collection.update_one(
+            {"_id": ObjectId(item_id), "status": "available"},
+            {"$set": {"status": "pending"}},
+        )
+        if result.matched_count > 0:
+            item = await items_collection.find_one({"_id": ObjectId(item_id)})
+            return _convert_id(item)
+    except Exception:
+        # Fall back to string id
+        result = await items_collection.update_one(
+            {"id": item_id, "status": "available"},
+            {"$set": {"status": "pending"}},
+        )
+        if result.matched_count > 0:
+            item = await items_collection.find_one({"id": item_id})
+            return _convert_id(item)
+
+    return None
+
+
 async def upsert_item(item: Dict[str, Any]) -> Dict[str, Any]:
     """Insert or update an item."""
     db = get_db()
