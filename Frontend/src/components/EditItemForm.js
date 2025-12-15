@@ -184,7 +184,8 @@ export default function EditItemForm({ itemId, initialItem }) {
         location: formData.location,
         condition: formData.condition,
         branded: formData.branded,
-        credits: parseFloat(formData.credits) || 1,
+        // Credits are not editable, keep existing value from initialItem
+        credits: initialItem?.credits || getItemMetadata(initialItem)?.credits || 1,
       };
 
       // Extract only new image files (not existing ones)
@@ -513,27 +514,6 @@ export default function EditItemForm({ itemId, initialItem }) {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Credits */}
-        <div>
-          <label htmlFor="credits" className="block text-sm font-medium mb-2 text-swapcircle-primary">
-            Credits *
-          </label>
-          <input
-            id="credits"
-            name="credits"
-            type="number"
-            min="1"
-            step="1"
-            value={formData.credits}
-            onChange={handleInputChange}
-            className={`input-swapcircle ${errors.credits ? 'border-red-500' : ''}`}
-            required
-          />
-          {errors.credits && (
-            <p className="text-sm text-red-500 mt-1">{errors.credits}</p>
-          )}
         </div>
 
         {/* Form Actions */}

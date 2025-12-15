@@ -90,7 +90,7 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
       conditions: [],
       minCredits: null,
       maxCredits: null,
-      availability: 'all',
+      availability: 'available',
     };
     setLocalFilters(clearedFilters);
     onChange(clearedFilters);
