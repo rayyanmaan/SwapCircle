@@ -484,13 +484,16 @@ export default function Profile({ username: usernameProp }) {
 
         {/* Stats Section */}
         <div className="mt-8 pt-8 border-t border-swapcircle">
-          <div className="grid grid-cols-3 gap-6">
-            <div className="text-center md:text-left">
-              <div className="text-3xl md:text-4xl font-bold text-swapcircle-primary mb-1">
-                {user.credits}
+          <div className={`grid ${isOwnProfile ? 'grid-cols-3' : 'grid-cols-2'} gap-6`}>
+            {/* Only show credits on own profile for privacy */}
+            {isOwnProfile && (
+              <div className="text-center md:text-left">
+                <div className="text-3xl md:text-4xl font-bold text-swapcircle-primary mb-1">
+                  {user.credits}
+                </div>
+                <div className="text-sm text-swapcircle-tertiary">Credits</div>
               </div>
-              <div className="text-sm text-swapcircle-tertiary">Credits</div>
-            </div>
+            )}
             <div className="text-center md:text-left">
               <div className="text-3xl md:text-4xl font-bold text-swapcircle-primary mb-1">
                 {user.listed}
