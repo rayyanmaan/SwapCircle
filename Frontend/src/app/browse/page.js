@@ -20,7 +20,7 @@ export default function BrowsePage() {
     conditions: [],
     minCredits: null,
     maxCredits: null,
-    availability: 'all', // 'all' | 'available' | 'unavailable' | 'pending'
+    availability: 'available', // 'all' | 'available' | 'unavailable' | 'pending'
   });
   const [showFilters, setShowFilters] = useState(false);
   const [listings, setListings] = useState([]);
@@ -157,16 +157,26 @@ export default function BrowsePage() {
     // Sort
     switch (sortBy) {
       case 'newest':
-        // Already sorted by timestamp (newest first in sample data)
+        // Sort by ID (newer items typically have higher IDs)
+        // If items have created_at, we could sort by that instead
+        filtered.sort((a, b) => {
+          // Try to sort by ID (assuming newer items have higher IDs)
+          // If IDs are not sortable, maintain current order
+          if (a.id && b.id) {
+            // Compare as strings if they're not numeric
+            return b.id.localeCompare(a.id);
+          }
+          return 0;
+        });
         break;
       case 'oldest':
-        filtered.reverse();
-        break;
-      case 'credits-low':
-        filtered.sort((a, b) => a.credits - b.credits);
-        break;
-      case 'credits-high':
-        filtered.sort((a, b) => b.credits - a.credits);
+        // Sort by ID (older items typically have lower IDs)
+        filtered.sort((a, b) => {
+          if (a.id && b.id) {
+            return a.id.localeCompare(b.id);
+          }
+          return 0;
+        });
         break;
       case 'title-asc':
         filtered.sort((a, b) => a.title.localeCompare(b.title));
@@ -192,6 +202,7 @@ export default function BrowsePage() {
       conditions: [],
       minCredits: null,
       maxCredits: null,
+      availability: 'available',
     });
     setSearchQuery('');
   };
