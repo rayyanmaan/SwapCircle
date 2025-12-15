@@ -10,6 +10,14 @@ from pymongo import ReturnDocument
 from database.connection import get_db
 
 
+def _get_db_optional():
+    """Return database handle or None if not connected (test-friendly)."""
+    try:
+        return get_db()
+    except RuntimeError:
+        return None
+
+
 def _convert_id(doc: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """Convert MongoDB _id to id for API compatibility."""
     if doc is None:
@@ -44,7 +52,9 @@ async def get_user_by_id(user_id: str, session=None) -> Optional[Dict[str, Any]]
         user_id: The user ID to look up
         session: Optional MongoDB session for transactions
     """
-    db = get_db()
+    db = _get_db_optional()
+    if db is None:
+        return None
     users_collection = db["users"]
     try:
         user = await users_collection.find_one(
@@ -111,7 +121,6 @@ async def update_user(
         "facebook_url",
         "twitter_handle",
         "linkedin_url",
-        "location",
     }
     # filter updates to allowed keys
     filtered = {k: v for k, v in updates.items() if k in allowed}

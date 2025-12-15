@@ -85,9 +85,10 @@ export default function ProductDetail({ product }) {
         try {
           const sellerData = await userAPI.getUser(productData.owner_id);
           setSeller({
-            name: sellerData.username || 'Unknown',
+            name: sellerData.full_name || sellerData.username || 'Unknown',
             username: sellerData.username,
-            avatar: sellerData.avatar || sellerData.username?.[0]?.toUpperCase() || '?',
+            avatar: sellerData.username?.[0]?.toUpperCase() || sellerData.full_name?.[0]?.toUpperCase() || '?',
+            profile_pic: sellerData.profile_pic || null,
             credits: sellerData.credits || 0,
             location: sellerData.location || null,
           });
@@ -489,8 +490,23 @@ export default function ProductDetail({ product }) {
               <div className="card-swapcircle border-2 rounded-lg p-6 border-swapcircle">
                 <h3 className="heading-primary text-lg font-semibold mb-4">Seller</h3>
                 <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-16 h-16 rounded-full bg-swapcircle-primary flex items-center justify-center">
-                    <span className="text-white text-2xl font-bold">{seller.avatar}</span>
+                  <div className="w-16 h-16 rounded-full bg-swapcircle-primary flex items-center justify-center overflow-hidden">
+                    {seller.profile_pic ? (
+                      <img
+                        src={getImageUrl({ url: seller.profile_pic })}
+                        alt={seller.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          if (e.target.nextSibling) {
+                            e.target.nextSibling.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <span className={`text-white text-2xl font-bold ${seller.profile_pic ? 'hidden' : ''}`}>
+                      {seller.avatar}
+                    </span>
                   </div>
                     <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
