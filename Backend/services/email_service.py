@@ -77,3 +77,45 @@ Message: {message}"""
     except Exception as e:
         logger.error(f"Unexpected error in send_contact_email for {email}: {str(e)}")
         return False, "An unexpected error occurred. Please try again later."
+
+
+def send_email(to: str, subject: str, body: str) -> bool:
+    """Simple email sending function for general use.
+    
+    Args:
+        to: Recipient email address
+        subject: Email subject
+        body: Email body text
+        
+    Returns:
+        bool: True if email was sent successfully, False otherwise
+    """
+    try:
+        GMAIL_USER = "sys@uni.minerva.edu"
+        GMAIL_PASSWORD = "your_app_password"
+        
+        msg = MIMEMultipart()
+        msg["From"] = GMAIL_USER
+        msg["To"] = to
+        msg["Subject"] = subject
+        
+        msg.attach(MIMEText(body, "plain"))
+        
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                server.login(GMAIL_USER, GMAIL_PASSWORD)
+                server.send_message(msg)
+            logger.info(f"Email sent to {to} with subject: {subject}")
+            return True
+        except smtplib.SMTPAuthenticationError as e:
+            logger.error(f"SMTP authentication failed when sending to {to}: {str(e)}")
+            return False
+        except smtplib.SMTPException as e:
+            logger.error(f"SMTP error when sending email to {to}: {str(e)}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error sending email to {to}: {str(e)}")
+            return False
+    except Exception as e:
+        logger.error(f"Unexpected error in send_email for {to}: {str(e)}")
+        return False
