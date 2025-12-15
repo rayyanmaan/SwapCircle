@@ -7,7 +7,6 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
 - **User Authentication**: Secure login and registration for students
 - **Item Listings**: Post clothing items for sale or swap
 - **Search & Filter**: Find items by category, size, brand, and more
-- **In-App Messaging**: Communicate directly with other users
 - **Campus Verification**: Ensure transactions happen within trusted university communities
 - **Favorites**: Save items you're interested in
 - **User Profiles**: View seller ratings and transaction history
@@ -24,10 +23,6 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
 - **Database**: MongoDB
 - **Configuration**: Pydantic Settings
 - **Architecture**: RESTful API with async/await support
-
-### Infrastructure
-- **Hosting**: [TBD]
-- **Storage**: [TBD]
 
 ## 🚀 Getting Started
 
@@ -181,10 +176,6 @@ If you prefer to run services manually without Docker:
    - **Interactive Docs**: When backend is running, visit `http://localhost:8000/docs` for Swagger UI or `http://localhost:8000/redoc` for ReDoc
 4. **Follow Styling Guidelines**: Read [`codebase/styling-guide.md`](./codebase/styling-guide.md) before making UI changes
 
-### For Users
-
-[Add instructions on how to use the platform, including screenshots or GIFs]
-
 ## 🗂️ Project Structure
 ```
 SwapCircle/
@@ -297,34 +288,10 @@ We welcome contributions! Please follow these steps:
 - Add tests for new features
 - Update documentation as needed
 
-## 📄 License
-[Add license information]
-
 ## 👥 Team
-- **Project Lead**: [Name]
-- **Developers**: [Names]
-- **Designers**: [Names]
-
-## 📞 Contact
-- **Email**: [contact email]
-- **Website**: [website if applicable]
-- **Issue Tracker**: [GitHub Issues](https://github.com/rayyanmaan/SwapCircle/issues)
-
-## 🙏 Acknowledgments
-- [Add any acknowledgments, inspirations, or credits]
-
-## 📊 Project Status
-🚧 **Status**: In Development
-
-## 🗺️ Roadmap
-- [ ] User authentication system
-- [ ] Item listing and management
-- [ ] Search and filtering functionality
-- [ ] Messaging system
-- [ ] Payment integration
-- [ ] Mobile app development
-- [ ] Admin dashboard
-
----
-
-**Note**: This project is currently under active development. Features and documentation will be updated regularly!
+- Aiman
+- Hasnain
+- Mulyn
+- Rayyan
+- Katia
+- Kazeem

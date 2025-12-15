@@ -70,7 +70,6 @@ SwapCircle/
 - **Item Management**: Browse, search, filter, create, edit, and delete items
 - **Swap System**: Request items, approve/reject swap requests, view swap history
 - **User Profiles**: View and edit profiles, manage favorites, view ratings
-- **Messaging**: In-app messaging between users
 - **Notifications**: Real-time notifications for swap requests and updates
 - **Responsive Design**: Mobile-first design with Tailwind CSS
 
@@ -109,7 +108,7 @@ SwapCircle/
 ### API Routes
 - **Location**: `Backend/routes/`
 - **Documentation**: [backend-routes.md](./backend-routes.md)
-- Routes: Authentication, Users, Items, Swaps, Ratings, Messages, Notifications, Credits, Contact
+- Routes: Authentication, Users, Items, Swaps, Ratings, Notifications, Credits, Contact
 
 ### Services
 - **Location**: `Backend/services/`
@@ -119,7 +118,7 @@ SwapCircle/
 ### Data Models
 - **Location**: `Backend/models/`
 - **Documentation**: [backend-models.md](./backend-models.md)
-- Models: User, Item, SwapRequest, Transaction, Rating, Message, Notification
+- Models: User, Item, SwapRequest, Transaction, Rating, Notification
 
 ### Architecture
 - **Documentation**: `Documentation/backend-architecture.md`
