@@ -23,7 +23,7 @@ from services.user_service import get_user_by_id
 from utils.constants import (
     TRANSACTION_TYPE_SWAP_CREDIT,
     TRANSACTION_TYPE_SWAP_DEBIT,
-    TRANSACTION_TYPE_CREDIT_ADD
+    TRANSACTION_TYPE_CREDIT_ADD,
 )
 
 router = APIRouter(prefix="/swaps", tags=["swaps"])
@@ -279,7 +279,7 @@ async def reject_swap(item_id: str, request_id: str, request: Request):
         user_id=requester_id,
         amount=credits_required,
         transaction_type=TRANSACTION_TYPE_CREDIT_ADD,
-        description=f"Credits refunded for rejected swap request of item: {it.get('title')}"
+        description=f"Credits refunded for rejected swap request of item: {it.get('title')}",
     )
 
     # Update swap request status to rejected
@@ -356,7 +356,7 @@ async def cancel_swap(item_id: str, request: Request):
         user_id=user_id,
         amount=credits_required,
         transaction_type=TRANSACTION_TYPE_CREDIT_ADD,
-        description=f"Credits refunded for cancelled swap request of item: {it.get('title')}"
+        description=f"Credits refunded for cancelled swap request of item: {it.get('title')}",
     )
 
     # Update swap request status to cancelled

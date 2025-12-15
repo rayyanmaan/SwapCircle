@@ -32,7 +32,9 @@ async def submit_report(request: Request, body: ReportRequest):
     try:
         reporter_id = auth_service.get_user_id_from_request(request)
     except Exception:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
+        )
 
     if body.target_type not in {"item", "user"}:
         raise HTTPException(status_code=400, detail="Invalid target_type")

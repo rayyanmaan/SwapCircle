@@ -201,14 +201,9 @@ export default function Settings() {
       setError(null);
       setSuccessMessage('Profile updated successfully!');
       
-      // Clear success message after 4 seconds
+      // Reload page after 1.5 seconds to show updated profile
       setTimeout(() => {
-        setSuccessMessage(null);
-      }, 4000);
-
-      // Redirect to profile page after successful save
-      setTimeout(() => {
-        router.push('/profile');
+        window.location.reload();
       }, 1500);
     } catch (err) {
       console.error('Error updating profile:', err);
