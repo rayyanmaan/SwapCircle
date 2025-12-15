@@ -68,7 +68,7 @@ class TestRequestSwap:
                             headers={"Authorization": f"Bearer {mock_token}"}
                         )
                         assert response.status_code == 400
-                        assert "Insufficient credits" in response.json()["detail"]
+                        assert "enough credits" in response.json()["detail"]
     
     def test_request_swap_duplicate_request(self, client, mock_user2, mock_item, mock_swap_request, mock_token):
         """Test creating duplicate swap request."""

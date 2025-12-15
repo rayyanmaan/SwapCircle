@@ -352,10 +352,9 @@ async def cancel_swap(item_id: str, request: Request):
     credits_required = swap_request.get("credits_required", 1.0)
 
     # Refund the credits that were held when request was made
-    await credit_service.add_credits(
+    await credit_service.refund_credits(
         user_id=user_id,
         amount=credits_required,
-        transaction_type=TRANSACTION_TYPE_CREDIT_ADD,
         description=f"Credits refunded for cancelled swap request of item: {it.get('title')}",
     )
 
