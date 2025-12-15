@@ -11,6 +11,7 @@ import { itemsAPI, userAPI, ratingAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 import RatingDisplay from './RatingDisplay';
 import StarRating from './StarRating';
+import { FaLocationDot } from 'react-icons/fa6';
 
 export default function Profile({ username: usernameProp }) {
   const { user: authUser, isAuthenticated } = useAuth();
@@ -76,6 +77,7 @@ export default function Profile({ username: usernameProp }) {
           swapped: 0, // Backend doesn't track this yet
           profile_pic: userData.profile_pic || null,
           bio: userData.bio || '',
+          location: userData.location || '',
           instagram_handle: userData.instagram_handle || '',
           whatsapp_number: userData.whatsapp_number || '',
           facebook_url: userData.facebook_url || '',
@@ -361,6 +363,12 @@ export default function Profile({ username: usernameProp }) {
                   averageRating={ratingStats.average_rating} 
                   totalRatings={ratingStats.total_ratings} 
                 />
+                {user.location && (
+                  <span className="text-swapcircle-secondary text-sm flex items-center gap-1">
+                    <FaLocationDot className="w-4 h-4" />
+                    {user.location}
+                  </span>
+                )}
               </div>
               {isOwnProfile && (
                 <p className="text-swapcircle-secondary mb-3">{user.email}</p>

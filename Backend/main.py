@@ -21,6 +21,7 @@ from routes.notification_routes import router as notifications_router
 from routes.rating_routes import router as ratings_router
 from routes.contact_routes import router as contact_router
 from routes.credit_routes import router as credits_router
+from routes.report_routes import router as reports_router
 
 
 @asynccontextmanager
@@ -283,6 +284,8 @@ app.include_router(ratings_router)
 app.include_router(contact_router)
 # include credits router
 app.include_router(credits_router)
+# include reports router
+app.include_router(reports_router)
 
 # Debug: Print all registered routes on startup
 print("\n" + "="*80)

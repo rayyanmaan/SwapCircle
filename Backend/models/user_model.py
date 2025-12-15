@@ -16,6 +16,7 @@ def user_document(
     twitter_handle: Optional[str] = None,
     linkedin_url: Optional[str] = None,
     bio: Optional[str] = None,
+    location: Optional[str] = None,
 ):
     """Create a user document matching the JSON storage structure."""
     return {
@@ -33,6 +34,7 @@ def user_document(
         "twitter_handle": twitter_handle,
         "linkedin_url": linkedin_url,
         "bio": bio,
+        "location": location,
         "favorites": [],
     }
 
@@ -54,6 +56,7 @@ class UserUpdate(BaseModel):
     facebook_url: Optional[str] = None
     twitter_handle: Optional[str] = None
     linkedin_url: Optional[str] = None
+    location: Optional[str] = None
     credits: Optional[float] = None
     email_verified: Optional[bool] = None
 
@@ -64,6 +67,7 @@ class UserOut(BaseModel):
     username: str
     full_name: Optional[str] = ""
     bio: Optional[str] = None
+    location: Optional[str] = None
     credits: float = 0.0
     email_verified: bool = False
     profile_pic: Optional[str] = None

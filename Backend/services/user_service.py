@@ -95,7 +95,7 @@ async def update_user(user_id: str, updates: Dict[str, Any], session=None) -> Op
     allowed = {
         "username", "full_name", "bio", "credits", "email_verified", "profile_pic",
         "instagram_handle", "whatsapp_number", "facebook_url",
-        "twitter_handle", "linkedin_url"
+        "twitter_handle", "linkedin_url", "location"
     }
     # filter updates to allowed keys
     filtered = {k: v for k, v in updates.items() if k in allowed}
