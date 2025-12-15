@@ -16,7 +16,7 @@ import { theme } from '@/styles/theme';
 
 export default function ProductDetail({ product }) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, refreshUser } = useAuth();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -225,6 +225,11 @@ export default function ProductDetail({ product }) {
       // Call the swap request API endpoint
       const result = await itemsAPI.requestSwap(productData.id);
       
+      // Refresh user data to get updated credits
+      if (refreshUser) {
+        await refreshUser();
+      }
+      
       // Show success modal after a brief delay
       setTimeout(() => {
         setProcessingStatus('success');
@@ -234,7 +239,17 @@ export default function ProductDetail({ product }) {
       setProductStatus('pending');
     } catch (error) {
       console.error('Error requesting swap:', error);
-      setProcessingStatus('error');
+      setShowProcessingModal(false);
+      
+      // Show user-friendly error message
+      const errorMessage = error.message || 'Failed to request swap';
+      if (errorMessage.includes('enough credits') || errorMessage.includes('Insufficient credits')) {
+        alert('You don\'t have enough credits to request this item.');
+      } else if (errorMessage.includes('pending request limit')) {
+        alert(errorMessage);
+      } else {
+        alert(errorMessage);
+      }
     }
   };
 
@@ -499,7 +514,7 @@ export default function ProductDetail({ product }) {
                       />
                     </div>
                     <p className="text-swapcircle-secondary text-sm">
-                      {seller.credits} credits • {seller.lockDuration} lock
+                      {seller.lockDuration} lock
                     </p>
                   </div>
                 </div>
