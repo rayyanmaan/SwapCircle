@@ -20,6 +20,7 @@ export default function BrowsePage() {
     conditions: [],
     minCredits: null,
     maxCredits: null,
+    availability: 'available', // 'all' | 'available' | 'unavailable' | 'pending'
   });
   const [showFilters, setShowFilters] = useState(false);
   const [listings, setListings] = useState([]);
@@ -65,6 +66,21 @@ export default function BrowsePage() {
         console.log('Image data:', { firstImage, imageUrl, itemId: item.id });
       }
       
+      // Normalize status to known set: available | unavailable | pending
+      const rawStatus = (item.status || 'available');
+      const lower = String(rawStatus).toLowerCase().trim();
+      let normStatus = 'available';
+      if (lower === 'available') {
+        normStatus = 'available';
+      } else if (lower === 'pending' || lower === 'reserved' || lower === 'in-progress') {
+        normStatus = 'pending';
+      } else if (lower === 'unavailable' || lower === 'not available' || lower === 'not_available' || lower === 'sold' || lower === 'closed') {
+        normStatus = 'unavailable';
+      } else {
+        // Any other non-available becomes unavailable
+        normStatus = lower === 'available' ? 'available' : 'unavailable';
+      }
+
       return {
         id: item.id,
         title: item.title,
@@ -76,7 +92,7 @@ export default function BrowsePage() {
         category: metadata.category || 'General',
         brand: metadata.branded === 'Yes' ? 'Branded' : 'Unknown',
         image: imageUrl, // ListingCard expects 'image' prop, not 'imageUrl'
-        status: item.status || 'available',
+        status: normStatus,
         isOwner: isOwner,
       };
     });
@@ -86,6 +102,11 @@ export default function BrowsePage() {
   const filteredListings = useMemo(() => {
     const transformedListings = transformListings(listings);
     let filtered = [...transformedListings];
+
+    // Hide own items for logged-in users
+    if (user) {
+      filtered = filtered.filter((item) => !item.isOwner);
+    }
 
     // Search filter
     if (searchQuery) {
@@ -127,19 +148,40 @@ export default function BrowsePage() {
       filtered = filtered.filter((item) => item.credits <= filters.maxCredits);
     }
 
+    // Availability filter (available | unavailable | pending)
+    if (filters.availability && filters.availability !== 'all') {
+      if (filters.availability === 'unavailable') {
+        filtered = filtered.filter((item) => item.status === 'unavailable');
+      } else if (filters.availability === 'available') {
+        filtered = filtered.filter((item) => item.status === 'available');
+      } else if (filters.availability === 'pending') {
+        filtered = filtered.filter((item) => item.status === 'pending');
+      }
+    }
+
     // Sort
     switch (sortBy) {
       case 'newest':
-        // Already sorted by timestamp (newest first in sample data)
+        // Sort by ID (newer items typically have higher IDs)
+        // If items have created_at, we could sort by that instead
+        filtered.sort((a, b) => {
+          // Try to sort by ID (assuming newer items have higher IDs)
+          // If IDs are not sortable, maintain current order
+          if (a.id && b.id) {
+            // Compare as strings if they're not numeric
+            return b.id.localeCompare(a.id);
+          }
+          return 0;
+        });
         break;
       case 'oldest':
-        filtered.reverse();
-        break;
-      case 'credits-low':
-        filtered.sort((a, b) => a.credits - b.credits);
-        break;
-      case 'credits-high':
-        filtered.sort((a, b) => b.credits - a.credits);
+        // Sort by ID (older items typically have lower IDs)
+        filtered.sort((a, b) => {
+          if (a.id && b.id) {
+            return a.id.localeCompare(b.id);
+          }
+          return 0;
+        });
         break;
       case 'title-asc':
         filtered.sort((a, b) => a.title.localeCompare(b.title));
@@ -165,6 +207,7 @@ export default function BrowsePage() {
       conditions: [],
       minCredits: null,
       maxCredits: null,
+      availability: 'available',
     });
     setSearchQuery('');
   };
@@ -174,7 +217,8 @@ export default function BrowsePage() {
     (filters.locations?.length || 0) +
     filters.conditions.length +
     (filters.minCredits !== null ? 1 : 0) +
-    (filters.maxCredits !== null ? 1 : 0);
+    (filters.maxCredits !== null ? 1 : 0) +
+    (filters.availability !== 'all' ? 1 : 0);
 
   return (
     <main className="min-h-screen bg-swapcircle-white">
@@ -265,6 +309,11 @@ export default function BrowsePage() {
                 <span className="px-3 py-1 rounded-full text-sm bg-white border border-swapcircle text-swapcircle-secondary">
                   Credits: {filters.minCredits !== null ? filters.minCredits : '0'} -{' '}
                   {filters.maxCredits !== null ? filters.maxCredits : '∞'}
+                </span>
+              )}
+              {filters.availability !== 'all' && (
+                <span className="px-3 py-1 rounded-full text-sm bg-white border border-swapcircle text-swapcircle-secondary">
+                  {filters.availability === 'available' ? 'Available' : filters.availability === 'pending' ? 'Pending' : 'Unavailable'}
                 </span>
               )}
               <button

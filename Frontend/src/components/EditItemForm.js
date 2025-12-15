@@ -184,13 +184,19 @@ export default function EditItemForm({ itemId, initialItem }) {
         location: formData.location,
         condition: formData.condition,
         branded: formData.branded,
-        credits: parseFloat(formData.credits) || 1,
+        // Credits are not editable, keep existing value from initialItem
+        credits: initialItem?.credits || getItemMetadata(initialItem)?.credits || 1,
       };
 
       // Extract only new image files (not existing ones)
       const newImageFiles = images
         .filter((img) => !img.isExisting && img.file)
         .map((img) => img.file);
+
+      // Extract IDs of existing images to keep
+      const keepImageIds = images
+        .filter((img) => img.isExisting)
+        .map((img) => img.id);
 
       // Log the data being sent for debugging
       console.log('Updating item:', {
@@ -199,10 +205,11 @@ export default function EditItemForm({ itemId, initialItem }) {
         descriptionLength: updateData.description.length,
         newImageCount: newImageFiles.length,
         totalImages: images.length,
+        keepImageIds,
       });
 
-      // Update item - pass new images if any
-      const result = await itemsAPI.updateItem(itemId, updateData, newImageFiles);
+      // Update item - pass new images and IDs of images to keep
+      const result = await itemsAPI.updateItem(itemId, updateData, newImageFiles, keepImageIds);
       
       // Redirect to product page after successful update
       router.push(`/product/${itemId}`);
@@ -513,27 +520,6 @@ export default function EditItemForm({ itemId, initialItem }) {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Credits */}
-        <div>
-          <label htmlFor="credits" className="block text-sm font-medium mb-2 text-swapcircle-primary">
-            Credits *
-          </label>
-          <input
-            id="credits"
-            name="credits"
-            type="number"
-            min="1"
-            step="1"
-            value={formData.credits}
-            onChange={handleInputChange}
-            className={`input-swapcircle ${errors.credits ? 'border-red-500' : ''}`}
-            required
-          />
-          {errors.credits && (
-            <p className="text-sm text-red-500 mt-1">{errors.credits}</p>
-          )}
         </div>
 
         {/* Form Actions */}

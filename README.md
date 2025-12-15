@@ -7,7 +7,6 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
 - **User Authentication**: Secure login and registration for students
 - **Item Listings**: Post clothing items for sale or swap
 - **Search & Filter**: Find items by category, size, brand, and more
-- **In-App Messaging**: Communicate directly with other users
 - **Campus Verification**: Ensure transactions happen within trusted university communities
 - **Favorites**: Save items you're interested in
 - **User Profiles**: View seller ratings and transaction history
@@ -25,21 +24,76 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
 - **Configuration**: Pydantic Settings
 - **Architecture**: RESTful API with async/await support
 
-### Infrastructure
-- **Hosting**: [TBD]
-- **Storage**: [TBD]
-
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** v18+ (for Frontend)
-- **Python** 3.9+ (for Backend)
-- **MongoDB** (local installation or MongoDB Atlas account)
-- **npm** or **yarn** or **pnpm** (package manager)
+- **Docker Desktop** (or Docker Engine + docker compose plugin) - **Recommended**
+- **Node.js** v18+ (for manual Frontend setup)
+- **Python** 3.9+ (for manual Backend setup)
+- **MongoDB** (local installation or MongoDB Atlas account - for manual setup)
 
-### Installation
+### Quick Start with Docker Compose (Recommended)
 
-1. Clone the repository
+The easiest way to run SwapCircle is using Docker Compose, which sets up all services automatically.
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/rayyanmaan/SwapCircle.git
+   cd SwapCircle
+   ```
+
+2. **Set up environment variables**
+   
+   Create `Backend/.env.local` file in the `Backend` directory:
+   ```bash
+   cd Backend
+   # Create .env.local file with the following variables:
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/swapcircle
+   # For remote MongoDB Atlas, keep TLS enabled (automatic with mongodb+srv://)
+   # For local MongoDB fallback, the system will automatically use mongodb://mongo:27017/swapcircle
+   MONGODB_TLS=false
+   DATABASE_NAME=swapcircle
+   SECRET_KEY=your-secret-key-here
+   CORS_ORIGINS=http://localhost:3000
+   ```
+   
+   **Note**: The backend will automatically fallback to the local MongoDB service if the remote connection fails.
+
+   Create `Frontend/.env.local` file in the `Frontend` directory:
+   ```bash
+   cd Frontend
+   # Create .env.local file:
+   NEXT_PUBLIC_API_URL=http://localhost:8000
+   ```
+
+3. **Start all services with Docker Compose**
+   ```bash
+   # From the repository root
+   docker compose up --build
+   ```
+   
+   This will start:
+   - **MongoDB** (local service) on port `27017`
+   - **Backend API** on `http://localhost:8000`
+   - **Frontend** on `http://localhost:3000`
+
+4. **Access the application**
+   - **Frontend**: Open `http://localhost:3000` in your browser
+   - **Backend API Docs**: 
+     - **Swagger UI**: `http://localhost:8000/docs` - Interactive API explorer
+     - **ReDoc**: `http://localhost:8000/redoc` - Clean API documentation
+
+5. **Stop the services**
+   ```bash
+   # Press Ctrl+C or run:
+   docker compose down
+   ```
+
+### Manual Setup (Alternative)
+
+If you prefer to run services manually without Docker:
+
+1. **Clone the repository**
    ```bash
    git clone https://github.com/rayyanmaan/SwapCircle.git
    cd SwapCircle
@@ -67,19 +121,22 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
    # On macOS/Linux:
    source venv/bin/activate
    
-   # Install dependencies (create requirements.txt if needed)
-   pip install fastapi uvicorn pydantic motor pymongo
+   # Install dependencies
+   pip install -r requirements.txt
    ```
 
 4. **Set up environment variables**
    
-   Create a `.env` file in the `Backend` directory:
+   Create a `.env.local` file in the `Backend` directory:
    ```bash
    cd Backend
-   # Create .env file with the following variables:
+   # Create .env.local file with the following variables:
    MONGODB_URI=mongodb://localhost:27017/swapcircle
+   # Keep TLS disabled for local Mongo, set true only for Atlas
+   MONGODB_TLS=false
    DATABASE_NAME=swapcircle
    SECRET_KEY=your-secret-key-here
+   CORS_ORIGINS=http://localhost:3000
    ```
 
 5. **Run the development servers**
@@ -118,10 +175,6 @@ SwapCircle is a campus clothing exchange platform that enables students to buy, 
    - See [`codebase/backend-routes.md`](./codebase/backend-routes.md) for all available endpoints
    - **Interactive Docs**: When backend is running, visit `http://localhost:8000/docs` for Swagger UI or `http://localhost:8000/redoc` for ReDoc
 4. **Follow Styling Guidelines**: Read [`codebase/styling-guide.md`](./codebase/styling-guide.md) before making UI changes
-
-### For Users
-
-[Add instructions on how to use the platform, including screenshots or GIFs]
 
 ## 🗂️ Project Structure
 ```
@@ -235,34 +288,10 @@ We welcome contributions! Please follow these steps:
 - Add tests for new features
 - Update documentation as needed
 
-## 📄 License
-[Add license information]
-
 ## 👥 Team
-- **Project Lead**: [Name]
-- **Developers**: [Names]
-- **Designers**: [Names]
-
-## 📞 Contact
-- **Email**: [contact email]
-- **Website**: [website if applicable]
-- **Issue Tracker**: [GitHub Issues](https://github.com/rayyanmaan/SwapCircle/issues)
-
-## 🙏 Acknowledgments
-- [Add any acknowledgments, inspirations, or credits]
-
-## 📊 Project Status
-🚧 **Status**: In Development
-
-## 🗺️ Roadmap
-- [ ] User authentication system
-- [ ] Item listing and management
-- [ ] Search and filtering functionality
-- [ ] Messaging system
-- [ ] Payment integration
-- [ ] Mobile app development
-- [ ] Admin dashboard
-
----
-
-**Note**: This project is currently under active development. Features and documentation will be updated regularly!
+- Aiman
+- Hasnain
+- Mulyn
+- Rayyan
+- Katia
+- Kazeem

@@ -4,8 +4,6 @@ export default function SortDropdown({ value, onChange }) {
   const sortOptions = [
     { value: 'newest', label: 'Newest First' },
     { value: 'oldest', label: 'Oldest First' },
-    { value: 'credits-low', label: 'Credits: Low to High' },
-    { value: 'credits-high', label: 'Credits: High to Low' },
     { value: 'title-asc', label: 'Title: A to Z' },
     { value: 'title-desc', label: 'Title: Z to A' },
   ];

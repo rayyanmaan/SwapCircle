@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { itemsAPI } from '@/services/api';
 import { getImageUrl } from '@/utils/itemParser';
 import { useAuth } from '@/contexts/AuthContext';
 import { theme } from '@/styles/theme';
 
 export default function SwapRequests() {
+  const router = useRouter();
   const { user, refreshUser } = useAuth();
   const [swapRequests, setSwapRequests] = useState({ as_owner: [], as_requester: [] });
   const [loading, setLoading] = useState(true);
@@ -138,14 +140,23 @@ export default function SwapRequests() {
                 ? getImageUrl(request.item.images[0])
                 : '/api/placeholder/300';
               
+              const handleItemClick = (e) => {
+                // Prevent click if it came from a button
+                if (e.target.closest('button')) return;
+                router.push(`/product/${request.item?.id}`);
+              };
+              
               return (
                 <div
                   key={request.id}
-                  className="border rounded-lg p-6 bg-white"
+                  className="border rounded-lg p-6 bg-white cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={handleItemClick}
                 >
                   <div className="flex items-start gap-4">
-                    {/* Item Image */}
-                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0">
+                    {/* Item Image - Clickable */}
+                    <div 
+                      className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0 flex-shrink-0"
+                    >
                       <img
                         src={itemImage}
                         alt={request.item?.title || 'Item'}
@@ -155,7 +166,9 @@ export default function SwapRequests() {
 
                     {/* Request Details */}
                     <div className="flex-1">
-                      <h3 className="heading-primary text-lg font-semibold mb-2">
+                      <h3 
+                        className="heading-primary text-lg font-semibold mb-2"
+                      >
                         {request.item?.title || 'Unknown Item'}
                       </h3>
                       <div className="space-y-1 text-sm text-swapcircle-secondary mb-4">
@@ -175,13 +188,19 @@ export default function SwapRequests() {
                       {/* Action Buttons */}
                       <div className="flex gap-3">
                         <button
-                          onClick={() => handleApprove(request.item_id, request.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleApprove(request.item_id, request.id);
+                          }}
                           className="btn-primary px-6 py-2"
                         >
                           Approve
                         </button>
                         <button
-                          onClick={() => handleReject(request.item_id, request.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReject(request.item_id, request.id);
+                          }}
                           className="btn-secondary px-6 py-2"
                         >
                           Reject
@@ -235,14 +254,23 @@ export default function SwapRequests() {
 
               const statusInfo = statusColors[request.status] || statusColors.pending;
 
+              const handleItemClick = (e) => {
+                // Prevent click if it came from a button
+                if (e.target.closest('button')) return;
+                router.push(`/product/${request.item?.id}`);
+              };
+
               return (
                 <div
                   key={request.id}
-                  className="border rounded-lg p-6 bg-white"
+                  className="border rounded-lg p-6 bg-white cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={handleItemClick}
                 >
                   <div className="flex items-start gap-4">
-                    {/* Item Image */}
-                    <div className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0">
+                    {/* Item Image - Clickable */}
+                    <div 
+                      className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0"
+                    >
                       <img
                         src={itemImage}
                         alt={request.item?.title || 'Item'}
@@ -253,7 +281,9 @@ export default function SwapRequests() {
                     {/* Request Details */}
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="heading-primary text-lg font-semibold">
+                        <h3 
+                          className="heading-primary text-lg font-semibold"
+                        >
                           {request.item?.title || 'Unknown Item'}
                         </h3>
                         <span
@@ -300,13 +330,14 @@ export default function SwapRequests() {
                       {request.status === 'pending' && (
                         <div className="mt-4">
                           <button
-                            onClick={() =>
+                            onClick={(e) => {
+                              e.stopPropagation();
                               openCancelConfirm(
                                 request.item_id,
                                 request.id,
                                 request.item?.title
-                              )
-                            }
+                              );
+                            }}
                             className="text-red-600 hover:text-red-700 text-sm font-medium underline"
                           >
                             Cancel Request

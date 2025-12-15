@@ -355,6 +355,21 @@ export const userAPI = {
 };
 
 /**
+ * Reports API
+ */
+export const reportAPI = {
+  /**
+   * Submit a report for an item or user
+   */
+  async submitReport({ target_type, target_id, reason, details, item_url }) {
+    return apiRequest('/reports', {
+      method: 'POST',
+      body: { target_type, target_id, reason, details, item_url },
+    });
+  },
+};
+
+/**
  * Items API
  */
 export const itemsAPI = {
@@ -499,19 +514,24 @@ export const itemsAPI = {
   },
 
   /**
-   * Update item with optional images
+   * Update item with optional images and image IDs to keep
+   * @param {string} itemId - The ID of the item to update
+   * @param {Object} updates - Object containing fields to update (title, description, etc.)
+   * @param {Array<File>} imageFiles - Array of new image files to upload
+   * @param {Array<string>} keepImageIds - Array of existing image IDs to keep (others will be deleted)
+   * @returns {Promise<Object>} Updated item data
    */
-  async updateItem(itemId, updates, imageFiles = []) {
+  async updateItem(itemId, updates, imageFiles = [], keepImageIds = []) {
     const url = `${API_BASE_URL}/items/${itemId}`;
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
-    // If there are new images to upload, use FormData for multipart/form-data
-    if (imageFiles && imageFiles.length > 0) {
+    // If there are new images to upload OR we need to specify kept images, use FormData
+    if ((imageFiles && imageFiles.length > 0) || keepImageIds.length > 0) {
       const formData = new FormData();
       
       // For FastAPI multipart with PATCH, send JSON string in 'item' form field
-      // The backend route checks content-type and can handle both JSON body and multipart
-      const itemJson = JSON.stringify(updates);
+      // Include keepImageIds in the update data
+      const itemJson = JSON.stringify({ ...updates, keepImageIds });
       formData.append('item', itemJson);
       
       // Add image files

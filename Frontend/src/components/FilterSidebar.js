@@ -47,6 +47,9 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
       } else {
         newFilters[filterType] = newFilters[filterType].filter((item) => item !== value);
       }
+    } else if (filterType === 'availability') {
+      // Single-select availability: 'all' | 'available' | 'unavailable' | 'pending'
+      newFilters.availability = value;
     } else if (filterType === 'minCredits') {
       newFilters.minCredits = checked ? value : null;
     } else if (filterType === 'maxCredits') {
@@ -69,6 +72,10 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
     updateFilter('conditions', condition, checked);
   };
 
+  const handleAvailabilityChange = (value) => {
+    updateFilter('availability', value, true);
+  };
+
   const handleCreditsChange = (type, value) => {
     const numValue = value === '' ? null : (isNaN(parseInt(value, 10)) ? null : parseInt(value, 10));
     const newFilters = { ...localFilters, [type]: numValue };
@@ -83,6 +90,7 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
       conditions: [],
       minCredits: null,
       maxCredits: null,
+      availability: 'available',
     };
     setLocalFilters(clearedFilters);
     onChange(clearedFilters);
@@ -128,6 +136,67 @@ export default function FilterSidebar({ filters, onChange, onClose }) {
       </button>
 
       <div className="space-y-6">
+        {/* Availability */}
+        <div>
+          <h3 className="heading-primary font-semibold mb-3">
+            Availability
+          </h3>
+          <div className="space-y-2">
+            <label className="flex items-center cursor-pointer group">
+              <input
+                type="radio"
+                name="availability"
+                checked={(localFilters.availability || 'all') === 'all'}
+                onChange={() => handleAvailabilityChange('all')}
+                className="w-4 h-4 rounded border-swapcircle focus:ring-2 focus:ring-primary"
+                style={{ accentColor: 'var(--swapcircle-primary)' }}
+              />
+              <span className="ml-2 text-sm transition-colors group-hover:opacity-70 text-swapcircle-secondary">
+                All
+              </span>
+            </label>
+            <label className="flex items-center cursor-pointer group">
+              <input
+                type="radio"
+                name="availability"
+                checked={(localFilters.availability || 'all') === 'available'}
+                onChange={() => handleAvailabilityChange('available')}
+                className="w-4 h-4 rounded border-swapcircle focus:ring-2 focus:ring-primary"
+                style={{ accentColor: 'var(--swapcircle-primary)' }}
+              />
+              <span className="ml-2 text-sm transition-colors group-hover:opacity-70 text-swapcircle-secondary">
+                Available
+              </span>
+            </label>
+            <label className="flex items-center cursor-pointer group">
+              <input
+                type="radio"
+                name="availability"
+                checked={(localFilters.availability || 'all') === 'unavailable'}
+                onChange={() => handleAvailabilityChange('unavailable')}
+                className="w-4 h-4 rounded border-swapcircle focus:ring-2 focus:ring-primary"
+                style={{ accentColor: 'var(--swapcircle-primary)' }}
+              />
+              <span className="ml-2 text-sm transition-colors group-hover:opacity-70 text-swapcircle-secondary">
+                Unavailable
+              </span>
+            </label>
+            <label className="flex items-center cursor-pointer group">
+              <input
+                type="radio"
+                name="availability"
+                checked={(localFilters.availability || 'all') === 'pending'}
+                onChange={() => handleAvailabilityChange('pending')}
+                className="w-4 h-4 rounded border-swapcircle focus:ring-2 focus:ring-primary"
+                style={{ accentColor: 'var(--swapcircle-primary)' }}
+              />
+              <span className="ml-2 text-sm transition-colors group-hover:opacity-70 text-swapcircle-secondary">
+                Pending
+              </span>
+            </label>
+          </div>
+        </div>
+
         {/* Categories */}
         <div>
           <h3 className="heading-primary font-semibold mb-3">

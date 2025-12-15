@@ -45,6 +45,8 @@ export function NotificationProvider({ children }) {
           newUnreadNotifications.forEach((notification) => {
             shownToastIds.current.add(notification.id);
             const { message, type } = formatNotification(notification);
+            
+            // Show the toast
             setTimeout(() => {
               window.__notificationContainer.addNotification({
                 type,
@@ -52,6 +54,13 @@ export function NotificationProvider({ children }) {
                 duration: 5000,
               });
             }, 0);
+            
+            // Mark as read immediately after showing to prevent re-showing
+            setTimeout(() => {
+              notificationsAPI.markAsRead(notification.id).catch(err => {
+                console.error('Error marking notification as read:', err);
+              });
+            }, 1000);
           });
         }
       } catch (error) {

@@ -1,0 +1,57 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: swapcircle-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: swapcircle-backend
+    # Load environment variables from Backend/.env.local file
+    # This file should contain: MONGODB_URI (remote/Atlas), DATABASE_NAME, SECRET_KEY, CORS_ORIGINS, etc.
+    # The backend will automatically fallback to local MongoDB (mongodb://mongo:27017/swapcircle)
+    # if the remote connection fails
+    env_file:
+      - ./Backend/.env.local
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    volumes:
+      - ./Backend/static:/app/static
+      - ./Backend/pics-storage-37f99-firebase-adminsdk-fbsvc-96dca777fc.json:/app/pics-storage-37f99-firebase-adminsdk-fbsvc-96dca777fc.json:ro
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        # Pass environment variables at build time
+        # These can come from shell environment, root .env file, or Frontend/.env.local
+        # Next.js will also automatically read Frontend/.env.local during build
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    container_name: swapcircle-frontend
+    # Load environment variables from Frontend/.env.local file at runtime
+    # Note: NEXT_PUBLIC_* variables must be set at build time, not runtime
+    env_file:
+      - ./Frontend/.env.local
+    environment:
+      # Runtime environment variables (non-NEXT_PUBLIC_* vars)
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mongo-data:

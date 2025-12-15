@@ -270,9 +270,7 @@ export default function Header() {
 
                 {/* Action Buttons - Logged In */}
                 <div className="hidden md:flex items-center space-x-3">
-                  <div className="hover:opacity-80 transition-opacity cursor-pointer">
-                    <NotificationCenter />
-                  </div>
+                  <NotificationCenter />
                   
                   <Link href="/profile" className="btn-credit hover:bg-swapcircle-credit/80 transition-colors">
                     {user?.credits || 0} credits

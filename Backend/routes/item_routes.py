@@ -451,7 +451,8 @@ async def update_item(
 
     Only the item owner can update their items. This endpoint supports
     partial updates (PATCH semantics) - only provided fields will be updated.
-    New images can be added by including them in the request.
+    New images can be added by including them in the request. Existing images
+    can be removed by specifying which image IDs to keep in the keepImageIds field.
 
     This endpoint supports both JSON and multipart/form-data requests.
     For multipart requests, the item data should be in a form field named 'item'
@@ -459,12 +460,16 @@ async def update_item(
 
     Args:
         item_id: The unique identifier of the item to update
-        patch: Optional dictionary containing fields to update (title, description, status)
+        patch: Optional dictionary containing fields to update (title, description, status, keepImageIds)
         images: Optional list of new image files to add to the item
         request: FastAPI Request object containing authentication header
 
+    Patch Fields:
+        keepImageIds (list[str], optional): List of existing image IDs to keep.
+            Images not in this list will be removed from the item.
+
     Returns:
-        ItemOut: The updated item
+        ItemOut: The updated item with modified images array
 
     Raises:
         HTTPException:
@@ -543,6 +548,16 @@ async def update_item(
     if "status" in patch_data:
         it["status"] = patch_data.get("status")
 
+    # Handle image updates: keep only specified existing images + add new ones
+    if "keepImageIds" in patch_data:
+        keep_ids = patch_data.get("keepImageIds", [])
+        if isinstance(keep_ids, list):
+            # Filter existing images to keep only those in keepImageIds
+            existing_images = it.get("images", [])
+            kept_images = [img for img in existing_images if img.get("id") in keep_ids]
+            it["images"] = kept_images
+    
+    # Add new images if provided
     if images:
         for up in images:
             url, img_id = await image_service.upload_image(up)
