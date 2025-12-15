@@ -20,10 +20,6 @@ services:
     env_file:
       - ./Backend/.env.local
     environment:
-      # Ensure config.py sees the Firebase credentials inside the container
-      FIREBASE_CREDENTIALS_PATH: /app/pics-storage-37f99-firebase-adminsdk-fbsvc-96dca777fc.json
-      # Provide sane defaults for local CORS + secrets if they are missing
-      SECRET_KEY: ${SECRET_KEY:-changeme}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     volumes:
       - ./Backend/static:/app/static
