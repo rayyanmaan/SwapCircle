@@ -22,6 +22,7 @@ export function useSellerInfo(ownerId) {
           avatar: sellerData.username?.[0]?.toUpperCase() || sellerData.full_name?.[0]?.toUpperCase() || '?',
           profile_pic: sellerData.profile_pic || null,
           credits: sellerData.credits || 0,
+          location: sellerData.location || null,
           lockDuration: '24 hours',
         });
 
@@ -42,6 +43,7 @@ export function useSellerInfo(ownerId) {
           username: null,
           avatar: '?',
           credits: 0,
+          location: null,
           lockDuration: '24 hours',
           profile_pic: null,
         });
