@@ -222,6 +222,9 @@ export default function Profile({ username: usernameProp }) {
     setUser(prev => prev ? { ...prev, swapped: swapHistory.length } : null);
   }, [swapHistory]);
 
+
+
+
   const getSocialLink = (platform, value) => {
     if (!value) return null;
 

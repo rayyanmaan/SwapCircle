@@ -32,6 +32,7 @@ if PYDANTIC_V2:
         # Use ConfigDict (pydantic v2.0+)
         class Settings(BaseSettings):
             mongodb_uri: str = "mongodb://localhost:27017/swapcircle"
+            mongodb_tls: bool = False
             database_name: str = "swapcircle"
             secret_key: str = "changeme"
             # Firebase configuration
@@ -39,13 +40,14 @@ if PYDANTIC_V2:
             firebase_credentials_path: Optional[str] = None  # Path to Firebase service account JSON file
 
             model_config = ConfigDict(
-                env_file=".env",
+                env_file=[".env.local", ".env"],  # Try .env.local first, then .env
                 extra="ignore"  # Ignore extra fields from environment variables (like jwt_secret_key)
             )
     else:
         # Fallback for older pydantic v2 (use class Config)
         class Settings(BaseSettings):
             mongodb_uri: str = "mongodb://localhost:27017/swapcircle"
+            mongodb_tls: bool = False
             database_name: str = "swapcircle"
             secret_key: str = "changeme"
             # Firebase configuration
@@ -53,12 +55,13 @@ if PYDANTIC_V2:
             firebase_credentials_path: Optional[str] = None  # Path to Firebase service account JSON file
 
             class Config:
-                env_file = ".env"
+                env_file = [".env.local", ".env"]  # Try .env.local first, then .env
                 extra = "ignore"  # Ignore extra fields from environment variables
 else:
     # Pydantic v1 Settings class
     class Settings(BaseSettings):
         mongodb_uri: str = "mongodb://localhost:27017/swapcircle"
+        mongodb_tls: bool = False
         database_name: str = "swapcircle"
         secret_key: str = "changeme"
         # Firebase configuration
@@ -66,7 +69,7 @@ else:
         firebase_credentials_path: Optional[str] = None  # Path to Firebase service account JSON file
 
         class Config:
-            env_file = ".env"
+            env_file = [".env.local", ".env"]  # Try .env.local first, then .env
             extra = "ignore"  # Ignore extra fields from environment variables
 
 
