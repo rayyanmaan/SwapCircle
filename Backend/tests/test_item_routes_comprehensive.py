@@ -29,7 +29,7 @@ class TestCreateItem:
                             "size": "M",
                             "location": "San Francisco",
                             "condition": "like_new",
-                            "branded": True,
+                            "branded": "Yes",
                             "credits": 2.0
                         },
                         headers={"Authorization": f"Bearer {mock_token}"}
@@ -48,7 +48,7 @@ class TestCreateItem:
                     with patch("routes.item_routes.credit_service.add_credits", new_callable=AsyncMock, return_value=11.0):
                         files = [("images", ("test.jpg", BytesIO(b"fake image data"), "image/jpeg"))]
                         data = {
-                            "item": '{"title": "Test Item", "description": "A test item", "category": "tops", "size": "M", "location": "San Francisco", "condition": "like_new", "branded": true, "credits": 2.0}'
+                            "item": '{"title": "Test Item", "description": "A test item", "category": "tops", "size": "M", "location": "San Francisco", "condition": "like_new", "branded": "Yes", "credits": 2.0}'
                         }
                         response = client.post(
                             "/items/",

@@ -71,7 +71,7 @@ def mock_item():
         "size": "M",
         "location": "San Francisco",
         "condition": "like_new",
-        "branded": True,
+        "branded": "Yes",
         "credits": 2.0,
         "owner_id": "user123",
         "status": "available",
