@@ -156,7 +156,7 @@ class TestCreditDeductionOnRequest:
                             f"/swaps/items/{mock_item['id']}/request",
                             headers={"Authorization": f"Bearer {mock_token}"},
                         )
-                        assert response.status_code == 400
+                        assert response.status_code == 402
 
 
 class TestCreditRefundOnCancellation:
@@ -335,7 +335,7 @@ class TestCreditPrivacy:
     ):
         """Test that user can see their own credit balance."""
         with patch(
-            "routes.user_routes.auth_service.get_user_id_from_request",
+            "routes.user_routes.get_authenticated_user_id",
             return_value=mock_user["id"],
         ):
             with patch(
