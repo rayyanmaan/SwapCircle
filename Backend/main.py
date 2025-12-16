@@ -172,6 +172,25 @@ app.add_middleware(
 app.add_middleware(OptionsMiddleware)
 
 
+# Add security headers middleware to protect against common vulnerabilities
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add standard security headers to all responses.
+    
+    Headers added:
+    - X-Content-Type-Options: nosniff - Prevents MIME-sniffing attacks
+    - X-Frame-Options: DENY - Prevents clickjacking by blocking iframe embedding
+    - X-XSS-Protection: 1; mode=block - Enables XSS filter in older browsers
+    
+    These headers follow OWASP security best practices.
+    """
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    return response
+
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Global exception handler to ensure CORS headers are included in error responses."""
