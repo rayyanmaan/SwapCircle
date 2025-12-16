@@ -568,28 +568,75 @@ async def update_item(
 
 
 @router.delete("/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_item(item_id: str):
+async def delete_item(item_id: str, request: Request):
     """Delete an item and all associated images.
 
-    This operation permanently removes the item from the system and
-    deletes all uploaded images associated with it.
+    Anti-fraud measure: If the item is 'available', the user loses the credit
+    they earned for uploading it. If the item is 'pending', 'swapped', or 'locked',
+    no credits are deducted because the user legitimately earned those credits
+    from someone purchasing/swapping with their item.
+
+    This prevents users from creating items to farm credits and then deleting them.
 
     Args:
         item_id: The unique identifier of the item to delete
+        request: FastAPI Request object containing authentication header
 
     Returns:
         None (204 No Content on success)
 
     Raises:
-        HTTPException: 404 if item not found
+        HTTPException:
+            - 401 if authentication fails
+            - 403 if user is not the item owner
+            - 404 if item not found
     """
+    # Require authentication and verify ownership
+    user_id = auth_service.get_user_id_from_request(request)
+
     it = await storage_service.get_item(item_id)
     if not it:
         raise HTTPException(status_code=404, detail="item not found")
 
-    for img in it.get("images", []):
-        await image_service.delete_image(img.get("id"))
+    # Verify the user is the owner
+    item_owner_id = it.get("owner_id")
+    if not item_owner_id or item_owner_id != user_id:
+        raise HTTPException(status_code=403, detail="Only the item owner can delete this item")
 
+    # Anti-fraud: Only deduct credits if item is still available
+    # If item is pending/swapped/locked, the credits were earned legitimately
+    item_status = it.get("status", "available")
+    credits_to_deduct = it.get("credits", 1.0)
+
+    if item_status == "available":
+        # Deduct the upload credit since the item was never actually swapped
+        try:
+            from utils.constants import TRANSACTION_TYPE_ITEM_DELETION
+            await credit_service.deduct_credits(
+                user_id=user_id,
+                amount=credits_to_deduct,
+                transaction_type=TRANSACTION_TYPE_ITEM_DELETION,
+                description=f"Credits deducted for deleting available item: {it.get('title')}"
+            )
+        except Exception as e:
+            # Log error but still allow deletion
+            import traceback
+            print(f"WARNING: Failed to deduct credits for deleted item {item_id}: {str(e)}")
+            print(traceback.format_exc())
+    else:
+        # Item is pending/swapped/locked - user earned these credits legitimately
+        # Don't deduct them
+        print(f"Item {item_id} has status '{item_status}' - not deducting credits on deletion")
+
+    # Delete item images
+    for img in it.get("images", []):
+        try:
+            await image_service.delete_image(img.get("id"))
+        except Exception as e:
+            # Log error but continue with deletion
+            print(f"WARNING: Failed to delete image {img.get('id')}: {str(e)}")
+
+    # Delete the item itself
     await storage_service.delete_item(item_id)
     return None
 

@@ -81,11 +81,10 @@ export default function Header() {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Check if click is on a search result item
       const isSearchResultClick = event.target.closest('[data-search-result]');
       
       if (isSearchResultClick) {
-        return; // Don't close if clicking on a search result
+        return;
       }
 
       if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
@@ -121,17 +120,27 @@ export default function Header() {
       <header className="sticky top-0 z-40 bg-swapcircle-white border-b border-swapcircle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              <Link href="/">
-                <Logo />
-              </Link>
-            </div>
+            {/* Logo + Navigation (grouped together) */}
+            <div className="flex items-center gap-8">
+              {/* Logo */}
+              <div className="flex-shrink-0">
+                <Link href="/">
+                  <Logo />
+                </Link>
+              </div>
 
-            {isAuthenticated ? (
-              <>
-                {/* Logged In - Desktop Navigation */}
-                <div className="hidden md:flex items-center flex-1 mx-8 gap-6">
+              {/* Browse link - shown for non-logged-in users only */}
+              {!isAuthenticated && (
+                <nav className="hidden md:flex items-center">
+                  <Link href="/browse" className="font-medium link-swapcircle hover:opacity-70 transition-opacity">
+                    Browse
+                  </Link>
+                </nav>
+              )}
+
+              {/* Logged In - Desktop Navigation */}
+              {isAuthenticated && (
+                <div className="hidden md:flex items-center flex-1 mx-0 gap-6">
                   {/* User Search Bar with Dropdown */}
                   <div className="relative flex-1 max-w-md" ref={searchDropdownRef}>
                     <div className="relative">
@@ -267,7 +276,12 @@ export default function Header() {
                     </Link>
                   </nav>
                 </div>
+              )}
+            </div>
 
+            {/* Right side - Action buttons */}
+            {isAuthenticated ? (
+              <>
                 {/* Action Buttons - Logged In */}
                 <div className="hidden md:flex items-center space-x-3">
                   <NotificationCenter />
@@ -325,36 +339,6 @@ export default function Header() {
               </>
             ) : (
               <>
-                {/* Not Logged In - Desktop Navigation */}
-                <nav className="hidden md:flex items-center space-x-6">
-                  <Link href="/browse" className="font-medium link-swapcircle hover:opacity-70 transition-opacity">
-                    Browse
-                  </Link>
-                </nav>
-
-                {/* Search Bar - Desktop (Disabled for non-logged-in) */}
-                <div className="hidden lg:flex flex-1 max-w-md mx-8">
-                  <div className="relative w-full">
-                    <input
-                      type="text"
-                      placeholder="Search for clothes..."
-                      className="input-swapcircle search-tube"
-                      disabled
-                    />
-                    <svg
-                      className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 icon-tertiary pointer-events-none"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
-                </div>
-
                 {/* Auth Buttons */}
                 <div className="hidden md:flex items-center space-x-3">
                   <button
