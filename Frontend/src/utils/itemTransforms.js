@@ -24,6 +24,7 @@ export function toListingCardData(item) {
     credits: metadata.credits || 1,
     condition: metadata.condition || 'Good',
     location: metadata.location || null,
+    category: metadata.category || null,
     timestamp: 'Recently',
     image: imageUrl,
     status: normalizeStatus(item.status || 'available'),
