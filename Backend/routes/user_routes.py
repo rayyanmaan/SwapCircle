@@ -3,8 +3,7 @@
 from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File, Depends
 from typing import Optional, List
 from fastapi import Query
-from services import storage_service
-from services import user_service, auth_service, image_service
+from services import user_service, auth_service, image_service, swap_service, storage_service
 from models.user_model import UserOut
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -147,6 +146,7 @@ async def get_user_by_username(username: str):
     from services import rating_service
 
     rating_stats = await rating_service.get_user_rating_stats(user.get("id"))
+    swaps_count = len(await swap_service.get_approved_swaps_for_user(user.get("id")))
 
     # Return public fields only
     return UserOut(
@@ -157,6 +157,7 @@ async def get_user_by_username(username: str):
         location=user.get("location"),
         credits=user.get("credits", 0.0),
         email_verified=user.get("email_verified", False),
+        swapped=swaps_count,
         bio=user.get("bio"),
         profile_pic=user.get("profile_pic"),
         instagram_handle=user.get("instagram_handle"),
@@ -183,6 +184,7 @@ async def get_user(user_id: str, request: Request):
     from services import rating_service
 
     rating_stats = await rating_service.get_user_rating_stats(user_id)
+    swaps_count = len(await swap_service.get_approved_swaps_for_user(user_id))
 
     # Check if requesting user is the same as the requested user
     # to determine if we should show credits
@@ -206,6 +208,7 @@ async def get_user(user_id: str, request: Request):
         location=user.get("location"),
         credits=credits_to_show,
         email_verified=user.get("email_verified", False),
+        swapped=swaps_count,
         bio=user.get("bio"),
         profile_pic=user.get("profile_pic"),
         instagram_handle=user.get("instagram_handle"),
@@ -327,6 +330,7 @@ async def patch_user(user_id: str, request: Request):
         from services import rating_service
 
         rating_stats = await rating_service.get_user_rating_stats(user_id)
+        swaps_count = len(await swap_service.get_approved_swaps_for_user(user_id))
 
         return UserOut(
             id=updated_user.get("id"),
@@ -336,6 +340,7 @@ async def patch_user(user_id: str, request: Request):
             location=updated_user.get("location"),
             credits=updated_user.get("credits", 0.0),
             email_verified=updated_user.get("email_verified", False),
+            swapped=swaps_count,
             bio=updated_user.get("bio"),
             profile_pic=updated_user.get("profile_pic"),
             instagram_handle=updated_user.get("instagram_handle"),
@@ -417,18 +422,21 @@ async def upload_profile_picture(
                 detail="Failed to update profile picture",
             )
 
-        # Get rating stats
+        # Get rating stats and swapped count
         from services import rating_service
 
         rating_stats = await rating_service.get_user_rating_stats(user_id)
+        swaps_count = len(await swap_service.get_approved_swaps_for_user(user_id))
 
         return UserOut(
             id=updated_user.get("id"),
             email=updated_user.get("email"),
             username=updated_user.get("username"),
             full_name=updated_user.get("full_name", ""),
+            location=updated_user.get("location"),
             credits=updated_user.get("credits", 0.0),
             email_verified=updated_user.get("email_verified", False),
+            swapped=swaps_count,
             bio=updated_user.get("bio"),
             profile_pic=updated_user.get("profile_pic"),
             instagram_handle=updated_user.get("instagram_handle"),

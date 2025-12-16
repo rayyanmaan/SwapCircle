@@ -35,6 +35,7 @@ def user_document(
         "linkedin_url": linkedin_url,
         "bio": bio,
         "location": location,
+        "swapped": 0,
         "favorites": [],
     }
 
@@ -70,6 +71,7 @@ class UserOut(BaseModel):
     location: Optional[str] = None
     credits: float = 0.0
     email_verified: bool = False
+    swapped: int = 0
     profile_pic: Optional[str] = None
     instagram_handle: Optional[str] = None
     whatsapp_number: Optional[str] = None
