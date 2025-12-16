@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { PLACEHOLDER_IMAGE_URL } from '@/config/constants';
 import Footer from './Footer';
 import { userAPI, itemsAPI } from '@/services/api';
 import { parseItemMetadata, getImageUrl } from '@/utils/itemParser';
@@ -222,7 +223,7 @@ export default function Profile() {
                             alt={item.title}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              e.target.src = '/placeholder.svg';
+                              e.target.src = PLACEHOLDER_IMAGE_URL;
                             }}
                           />
                         </div>

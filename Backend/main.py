@@ -4,6 +4,7 @@ Mounts static files and includes the items router. Uses the database
 connection helpers in `Backend/database/connection.py`.
 """
 
+import os
 from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.staticfiles import StaticFiles
@@ -14,6 +15,7 @@ from pydantic import ValidationError
 from contextlib import asynccontextmanager
 
 from database.connection import connect_db, close_db
+from config_defaults.constants import CORS_ORIGINS
 from routes.item_routes import router as items_router
 from routes.auth_routes import router as auth_router
 from routes.user_routes import router as users_router
@@ -40,17 +42,14 @@ app = FastAPI(title="SwapCircle Backend", lifespan=lifespan)
 
 # CORS - configure allowed origins from environment variable
 # IMPORTANT: CORS middleware must be added BEFORE routers to handle OPTIONS preflight requests
-# Default to localhost for development, but allow production URL via env var
-import os
-from config import settings
+# Import CORS configuration from centralized constants
+from config_defaults.constants import CORS_ORIGINS
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-# Get allowed origins from environment variable, default to localhost
-allowed_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
-# Normalize origins: remove trailing slashes and strip whitespace
+# Normalize origins: remove trailing slashes
 allowed_origins = [
-    origin.strip().rstrip("/") for origin in allowed_origins_str.split(",")
+    origin.strip().rstrip("/") for origin in CORS_ORIGINS
 ]
 
 # Debug: Print CORS configuration on startup

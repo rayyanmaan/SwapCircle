@@ -1,4 +1,5 @@
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
+import { PLACEHOLDER_IMAGE_URL } from '@/config/constants';
 
 // Normalize backend status to a limited set for UI
 export function normalizeStatus(status) {
@@ -37,7 +38,7 @@ export function toProductDetailData(item) {
   const metadata = getItemMetadata(item);
   const images = item.images && item.images.length > 0
     ? item.images.map((img) => getImageUrl(img))
-    : ['/placeholder.svg'];
+    : [PLACEHOLDER_IMAGE_URL];
 
   return {
     id: item.id,

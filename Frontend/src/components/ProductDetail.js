@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaLocationDot } from 'react-icons/fa6';
 import { useAuth } from '@/contexts/AuthContext';
+import { PLACEHOLDER_IMAGE_URL } from '@/config/constants';
 import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
 import SwapProcessingModal from './SwapProcessingModal';
@@ -50,7 +51,7 @@ export default function ProductDetail({ product }) {
 
     const images = productData.images && productData.images.length > 0
       ? productData.images.map(img => getImageUrl(img))
-      : ['/placeholder.svg'];
+      : [PLACEHOLDER_IMAGE_URL];
     
     return {
       id: productData.id,
@@ -272,7 +273,7 @@ export default function ProductDetail({ product }) {
                 alt={productData.title}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                    e.target.src = '/placeholder.svg';
+                    e.target.src = PLACEHOLDER_IMAGE_URL;
                 }}
               />
               
@@ -317,7 +318,7 @@ export default function ProductDetail({ product }) {
                       alt={`${productData.title} ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = '/placeholder.svg';
+                        e.target.src = PLACEHOLDER_IMAGE_URL;
                       }}
                     />
                   </button>
