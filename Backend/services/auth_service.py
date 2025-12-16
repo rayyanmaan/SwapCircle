@@ -12,7 +12,7 @@ import hmac
 import uuid
 from typing import Tuple
 
-from config import settings
+from config_defaults.settings import settings
 
 
 def hash_password(password: str, salt: str = None) -> Tuple[str, str]:

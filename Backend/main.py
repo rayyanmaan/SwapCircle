@@ -4,7 +4,6 @@ Mounts static files and includes the items router. Uses the database
 connection helpers in `Backend/database/connection.py`.
 """
 
-import os
 from pathlib import Path
 from fastapi import FastAPI, Request, status
 from fastapi.staticfiles import StaticFiles
@@ -42,18 +41,16 @@ app = FastAPI(title="SwapCircle Backend", lifespan=lifespan)
 
 # CORS - configure allowed origins from environment variable
 # IMPORTANT: CORS middleware must be added BEFORE routers to handle OPTIONS preflight requests
-# Import CORS configuration from centralized constants
-from config_defaults.constants import CORS_ORIGINS
+# CORS configuration imported from centralized constants at top of file
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-# Normalize origins: remove trailing slashes
-allowed_origins = [
-    origin.strip().rstrip("/") for origin in CORS_ORIGINS
-]
+# CORS origins are already normalized in config_defaults/constants.py
+allowed_origins = CORS_ORIGINS
 
-# Debug: Print CORS configuration on startup
-print(f"CORS Configuration: allowed_origins={allowed_origins}")
+# Debug: Print CORS configuration on startup (guarded by DEBUG_CORS)
+if DEBUG_CORS:
+    print(f"CORS Configuration: allowed_origins={allowed_origins}")
 
 
 # Custom middleware to handle OPTIONS requests before they hit route handlers
@@ -68,6 +65,8 @@ class OptionsMiddleware(BaseHTTPMiddleware):
         print(f"  Origin: {request.headers.get('origin', 'None')}")
         print(f"  Headers: {dict(request.headers)}")
         print(f"  Query params: {dict(request.query_params)}")
+import os
+
         print("=" * 80)
 
         # Handle OPTIONS requests immediately
@@ -88,23 +87,26 @@ class OptionsMiddleware(BaseHTTPMiddleware):
             # Normalize origin (remove trailing slash) for comparison
             normalized_origin = origin.rstrip("/") if origin else None
 
+
+# Toggle noisy CORS debug logging via env. Default false to keep logs clean in Docker.
+DEBUG_CORS = os.getenv("DEBUG_CORS", "false").lower() == "true"
             # Only set Access-Control-Allow-Origin if origin is in allowed list
             if normalized_origin and normalized_origin in allowed_origins:
-                headers["Access-Control-Allow-Origin"] = (
-                    origin  # Use original origin in header
+print(f"CORS Configuration: allowed_origins={allowed_origins}")
                 )
                 print(
                     f"[OptionsMiddleware] ✅ OPTIONS request ALLOWED for origin: {origin}"
                 )
-            elif origin:
-                print(
-                    f"[OptionsMiddleware] ❌ OPTIONS request BLOCKED - origin '{origin}' (normalized: '{normalized_origin}') not in allowed_origins: {allowed_origins}"
-                )
-            else:
-                print("[OptionsMiddleware] ⚠️ OPTIONS request with no origin header")
-
-            print(f"[OptionsMiddleware] Returning 200 OK with headers: {headers}")
-            return Response(content="", status_code=200, headers=headers)
+        if DEBUG_CORS:
+            print("\n" + "=" * 80)
+            print(f"[OptionsMiddleware] Request received:")
+            print(f"  Method: {request.method}")
+            print(f"  Path: {request.url.path}")
+            print(f"  Full URL: {request.url}")
+            print(f"  Origin: {request.headers.get('origin', 'None')}")
+            print(f"  Headers: {dict(request.headers)}")
+            print(f"  Query params: {dict(request.query_params)}")
+            print("=" * 80)
 
         # For non-OPTIONS requests, continue to next middleware/handler
         print(
