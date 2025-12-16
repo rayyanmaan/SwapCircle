@@ -202,6 +202,12 @@ export default function Profile({ username: usernameProp }) {
                   totalRatings={ratingStats.total_ratings} 
                 />
               </div>
+              {user.location && (
+                <span className="text-swapcircle-secondary text-sm flex items-center gap-1 mb-2">
+                  <FaLocationDot className="w-4 h-4" />
+                  {user.location}
+                </span>
+              )}
               {isOwnProfile && (
                 <p className="text-swapcircle-secondary mb-3">{user.email}</p>
               )}

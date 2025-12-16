@@ -50,7 +50,21 @@ async function apiRequest(endpoint, options = {}) {
 
   try {
     const response = await fetch(url, config);
-    const data = await response.json();
+
+    // Handle 204 No Content (common for DELETE operations)
+    if (response.status === 204) {
+      return { success: true };
+    }
+
+    // Try to parse as JSON, but handle empty responses
+    let data;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      // If not JSON, return empty object
+      data = {};
+    }
 
     if (!response.ok) {
       // Handle structured error responses

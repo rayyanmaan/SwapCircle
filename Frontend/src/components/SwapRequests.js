@@ -6,6 +6,8 @@ import { itemsAPI } from '@/services/api';
 import { getImageUrl } from '@/utils/itemParser';
 import { useAuth } from '@/contexts/AuthContext';
 import { theme } from '@/styles/theme';
+import ConfirmationModal from './ConfirmationModal';
+import SwapProcessingModal from './SwapProcessingModal';
 
 export default function SwapRequests() {
   const router = useRouter();
@@ -13,10 +15,27 @@ export default function SwapRequests() {
   const [swapRequests, setSwapRequests] = useState({ as_owner: [], as_requester: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Modal states for approve
+  const [showApproveConfirm, setShowApproveConfirm] = useState(false);
+  const [approvingItemId, setApprovingItemId] = useState(null);
+  const [approvingRequestId, setApprovingRequestId] = useState(null);
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [showApproveSuccess, setShowApproveSuccess] = useState(false);
+
+  // Modal states for reject
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false);
+  const [rejectingItemId, setRejectingItemId] = useState(null);
+  const [rejectingRequestId, setRejectingRequestId] = useState(null);
+  const [rejectLoading, setRejectLoading] = useState(false);
+  const [showRejectSuccess, setShowRejectSuccess] = useState(false);
+
+  // Modal states for cancel
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelingRequestId, setCancelingRequestId] = useState(null);
   const [cancelingItemId, setCancelingItemId] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [showCancelSuccess, setShowCancelSuccess] = useState(false);
 
   useEffect(() => {
     const fetchSwapRequests = async () => {
@@ -38,74 +57,120 @@ export default function SwapRequests() {
     }
   }, [user]);
 
-  const handleApprove = async (itemId, requestId) => {
+  // ===== APPROVE HANDLERS =====
+  const openApproveConfirm = (itemId, requestId) => {
+    setApprovingItemId(itemId);
+    setApprovingRequestId(requestId);
+    setShowApproveConfirm(true);
+  };
+
+  const handleApproveConfirm = async () => {
+    if (!approvingItemId || !approvingRequestId) return;
+
+    setApproveLoading(true);
     try {
-      await itemsAPI.approveSwapRequest(itemId, requestId);
+      await itemsAPI.approveSwapRequest(approvingItemId, approvingRequestId);
       
       // Refresh user data to get updated credits
       if (refreshUser) {
         await refreshUser();
       }
-      alert('Swap request approved! Credits have been transferred.');
+
+      setShowApproveConfirm(false);
+      setShowApproveSuccess(true);
+
       // Refresh swap requests
       const data = await itemsAPI.getSwapRequests();
       setSwapRequests(data);
-      // Refresh page to update item statuses
-      window.location.reload();
     } catch (err) {
       console.error('Error approving swap request:', err);
       alert(err.message || 'Failed to approve swap request');
+      setShowApproveConfirm(false);
+    } finally {
+      setApproveLoading(false);
+      setApprovingItemId(null);
+      setApprovingRequestId(null);
     }
   };
 
-  const handleReject = async (itemId, requestId) => {
-    if (!confirm('Are you sure you want to reject this swap request?')) {
-      return;
-    }
+  // ===== REJECT HANDLERS =====
+  const openRejectConfirm = (itemId, requestId) => {
+    setRejectingItemId(itemId);
+    setRejectingRequestId(requestId);
+    setShowRejectConfirm(true);
+  };
 
+  const handleRejectConfirm = async () => {
+    if (!rejectingItemId || !rejectingRequestId) return;
+
+    setRejectLoading(true);
     try {
-      await itemsAPI.rejectSwapRequest(itemId, requestId);
-      alert('Swap request rejected.');
+      await itemsAPI.rejectSwapRequest(rejectingItemId, rejectingRequestId);
+      
+      setShowRejectConfirm(false);
+      setShowRejectSuccess(true);
+
       // Refresh swap requests
       const data = await itemsAPI.getSwapRequests();
       setSwapRequests(data);
-      // Refresh page to update item statuses
-      window.location.reload();
     } catch (err) {
       console.error('Error rejecting swap request:', err);
       alert(err.message || 'Failed to reject swap request');
+      setShowRejectConfirm(false);
+    } finally {
+      setRejectLoading(false);
+      setRejectingItemId(null);
+      setRejectingRequestId(null);
     }
   };
 
-  const handleCancelRequest = async () => {
-    if (!cancelingItemId || !cancelingRequestId) {
-      return;
-    }
+  // ===== CANCEL HANDLERS =====
+  const openCancelConfirm = (itemId, requestId) => {
+    setCancelingItemId(itemId);
+    setCancelingRequestId(requestId);
+    setShowCancelConfirm(true);
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!cancelingItemId || !cancelingRequestId) return;
 
     setCancelLoading(true);
     try {
       await itemsAPI.cancelSwapRequest(cancelingItemId);
-      alert('Swap request cancelled successfully.');
+      
+      setShowCancelConfirm(false);
+      setShowCancelSuccess(true);
+
       // Refresh swap requests
       const data = await itemsAPI.getSwapRequests();
       setSwapRequests(data);
-      // Refresh page to update item statuses
-      window.location.reload();
     } catch (err) {
       console.error('Error cancelling swap request:', err);
       alert(err.message || 'Failed to cancel swap request');
+      setShowCancelConfirm(false);
     } finally {
       setCancelLoading(false);
-      setShowCancelConfirm(false);
-      setCancelingRequestId(null);
       setCancelingItemId(null);
+      setCancelingRequestId(null);
     }
   };
 
-  const openCancelConfirm = (itemId, requestId, itemTitle) => {
-    setCancelingItemId(itemId);
-    setCancelingRequestId(requestId);
-    setShowCancelConfirm(true);
+  const handleApproveSuccess = () => {
+    setShowApproveSuccess(false);
+    // Optionally refresh the page to update item statuses
+    window.location.reload();
+  };
+
+  const handleRejectSuccess = () => {
+    setShowRejectSuccess(false);
+    // Optionally refresh the page to update item statuses
+    window.location.reload();
+  };
+
+  const handleCancelSuccess = () => {
+    setShowCancelSuccess(false);
+    // Optionally refresh the page to update item statuses
+    window.location.reload();
   };
 
   if (loading) {
@@ -155,7 +220,7 @@ export default function SwapRequests() {
                   <div className="flex items-start gap-4">
                     {/* Item Image - Clickable */}
                     <div 
-                      className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0 flex-shrink-0"
+                      className="w-24 h-24 rounded-lg overflow-hidden bg-swapcircle-alt flex-shrink-0"
                     >
                       <img
                         src={itemImage}
@@ -190,7 +255,7 @@ export default function SwapRequests() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleApprove(request.item_id, request.id);
+                            openApproveConfirm(request.item_id, request.id);
                           }}
                           className="btn-primary px-6 py-2"
                         >
@@ -199,7 +264,7 @@ export default function SwapRequests() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleReject(request.item_id, request.id);
+                            openRejectConfirm(request.item_id, request.id);
                           }}
                           className="btn-secondary px-6 py-2"
                         >
@@ -332,11 +397,7 @@ export default function SwapRequests() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              openCancelConfirm(
-                                request.item_id,
-                                request.id,
-                                request.item?.title
-                              );
+                              openCancelConfirm(request.item_id, request.id);
                             }}
                             className="text-red-600 hover:text-red-700 text-sm font-medium underline"
                           >
@@ -353,32 +414,70 @@ export default function SwapRequests() {
         )}
       </div>
 
-      {/* Confirmation Modal */}
-      {showCancelConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
-            <h2 className="heading-primary text-xl font-bold mb-2">Cancel Swap Request?</h2>
-            <p className="text-swapcircle-secondary mb-6">
-              Are you sure you want to cancel this swap request? This action cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCancelConfirm(false)}
-                className="btn-secondary flex-1 py-2"
-              >
-                Keep It
-              </button>
-              <button
-                onClick={handleCancelRequest}
-                disabled={cancelLoading}
-                className="btn-primary flex-1 py-2 disabled:opacity-50"
-              >
-                {cancelLoading ? 'Cancelling...' : 'Cancel Request'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ===== MODALS ===== */}
+
+      {/* Approve Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showApproveConfirm}
+        title="Approve Swap Request?"
+        message="Are you sure you want to approve this swap request?"
+        confirmText="Approve"
+        cancelText="Cancel"
+        onConfirm={handleApproveConfirm}
+        onCancel={() => setShowApproveConfirm(false)}
+        isLoading={approveLoading}
+        variant="default"
+      />
+
+      {/* Approve Success Modal */}
+      <SwapProcessingModal
+        isOpen={showApproveSuccess}
+        status="success"
+        actionType="request"
+        onClose={handleApproveSuccess}
+      />
+
+      {/* Reject Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showRejectConfirm}
+        title="Reject Swap Request?"
+        message="Are you sure you want to reject this swap request? The requester will be notified."
+        confirmText="Reject"
+        cancelText="Cancel"
+        onConfirm={handleRejectConfirm}
+        onCancel={() => setShowRejectConfirm(false)}
+        isLoading={rejectLoading}
+        variant="danger"
+      />
+
+      {/* Reject Success Modal */}
+      <SwapProcessingModal
+        isOpen={showRejectSuccess}
+        status="success"
+        actionType="cancel"
+        onClose={handleRejectSuccess}
+      />
+
+      {/* Cancel Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showCancelConfirm}
+        title="Cancel Swap Request?"
+        message="Are you sure you want to cancel this swap request? This action cannot be undone."
+        confirmText="Cancel Request"
+        cancelText="Keep It"
+        onConfirm={handleCancelConfirm}
+        onCancel={() => setShowCancelConfirm(false)}
+        isLoading={cancelLoading}
+        variant="danger"
+      />
+
+      {/* Cancel Success Modal */}
+      <SwapProcessingModal
+        isOpen={showCancelSuccess}
+        status="success"
+        actionType="cancel"
+        onClose={handleCancelSuccess}
+      />
     </div>
   );
 }

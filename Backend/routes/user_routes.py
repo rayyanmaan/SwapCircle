@@ -3,6 +3,10 @@
 from fastapi import APIRouter, HTTPException, status, Request, UploadFile, File, Depends
 
 from services import user_service, auth_service, image_service, swap_service
+from typing import Optional, List
+from fastapi import Query
+from services import storage_service
+from services import user_service, auth_service, image_service
 from models.user_model import UserOut
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -36,6 +40,94 @@ def get_authenticated_user_id(request: Request) -> str:
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token format"
         )
 
+@router.get("/search")
+async def search_users(
+    q: str = Query(..., min_length=1, max_length=100),
+    limit: int = Query(10, ge=1, le=50),
+):
+    """
+    Search for users by username or full name.
+    
+    Query parameters:
+    - q: Search query (required, 1-100 characters)
+    - limit: Max number of results (1-50, default 10)
+    
+    Examples:
+    - GET /users/search?q=aiman
+    - GET /users/search?q=sarah&limit=5
+    """
+    
+    search_query = q.lower().strip()
+    
+    if not search_query:
+        raise HTTPException(
+            status_code=400,
+            detail="Search query cannot be empty"
+        )
+    
+    try:
+        # Get all users from storage
+        all_users = await storage_service.list_users()
+        
+        if not all_users:
+            return {"users": [], "total": 0}
+        
+        # Filter users by username or full name (case-insensitive)
+        matching_users = []
+        for user in all_users:
+            username = user.get("username", "").lower()
+            full_name = user.get("full_name", "").lower()
+            
+            if search_query in username or search_query in full_name:
+                matching_users.append(user)
+        
+        # Sort by relevance
+        def relevance_score(user):
+            username = user.get("username", "").lower()
+            full_name = user.get("full_name", "").lower()
+            
+            if username == search_query:
+                return 0
+            if search_query in username:
+                return 1
+            if search_query in full_name:
+                return 2
+            return 3
+        
+        matching_users.sort(key=relevance_score)
+        matching_users = matching_users[:limit]
+        
+        # Format response with rating stats
+        from services import rating_service
+        
+        formatted_users = []
+        for user in matching_users:
+            rating_stats = await rating_service.get_user_rating_stats(user.get("id"))
+            
+            formatted_users.append({
+                "id": user.get("id"),
+                "username": user.get("username", ""),
+                "full_name": user.get("full_name", ""),
+                "avatar": user.get("profile_pic", ""),
+                "initials": (user.get("full_name") or user.get("username", "U"))[0].upper(),
+                "location": user.get("location", ""),
+                "averageRating": rating_stats.get("average_rating", 0.0),
+                "totalRatings": rating_stats.get("total_ratings", 0),
+                "totalSwaps": user.get("stats", {}).get("totalSwaps", 0) if "stats" in user else 0,
+            })
+        
+        return {
+            "users": formatted_users,
+            "total": len(formatted_users),
+            "query": q
+        }
+        
+    except Exception as e:
+        print(f"Error searching users: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to search users: {str(e)}"
+        )
 
 @router.get("/")
 async def list_users():

@@ -147,3 +147,26 @@ async def delete_item(item_id: str) -> bool:
         # If ObjectId conversion fails, try with string id
         result = await items_collection.delete_one({"id": item_id})
         return result.deleted_count > 0
+
+# ============ USER FUNCTIONS ============
+
+async def list_users() -> List[Dict[str, Any]]:
+    """List all users from the database."""
+    db = get_db()
+    users_collection = db["users"]
+    
+    cursor = users_collection.find({})
+    users = await cursor.to_list(length=None)
+    return [_convert_id(user) for user in users]
+
+
+async def get_user(user_id: str) -> Optional[Dict[str, Any]]:
+    """Get user by ID."""
+    db = get_db()
+    users_collection = db["users"]
+    try:
+        user = await users_collection.find_one({"_id": ObjectId(user_id)})
+    except Exception:
+        # If ObjectId conversion fails, try as string id field
+        user = await users_collection.find_one({"id": user_id})
+    return _convert_id(user)

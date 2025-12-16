@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from './AuthModal';
 import Logo from './Logo';
 import NotificationCenter from './NotificationCenter';
+import { apiRequest } from '@/services/api';
 
 export default function Header() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -15,6 +16,11 @@ export default function Header() {
   const [authMode, setAuthMode] = useState('login');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchDropdownRef = useRef(null);
 
   const openAuthModal = (mode) => {
     setAuthMode(mode);
@@ -30,6 +36,65 @@ export default function Header() {
     setShowLogoutConfirm(false);
     router.push('/');
   };
+
+  // Search for users as user types
+  const handleSearchInput = async (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+
+    if (query.trim().length === 0) {
+      setSearchResults([]);
+      setShowSearchDropdown(false);
+      return;
+    }
+
+    setShowSearchDropdown(true);
+    setSearchLoading(true);
+
+    try {
+      const response = await apiRequest(`/users/search?q=${encodeURIComponent(query)}`);
+      setSearchResults(response.users || []);
+    } catch (error) {
+      console.error('Failed to search users:', error);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearchDropdown(false);
+  };
+
+  // Handle search result click and navigation
+  const handleSearchResultClick = (username) => {
+    console.log('Navigating to profile:', username);
+    setShowSearchDropdown(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    router.push(`/profile/${username}`);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const isSearchResultClick = event.target.closest('[data-search-result]');
+      
+      if (isSearchResultClick) {
+        return;
+      }
+
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   // Scroll to section on homepage
   const scrollToSection = (sectionId) => {
@@ -55,23 +120,26 @@ export default function Header() {
       <header className="sticky top-0 z-40 bg-swapcircle-white border-b border-swapcircle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+            {/* Left: Logo */}
             <div className="flex-shrink-0">
               <Link href="/">
                 <Logo />
               </Link>
             </div>
 
-            {isAuthenticated ? (
-              <>
-                {/* Logged In - Desktop Navigation */}
-                <div className="hidden md:flex items-center flex-1 mx-8 gap-6">
-                  {/* Search Bar */}
-                  <div className="relative flex-1 max-w-md">
+            {/* Middle: Search Bar + Navigation (Logged In) */}
+            {isAuthenticated && (
+              <div className="hidden md:flex items-center gap-8 flex-1 px-8" ref={searchDropdownRef}>
+                {/* User Search Bar with Dropdown */}
+                <div className="relative flex-1 max-w-xl">
+                  <div className="relative">
                     <input
                       type="text"
-                      placeholder="Search items or users..."
+                      placeholder="Search users"
                       className="input-swapcircle search-tube w-full"
+                      value={searchQuery}
+                      onChange={handleSearchInput}
+                      onFocus={() => searchQuery.trim().length > 0 && setShowSearchDropdown(true)}
                     />
                     <svg
                       className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 icon-tertiary pointer-events-none"
@@ -84,27 +152,135 @@ export default function Header() {
                     >
                       <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
+
+                    {/* Clear button */}
+                    {searchQuery && (
+                      <button
+                        onClick={clearSearch}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        aria-label="Clear search"
+                      >
+                        <svg
+                          className="w-5 h-5 text-gray-500"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
 
-                  {/* Navigation Links */}
-                  <nav className="flex items-center gap-6">
-                    <Link href="/browse" className="font-medium link-swapcircle hover:opacity-70 transition-opacity">
-                      Browse
-                    </Link>
-                    <button 
-                      onClick={() => scrollToSection('how-it-works')}
-                      className="font-medium link-swapcircle hover:opacity-70 transition-opacity cursor-pointer bg-none border-none p-0"
-                    >
-                      How it works
-                    </button>
-                    <Link href="/profile" className="font-medium link-swapcircle hover:opacity-70 transition-opacity">
-                      Profile
-                    </Link>
-                  </nav>
+                  {/* Search Dropdown */}
+                  {showSearchDropdown && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-swapcircle rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                      {searchLoading ? (
+                        <div className="p-4 text-center text-gray-500">
+                          <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-swapcircle-primary"></div>
+                        </div>
+                      ) : searchResults.length > 0 ? (
+                        <div className="divide-y divide-gray-200">
+                          {searchResults.map((userResult) => (
+                            <div
+                              key={userResult.id}
+                              data-search-result="true"
+                              onClick={() => handleSearchResultClick(userResult.username)}
+                              className="w-full px-4 py-3 hover:bg-swapcircle-neutral-100 active:bg-gray-100 transition-all duration-150 flex items-center gap-3 text-left cursor-pointer group block"
+                            >
+                              {/* User Avatar with Initials Fallback - Desktop */}
+                              <div className="relative w-12 h-12 rounded-full bg-swapcircle-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                {userResult.avatar ? (
+                                  <img
+                                    src={userResult.avatar}
+                                    alt={userResult.username}
+                                    className="w-full h-full object-cover"
+                                    onLoad={(e) => {
+                                      if (e.target.nextSibling) {
+                                        e.target.nextSibling.style.display = 'none';
+                                      }
+                                    }}
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      if (e.target.nextSibling) {
+                                        e.target.nextSibling.style.display = 'flex';
+                                      }
+                                    }}
+                                  />
+                                ) : null}
+                                <span className="text-white font-bold text-sm" style={{ display: 'flex' }}>
+                                  {userResult.initials || userResult.username[0].toUpperCase()}
+                                </span>
+                              </div>
+
+                              {/* User Info */}
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-swapcircle-primary text-sm truncate">
+                                  {userResult.username}
+                                </h3>
+                                <p className="text-xs text-gray-600 truncate">
+                                  {userResult.full_name || userResult.username}
+                                </p>
+
+                                {/* Rating */}
+                                <div className="flex items-center gap-1 mt-1">
+                                  <span className="text-xs font-medium text-gray-700">
+                                    ⭐ {userResult.averageRating?.toFixed(1) || 'No rating'}
+                                  </span>
+                                  {userResult.totalSwaps > 0 && (
+                                    <span className="text-xs text-gray-500">
+                                      • {userResult.totalSwaps} swaps
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-4 text-center text-gray-500 text-sm">
+                          No users found
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
+                {/* Navigation Links */}
+                <nav className="flex items-center gap-6 whitespace-nowrap">
+                  <Link href="/browse" className="font-medium link-swapcircle hover:opacity-70 transition-opacity">
+                    Browse
+                  </Link>
+                  <button 
+                    onClick={() => scrollToSection('how-it-works')}
+                    className="font-medium link-swapcircle hover:opacity-70 transition-opacity cursor-pointer bg-none border-none p-0"
+                  >
+                    How it works
+                  </button>
+                  <Link href="/profile" className="font-medium link-swapcircle hover:opacity-70 transition-opacity">
+                    Profile
+                  </Link>
+                </nav>
+              </div>
+            )}
+
+            {/* Middle: Browse Link (Not Logged In) */}
+            {!isAuthenticated && (
+              <nav className="hidden md:flex items-center flex-1 px-8">
+                <Link href="/browse" className="font-medium link-swapcircle hover:opacity-70 transition-opacity">
+                  Browse
+                </Link>
+              </nav>
+            )}
+
+            {/* Right: Action Buttons */}
+            {isAuthenticated ? (
+              <>
                 {/* Action Buttons - Logged In */}
-                <div className="hidden md:flex items-center space-x-3">
+                <div className="hidden md:flex items-center space-x-3 flex-shrink-0">
                   <NotificationCenter />
                   
                   <Link href="/profile" className="btn-credit hover:bg-swapcircle-credit/80 transition-colors">
@@ -160,37 +336,8 @@ export default function Header() {
               </>
             ) : (
               <>
-                {/* Not Logged In - Desktop Navigation */}
-                <nav className="hidden md:flex items-center space-x-6">
-                  <Link href="/browse" className="font-medium link-swapcircle hover:opacity-70 transition-opacity">
-                    Browse
-                  </Link>
-                </nav>
-
-                {/* Search Bar - Desktop */}
-                <div className="hidden lg:flex flex-1 max-w-md mx-8">
-                  <div className="relative w-full">
-                    <input
-                      type="text"
-                      placeholder="Search for clothes..."
-                      className="input-swapcircle search-tube"
-                    />
-                    <svg
-                      className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 icon-tertiary pointer-events-none"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
-                </div>
-
                 {/* Auth Buttons */}
-                <div className="hidden md:flex items-center space-x-3">
+                <div className="hidden md:flex items-center space-x-3 flex-shrink-0">
                   <button
                     onClick={() => openAuthModal('login')}
                     className="btn-secondary font-serif font-semibold"
@@ -231,14 +378,17 @@ export default function Header() {
             )}
           </div>
 
-          {/* Mobile Search Bar */}
-          {!isAuthenticated && (
-            <div className="lg:hidden pb-4">
+          {/* Mobile Search Bar - HIDDEN ON DESKTOP */}
+          {isAuthenticated && (
+            <div className="md:hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4" ref={searchDropdownRef}>
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search for clothes..."
-                  className="input-swapcircle search-tube"
+                  placeholder="Search users..."
+                  className="input-swapcircle search-tube w-full"
+                  value={searchQuery}
+                  onChange={handleSearchInput}
+                  onFocus={() => searchQuery.trim().length > 0 && setShowSearchDropdown(true)}
                 />
                 <svg
                   className="absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 icon-tertiary pointer-events-none"
@@ -251,13 +401,100 @@ export default function Header() {
                 >
                   <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
+
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    aria-label="Clear search"
+                  >
+                    <svg
+                      className="w-5 h-5 text-gray-500"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
+
+              {/* Mobile Search Dropdown */}
+              {showSearchDropdown && (
+                <div className="mt-2 bg-white border border-swapcircle rounded-lg shadow-lg max-h-96 overflow-y-auto">
+                  {searchLoading ? (
+                    <div className="p-4 text-center text-gray-500">
+                      <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-swapcircle-primary"></div>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="divide-y divide-gray-200">
+                      {searchResults.map((userResult) => (
+                        <div
+                          key={userResult.id}
+                          data-search-result="true"
+                          onClick={() => handleSearchResultClick(userResult.username)}
+                          className="w-full px-4 py-3 hover:bg-swapcircle-neutral-100 active:bg-gray-100 transition-all duration-150 flex items-center gap-3 text-left cursor-pointer group block"
+                        >
+                          {/* User Avatar with Initials Fallback - Mobile */}
+                          <div className="relative w-10 h-10 rounded-full bg-swapcircle-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            {userResult.avatar ? (
+                              <img
+                                src={userResult.avatar}
+                                alt={userResult.username}
+                                className="w-full h-full object-cover"
+                                onLoad={(e) => {
+                                  if (e.target.nextSibling) {
+                                    e.target.nextSibling.style.display = 'none';
+                                  }
+                                }}
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  if (e.target.nextSibling) {
+                                    e.target.nextSibling.style.display = 'flex';
+                                  }
+                                }}
+                              />
+                            ) : null}
+                            <span className="text-white font-bold text-xs" style={{ display: 'flex' }}>
+                              {userResult.initials || userResult.username[0].toUpperCase()}
+                            </span>
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-swapcircle-primary text-sm truncate">
+                              {userResult.username}
+                            </h3>
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className="text-xs font-medium text-gray-700">
+                                ⭐ {userResult.averageRating?.toFixed(1) || 'No rating'}
+                              </span>
+                              {userResult.totalSwaps > 0 && (
+                                <span className="text-xs text-gray-500">
+                                  • {userResult.totalSwaps}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-gray-500 text-sm">
+                      No users found
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu - HIDDEN ON DESKTOP */}
           {isMobileMenuOpen && (
-            <div className="md:hidden border-t border-swapcircle py-4 space-y-4">
+            <div className="md:hidden border-t border-swapcircle max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-4">
               {isAuthenticated ? (
                 <>
                   <nav className="flex flex-col space-y-3">
