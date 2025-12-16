@@ -1,5 +1,9 @@
 # SwapCircle
 
+## 🎥 Demo Video
+Watch a full walkthrough of SwapCircle’s core features and architecture:  
+👉 https://drive.google.com/drive/folders/19RuniEnLB7I8uOnmebBP-4bIR8VTMZDC
+
 ## 📖 Overview
 SwapCircle is a campus clothing exchange platform that enables students to buy, sell, and swap clothing items within their university community. The platform promotes sustainable fashion and helps students save money while refreshing their wardrobes.
 
