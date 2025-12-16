@@ -349,14 +349,13 @@ class TestCreditPrivacy:
                         "average_rating": 5.0,
                         "total_ratings": 10,
                     }
-                    with patch("routes.user_routes.swap_service.get_approved_swaps_for_user", return_value=[]):
-                        response = client.get(
-                            f"/users/{mock_user['id']}",
-                            headers={"Authorization": f"Bearer {mock_token}"},
-                        )
-                        assert response.status_code == 200
-                        data = response.json()
-                        assert data["credits"] == 10.0
+                    response = client.get(
+                        f"/users/{mock_user['id']}",
+                        headers={"Authorization": f"Bearer {mock_token}"},
+                    )
+                    assert response.status_code == 200
+                    data = response.json()
+                    assert data["credits"] == 10.0
 
     def test_other_profile_hides_credits(
         self,
@@ -381,11 +380,10 @@ class TestCreditPrivacy:
                         "average_rating": 4.0,
                         "total_ratings": 5,
                     }
-                    with patch("routes.user_routes.swap_service.get_approved_swaps_for_user", return_value=[]):
-                        response = client.get(
-                            f"/users/{mock_user2['id']}",
-                            headers={"Authorization": f"Bearer {mock_token}"},
-                        )
-                        assert response.status_code == 200
-                        data = response.json()
-                        assert data["credits"] == 0.0  # Hidden
+                    response = client.get(
+                        f"/users/{mock_user2['id']}",
+                        headers={"Authorization": f"Bearer {mock_token}"},
+                    )
+                    assert response.status_code == 200
+                    data = response.json()
+                    assert data["credits"] == 0.0  # Hidden
