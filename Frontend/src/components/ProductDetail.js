@@ -8,6 +8,8 @@ import Footer from './Footer';
 import SwapSuccessModal from './SwapSuccessModal';
 import SwapProcessingModal from './SwapProcessingModal';
 import AuthModal from './AuthModal';
+import ShareModal from './ShareModal';
+import ReportModal from './ReportModal';
 import { itemsAPI } from '@/services/api';
 import { getItemMetadata, getImageUrl } from '@/utils/itemParser';
 import Toast from './Toast';

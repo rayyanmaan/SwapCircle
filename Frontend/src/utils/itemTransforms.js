@@ -22,6 +22,7 @@ export function toListingCardData(item) {
     size: metadata.size || 'Size M',
     credits: metadata.credits || 2,
     condition: metadata.condition || 'Good',
+    location: metadata.location || null,
     timestamp: 'Recently',
     image: imageUrl,
     status: normalizeStatus(item.status || 'available'),
