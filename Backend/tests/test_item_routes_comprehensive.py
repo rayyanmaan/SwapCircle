@@ -210,19 +210,49 @@ class TestUpdateItem:
 class TestDeleteItem:
     """Tests for DELETE /items/{item_id} endpoint."""
     
-    def test_delete_item_success(self, client, mock_item):
+    def test_delete_item_success(self, client, mock_user, mock_item, mock_token):
         """Test deleting an item."""
-        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=mock_item):
-            with patch("routes.item_routes.image_service.delete_image", new_callable=AsyncMock, return_value=None):
-                with patch("routes.item_routes.storage_service.delete_item", new_callable=AsyncMock, return_value=None):
-                    response = client.delete(f"/items/{mock_item['id']}")
-                    assert response.status_code == 204
+        # Ensure mock_item has status "available" to trigger credit deduction
+        test_item = {**mock_item, "status": "available"}
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=test_item):
+            with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value=mock_user["id"]):
+                with patch("routes.item_routes.image_service.delete_image", new_callable=AsyncMock, return_value=None):
+                    with patch("routes.item_routes.storage_service.delete_item", new_callable=AsyncMock, return_value=None):
+                        with patch("routes.item_routes.credit_service.deduct_credits", new_callable=AsyncMock, return_value=1.0):
+                            response = client.delete(
+                                f"/items/{test_item['id']}",
+                                headers={"Authorization": f"Bearer {mock_token}"}
+                            )
+                            assert response.status_code == 204
     
-    def test_delete_item_not_found(self, client):
+    def test_delete_item_not_found(self, client, mock_user, mock_token):
         """Test deleting a non-existent item."""
         with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=None):
-            response = client.delete("/items/nonexistent")
-            assert response.status_code == 404
+            with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value=mock_user["id"]):
+                response = client.delete(
+                    "/items/nonexistent",
+                    headers={"Authorization": f"Bearer {mock_token}"}
+                )
+                assert response.status_code == 404
+    
+    def test_delete_item_not_owner(self, client, mock_user, mock_item, mock_token):
+        """Test deleting an item when user is not the owner."""
+        # Set item owner to different user
+        test_item = {**mock_item, "owner_id": "different_user"}
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=test_item):
+            with patch("routes.item_routes.auth_service.get_user_id_from_request", return_value=mock_user["id"]):
+                response = client.delete(
+                    f"/items/{test_item['id']}",
+                    headers={"Authorization": f"Bearer {mock_token}"}
+                )
+                assert response.status_code == 403
+                assert "owner" in response.json()["detail"].lower()
+    
+    def test_delete_item_no_auth(self, client, mock_item):
+        """Test deleting an item without authentication."""
+        with patch("routes.item_routes.storage_service.get_item", new_callable=AsyncMock, return_value=mock_item):
+            response = client.delete(f"/items/{mock_item['id']}")
+            assert response.status_code == 401
 
 
 class TestLockItem:
@@ -300,4 +330,3 @@ class TestUnlockItem:
                 )
                 assert response.status_code == 400
                 assert "not locked" in response.json()["detail"]
-
