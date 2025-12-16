@@ -20,7 +20,7 @@ export function toListingCardData(item) {
     id: item.id,
     title: item.title,
     size: metadata.size || 'Size M',
-    credits: metadata.credits || 2,
+    credits: metadata.credits || 1,
     condition: metadata.condition || 'Good',
     location: metadata.location || null,
     timestamp: 'Recently',
