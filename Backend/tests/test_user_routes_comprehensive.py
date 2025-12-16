@@ -33,11 +33,12 @@ class TestGetUserByUsername:
         """Test getting user by username."""
         with patch("routes.user_routes.user_service.get_user_by_username", return_value=mock_user):
             with patch("services.rating_service.get_user_rating_stats", new_callable=AsyncMock, return_value={"average_rating": 4.5, "total_ratings": 10}):
-                response = client.get(f"/users/username/{mock_user['username']}")
-                assert response.status_code == 200
-                data = response.json()
-                assert data["username"] == mock_user["username"]
-                assert "average_rating" in data
+                with patch("routes.user_routes.swap_service.get_approved_swaps_for_user", new_callable=AsyncMock, return_value=[]):
+                    response = client.get(f"/users/username/{mock_user['username']}")
+                    assert response.status_code == 200
+                    data = response.json()
+                    assert data["username"] == mock_user["username"]
+                    assert "average_rating" in data
     
     def test_get_user_by_username_not_found(self, client):
         """Test getting non-existent user by username."""
@@ -53,10 +54,11 @@ class TestGetUserById:
         """Test getting user by ID."""
         with patch("routes.user_routes.user_service.get_user_by_id", return_value=mock_user):
             with patch("services.rating_service.get_user_rating_stats", new_callable=AsyncMock, return_value={"average_rating": 4.5, "total_ratings": 10}):
-                response = client.get(f"/users/{mock_user['id']}")
-                assert response.status_code == 200
-                data = response.json()
-                assert data["id"] == mock_user["id"]
+                with patch("routes.user_routes.swap_service.get_approved_swaps_for_user", new_callable=AsyncMock, return_value=[]):
+                    response = client.get(f"/users/{mock_user['id']}")
+                    assert response.status_code == 200
+                    data = response.json()
+                    assert data["id"] == mock_user["id"]
     
     def test_get_user_by_id_not_found(self, client):
         """Test getting non-existent user by ID."""
@@ -75,14 +77,15 @@ class TestUpdateUser:
             with patch("routes.user_routes.user_service.get_user_by_id", return_value=mock_user):
                 with patch("routes.user_routes.user_service.update_user", return_value=updated_user):
                     with patch("services.rating_service.get_user_rating_stats", new_callable=AsyncMock, return_value={"average_rating": 4.5, "total_ratings": 10}):
-                        response = client.patch(
-                            f"/users/{mock_user['id']}",
-                            json={"full_name": "Updated Name"},
-                            headers={"Authorization": f"Bearer {mock_token}"}
-                        )
-                        assert response.status_code == 200
-                        data = response.json()
-                        assert data["full_name"] == "Updated Name"
+                        with patch("routes.user_routes.swap_service.get_approved_swaps_for_user", new_callable=AsyncMock, return_value=[]):
+                            response = client.patch(
+                                f"/users/{mock_user['id']}",
+                                json={"full_name": "Updated Name"},
+                                headers={"Authorization": f"Bearer {mock_token}"}
+                            )
+                            assert response.status_code == 200
+                            data = response.json()
+                            assert data["full_name"] == "Updated Name"
     
     def test_update_user_not_owner(self, client, mock_user, mock_token):
         """Test updating another user's profile (should fail)."""
@@ -120,13 +123,14 @@ class TestUploadProfilePicture:
                 with patch("routes.user_routes.image_service.upload_image", return_value=("/static/images/profile.jpg", "img123")):
                     with patch("routes.user_routes.user_service.update_user", return_value=updated_user):
                         with patch("services.rating_service.get_user_rating_stats", new_callable=AsyncMock, return_value={"average_rating": 4.5, "total_ratings": 10}):
-                            files = {"file": ("profile.jpg", BytesIO(b"fake image data"), "image/jpeg")}
-                            response = client.post(
-                                f"/users/{mock_user['id']}/profile-picture",
-                                files=files,
-                                headers={"Authorization": f"Bearer {mock_token}"}
-                            )
-                            assert response.status_code == 200
+                            with patch("routes.user_routes.swap_service.get_approved_swaps_for_user", new_callable=AsyncMock, return_value=[]):
+                                files = {"file": ("profile.jpg", BytesIO(b"fake image data"), "image/jpeg")}
+                                response = client.post(
+                                    f"/users/{mock_user['id']}/profile-picture",
+                                    files=files,
+                                    headers={"Authorization": f"Bearer {mock_token}"}
+                                )
+                                assert response.status_code == 200
                             data = response.json()
                             assert data["profile_pic"] == "/static/images/profile.jpg"
     
