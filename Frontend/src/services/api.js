@@ -2,7 +2,7 @@
  * API service for making HTTP requests to the backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_BASE_URL } from '@/config/constants';
 
 // Validate API_BASE_URL
 if (typeof window !== 'undefined' && !API_BASE_URL.startsWith('http')) {

@@ -14,6 +14,7 @@ from pydantic import ValidationError
 from contextlib import asynccontextmanager
 
 from database.connection import connect_db, close_db
+from config_defaults.constants import CORS_ORIGINS
 from routes.item_routes import router as items_router
 from routes.auth_routes import router as auth_router
 from routes.user_routes import router as users_router
@@ -40,44 +41,45 @@ app = FastAPI(title="SwapCircle Backend", lifespan=lifespan)
 
 # CORS - configure allowed origins from environment variable
 # IMPORTANT: CORS middleware must be added BEFORE routers to handle OPTIONS preflight requests
-# Default to localhost for development, but allow production URL via env var
-import os
-from config import settings
+# CORS configuration imported from centralized constants at top of file
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
+import os
 
-# Get allowed origins from environment variable, default to localhost
-allowed_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:3000")
-# Normalize origins: remove trailing slashes and strip whitespace
-allowed_origins = [
-    origin.strip().rstrip("/") for origin in allowed_origins_str.split(",")
-]
+# Toggle noisy CORS debug logging via env. Default false to keep logs clean in Docker.
+DEBUG_CORS = os.getenv("DEBUG_CORS", "false").lower() == "true"
 
-# Debug: Print CORS configuration on startup
-print(f"CORS Configuration: allowed_origins={allowed_origins}")
+# CORS origins are already normalized in config_defaults/constants.py
+allowed_origins = CORS_ORIGINS
+
+# Debug: Print CORS configuration on startup (guarded by DEBUG_CORS)
+if DEBUG_CORS:
+    print(f"CORS Configuration: allowed_origins={allowed_origins}")
 
 
 # Custom middleware to handle OPTIONS requests before they hit route handlers
 class OptionsMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # Log ALL requests for debugging
-        print("\n" + "=" * 80)
-        print(f"[OptionsMiddleware] Request received:")
-        print(f"  Method: {request.method}")
-        print(f"  Path: {request.url.path}")
-        print(f"  Full URL: {request.url}")
-        print(f"  Origin: {request.headers.get('origin', 'None')}")
-        print(f"  Headers: {dict(request.headers)}")
-        print(f"  Query params: {dict(request.query_params)}")
-        print("=" * 80)
+        # Log ALL requests for debugging (guarded)
+        if DEBUG_CORS:
+            print("\n" + "=" * 80)
+            print(f"[OptionsMiddleware] Request received:")
+            print(f"  Method: {request.method}")
+            print(f"  Path: {request.url.path}")
+            print(f"  Full URL: {request.url}")
+            print(f"  Origin: {request.headers.get('origin', 'None')}")
+            print(f"  Headers: {dict(request.headers)}")
+            print(f"  Query params: {dict(request.query_params)}")
+            print("=" * 80)
 
         # Handle OPTIONS requests immediately
         if request.method == "OPTIONS":
             origin = request.headers.get("origin")
-            print(
-                f"[OptionsMiddleware] OPTIONS request intercepted: {request.url.path} from origin: {origin}"
-            )
-            print(f"[OptionsMiddleware] Allowed origins: {allowed_origins}")
+            if DEBUG_CORS:
+                print(
+                    f"[OptionsMiddleware] OPTIONS request intercepted: {request.url.path} from origin: {origin}"
+                )
+                print(f"[OptionsMiddleware] Allowed origins: {allowed_origins}")
 
             headers = {
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
@@ -91,31 +93,35 @@ class OptionsMiddleware(BaseHTTPMiddleware):
 
             # Only set Access-Control-Allow-Origin if origin is in allowed list
             if normalized_origin and normalized_origin in allowed_origins:
-                headers["Access-Control-Allow-Origin"] = (
-                    origin  # Use original origin in header
-                )
-                print(
-                    f"[OptionsMiddleware] ✅ OPTIONS request ALLOWED for origin: {origin}"
-                )
+                headers["Access-Control-Allow-Origin"] = origin  # Use original origin in header
+                if DEBUG_CORS:
+                    print(
+                        f"[OptionsMiddleware] ✅ OPTIONS request ALLOWED for origin: {origin}"
+                    )
             elif origin:
-                print(
-                    f"[OptionsMiddleware] ❌ OPTIONS request BLOCKED - origin '{origin}' (normalized: '{normalized_origin}') not in allowed_origins: {allowed_origins}"
-                )
+                if DEBUG_CORS:
+                    print(
+                        f"[OptionsMiddleware] ❌ OPTIONS request BLOCKED - origin '{origin}' (normalized: '{normalized_origin}') not in allowed_origins: {allowed_origins}"
+                    )
             else:
-                print("[OptionsMiddleware] ⚠️ OPTIONS request with no origin header")
+                if DEBUG_CORS:
+                    print("[OptionsMiddleware] ⚠️ OPTIONS request with no origin header")
 
-            print(f"[OptionsMiddleware] Returning 200 OK with headers: {headers}")
+            if DEBUG_CORS:
+                print(f"[OptionsMiddleware] Returning 200 OK with headers: {headers}")
             return Response(content="", status_code=200, headers=headers)
 
         # For non-OPTIONS requests, continue to next middleware/handler
-        print(
-            f"[OptionsMiddleware] Non-OPTIONS request ({request.method}), passing to next handler for {request.url.path}..."
-        )
+        if DEBUG_CORS:
+            print(
+                f"[OptionsMiddleware] Non-OPTIONS request ({request.method}), passing to next handler for {request.url.path}..."
+            )
         try:
             response = await call_next(request)
-            print(
-                f"[OptionsMiddleware] ✅ Response status: {response.status_code} for {request.method} {request.url.path}"
-            )
+            if DEBUG_CORS:
+                print(
+                    f"[OptionsMiddleware] ✅ Response status: {response.status_code} for {request.method} {request.url.path}"
+                )
 
             # Add CORS headers to all responses (including 405 errors)
             origin = request.headers.get("origin")
@@ -125,18 +131,20 @@ class OptionsMiddleware(BaseHTTPMiddleware):
                     origin  # Use original origin
                 )
                 response.headers["Access-Control-Allow-Credentials"] = "true"
-                print(
-                    f"[OptionsMiddleware] Added CORS headers to response for origin: {origin}"
-                )
+                if DEBUG_CORS:
+                    print(
+                        f"[OptionsMiddleware] Added CORS headers to response for origin: {origin}"
+                    )
 
             # Log 405 errors specifically
             if response.status_code == 405:
-                print(
-                    f"[OptionsMiddleware] ⚠️ 405 Method Not Allowed for {request.method} {request.url.path}"
-                )
-                print(
-                    f"[OptionsMiddleware] This means FastAPI found a route for the path but not the method"
-                )
+                if DEBUG_CORS:
+                    print(
+                        f"[OptionsMiddleware] ⚠️ 405 Method Not Allowed for {request.method} {request.url.path}"
+                    )
+                    print(
+                        f"[OptionsMiddleware] This means FastAPI found a route for the path but not the method"
+                    )
 
             return response
         except Exception as e:

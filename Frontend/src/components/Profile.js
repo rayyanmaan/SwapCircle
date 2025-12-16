@@ -67,17 +67,9 @@ export default function Profile({ username: usernameProp }) {
     return links[platform] || value;
   };
 
-  const listingCards = listings.map((item) => {
-    const transformed = toListingCardData(item);
-    if (!transformed) return null;
-    return { ...transformed, imageUrl: transformed.image };
-  }).filter(Boolean);
+  const listingCards = listings;
 
-  const favoriteCards = favorites.map((item) => {
-    const transformed = toListingCardData(item);
-    if (!transformed) return null;
-    return { ...transformed, imageUrl: transformed.image };
-  }).filter(Boolean);
+  const favoriteCards = favorites;
 
   const getCurrentListings = () => {
     switch (activeTab) {

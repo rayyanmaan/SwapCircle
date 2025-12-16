@@ -7,7 +7,7 @@ local and production environments via environment variables.
 from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Optional
 
-from config import settings
+from config_defaults.settings import settings
 
 
 _db_client: Optional[AsyncIOMotorClient] = None

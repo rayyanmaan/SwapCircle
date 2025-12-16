@@ -9,7 +9,7 @@ import uuid
 import asyncio
 import firebase_admin
 from firebase_admin import credentials, storage
-from config import settings
+from config_defaults.settings import settings
 
 
 # Initialize Firebase Admin SDK (singleton pattern)

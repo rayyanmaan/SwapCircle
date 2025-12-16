@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { API_BASE_URL } from '@/config/constants';
 import Footer from '@/components/Footer';
 
 // Modal type constants to prevent typos
@@ -52,8 +53,7 @@ export default function ContactPage() {
     setFieldErrors({});
     
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiUrl}/contact`, {
+      const response = await fetch(`${API_BASE_URL}/contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -5,6 +5,8 @@
  * backward compatibility for old items that stored metadata in description.
  */
 
+import { PLACEHOLDER_IMAGE_URL, API_BASE_URL } from '@/config/constants';
+
 /**
  * Get item metadata, preferring direct fields but falling back to parsing description
  * @param {Object} item - The item object (may have direct fields or metadata in description)
@@ -135,13 +137,13 @@ export function getImageUrl(image, apiBaseUrl = null) {
   // Safety check: ensure image.url is a non-empty string.
   // Prevents crashes from malformed backend data (non-string types, nulls, empty/whitespace strings).
   if (!image || typeof image.url !== 'string' || !image.url.trim()) {
-    return process.env.NEXT_PUBLIC_PLACEHOLDER_URL || '/placeholder.svg';
+    return PLACEHOLDER_IMAGE_URL;
   }
 
   const trimmedUrl = image.url.trim();
 
-  // Use provided base URL, fall back to env var, then localhost
-  const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  // Use provided base URL, fall back to centralized config
+  const baseUrl = apiBaseUrl || API_BASE_URL;
   
   // If URL already starts with http(s), it's absolute — return as is
   // This handles external CDN URLs or fully-qualified backend URLs
