@@ -37,6 +37,9 @@ export default function ProductDetail({ product }) {
   const [productStatus, setProductStatus] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
   // Transform backend product data to component format
   const transformProduct = (productData) => {
@@ -110,6 +113,34 @@ export default function ProductDetail({ product }) {
     } catch (error) {
       console.error('Error updating favorite:', error);
       setToastMessage('Failed to update favorite');
+      setToastType('error');
+      setShowToast(true);
+    }
+  };
+
+  const handleDeleteItem = async () => {
+    setDeleteLoading(true);
+    try {
+      await itemsAPI.deleteItem(productData.id);
+      
+      // 🔑 KEY FIX: Refresh user to update AuthContext (Header will re-render immediately)
+      if (refreshUser) {
+        await refreshUser();
+      }
+      
+      // Show success modal
+      setShowDeleteConfirm(false);
+      setShowDeleteSuccess(true);
+
+      // Auto-dismiss after 8 seconds and redirect
+      setTimeout(() => {
+        router.push('/profile?tab=listings');
+      }, 8000);
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      setDeleteLoading(false);
+      setShowDeleteConfirm(false);
+      setToastMessage(error.message || 'Failed to delete item');
       setToastType('error');
       setShowToast(true);
     }
@@ -481,15 +512,26 @@ export default function ProductDetail({ product }) {
             {/* Action Buttons */}
             <div className="flex space-x-3">
               {isOwner ? (
-                <button 
-                  onClick={() => router.push(`/product/${productData.id}/edit`)}
-                  className="btn-primary flex-1 py-3 flex items-center justify-center space-x-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                  <span>Edit Item</span>
-                </button>
+                <>
+                  <button 
+                    onClick={() => router.push(`/product/${productData.id}/edit`)}
+                    className="btn-primary flex-1 py-3 flex items-center justify-center space-x-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span>Edit Item</span>
+                  </button>
+                  <button 
+                    onClick={() => setShowDeleteConfirm(true)}
+                    className="btn-secondary flex-1 py-3 flex items-center justify-center space-x-2 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Delete</span>
+                  </button>
+                </>
               ) : (
                 <>
                   <button 
@@ -522,6 +564,64 @@ export default function ProductDetail({ product }) {
       </div>
       
       <Footer />
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full">
+            {/* Logo circles */}
+            <div className="relative flex items-center justify-center mb-6">
+              <div className="relative w-7 h-7 rounded-full border-3 border-swapcircle-primary -mr-2 z-10" />
+              <div className="relative w-7 h-7 rounded-full border-3 -ml-2 z-0" style={{ borderColor: '#0F0F0F' }} />
+            </div>
+
+            <h2 className="heading-primary text-xl font-bold text-center mb-2">Delete Item?</h2>
+            <p className="text-swapcircle-secondary text-center mb-8 text-sm leading-relaxed">
+              Are you sure you want to delete <strong>{productData.title}</strong>? This action cannot be undone and the item will be removed from all listings.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="btn-secondary flex-1 py-2.5 disabled:opacity-50 transition-opacity"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteItem}
+                disabled={deleteLoading}
+                className="bg-red-600 hover:bg-red-700 text-white flex-1 py-2.5 rounded-lg font-medium disabled:opacity-50 transition-opacity"
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Success Modal */}
+      {showDeleteSuccess && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full flex flex-col items-center">
+            {/* Logo circles */}
+            <div className="relative flex items-center mb-6">
+              <div className="relative w-7 h-7 rounded-full border-3 border-swapcircle-primary -mr-2 z-10" />
+              <div className="relative w-7 h-7 rounded-full border-3 -ml-2 z-0" style={{ borderColor: '#0F0F0F' }} />
+            </div>
+
+            <h2 className="heading-primary text-lg font-bold text-center mb-1">Item Deleted!</h2>
+            <p className="text-swapcircle-secondary text-center text-xs mb-4">
+              Your item has been removed from all listings
+            </p>
+
+            <button
+              onClick={() => router.push('/profile?tab=listings')}
+              className="btn-primary px-6 py-1.5 text-sm"
+            >
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Confirmation Modal */}
       {showCancelConfirm && (

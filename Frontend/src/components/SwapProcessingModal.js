@@ -2,9 +2,16 @@
 
 import { useState, useEffect } from 'react';
 
-export default function SwapProcessingModal({ isOpen, status = 'processing', actionType = 'request', onClose }) {
+export default function SwapProcessingModal({ 
+  isOpen, 
+  status = 'processing', 
+  actionType = 'request', 
+  onClose,
+  customSuccessMessage = null,
+  customSuccessSubtitle = null
+}) {
   // status: 'processing', 'success', 'error'
-  // actionType: 'request', 'cancel'
+  // actionType: 'request', 'cancel', 'approve', 'reject'
 
   // Auto-close after 8 seconds for success
   useEffect(() => {
@@ -27,9 +34,19 @@ export default function SwapProcessingModal({ isOpen, status = 'processing', act
       title: 'Request cancelled!',
       subtitle: 'You can request other items',
     },
+    approve: {
+      title: 'Swap approved!',
+      subtitle: 'Credits have been transferred',
+    },
+    reject: {
+      title: 'Swap request rejected',
+      subtitle: 'The requester will be notified',
+    },
   };
 
-  const successMessage = successMessages[actionType] || successMessages.request;
+  const successMessage = customSuccessMessage 
+    ? { title: customSuccessMessage, subtitle: customSuccessSubtitle || '' }
+    : (successMessages[actionType] || successMessages.request);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
