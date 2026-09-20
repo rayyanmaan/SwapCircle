@@ -1,14 +1,26 @@
-.venv
-_pycache_/
+# Secrets — nothing below may ever be committed
+.env
+.env.*
+!.env.example
+*firebase-adminsdk*.json
+*service-account*.json
+*-credentials.json
+
+# Python
 __pycache__/
-Backend/__pycache__/
-Backend/models/__pycache__/
-Backend/routes/__pycache__/
-Backend/services/__pycache__/
-Backend/database/__pycache__/
-Frontend/__pycache__/
-*.pyc
-**/*.pyc
-Frontend/.next/
-Frontend/node_modules/
-*.log
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+Backend/test_output.txt
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+coverage/
+
+# OS
+.DS_Store
